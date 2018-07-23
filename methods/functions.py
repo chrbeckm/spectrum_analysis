@@ -228,47 +228,55 @@ def FitSpectrum(x, y, label):
     plt.show()
     return fitresult
 
-#     def FitSpectrumInit(self, label):
-#         """
-#         Fit the spectrum with the fit params of another spectrum (given by label) as initial values. Useful when you fit big number of similar spectra.
-#         """
-#         borders = np.genfromtxt(label + '/spectrumborders_' + label + '.txt', unpack = True)
-#         np.savetxt(self.label + '/spectrumborders_' + self.label + '.txt', borders)
-#         self.y = self.y[(self.x > borders[0])  &  (self.x < borders[-1])]
-#         self.x = self.x[(self.x > borders[0])  &  (self.x < borders[-1])]
-#         FitData =  np.load(label + '/fitparams_' + label + '.npz')
-#         baseline = FitData['c'] / self.maxyvalue
-#         ctr = FitData['x0']
-#         sigma = FitData['sigma']
-#         gamma = FitData['gamma']
-#         ramanmodel = ConstantModel()
-#         ramanmodel.set_param_hint('c', value = baseline[0], min = 0)
-#
-#         for i in range(len(sigma)):
-#             prefix = 'p' + str(i + 1)
-#             tempvoigt = Model(func = voigt, prefix = prefix)
-#             tempvoigt.set_param_hint(prefix + 'x0', value = ctr[i], min = 0)
-#             tempvoigt.set_param_hint(prefix + 'sigma', value = sigma[i], min = 0)
-#             tempvoigt.set_param_hint(prefix + 'gamma', value = gamma[i], min = 0)
-#             tempvoigt.set_param_hint(prefix + 'height', expr = 'wofz(((0) + 1j*'+ prefix + 'gamma) / '+ prefix + 'sigma / sqrt(2)).real')
-#             tempvoigt.set_param_hint(prefix + 'fwhm', expr = '0.5346 * 2 *' + prefix + 'gamma + sqrt(0.2166 * (2*' + prefix + 'gamma)**2 + (2 * ' + prefix + 'sigma * sqrt(2 * log(2) ) )**2  )')
-#             ramanmodel += tempvoigt
-#
-#         pars = ramanmodel.make_params()
-#         fitresult = ramanmodel.fit(self.y, pars, x = self.x, scale_covar = True)
-#
-#         plt.clf()
-#         comps = fitresult.eval_components()
-#         xplot = np.linspace(self.x[0], self.x[-1], 1000)
-#         plt.plot(self.x, self.y* self.maxyvalue, 'r-')
-#         plt.plot(self.x, fitresult.best_fit* self.maxyvalue)
-#         for i in range(0, len(sigma)):
-#             plt.plot(self.x, comps['p' + str(i+1)]* self.maxyvalue + comps['constant']* self.maxyvalue, 'k-')
-#         plt.savefig(self.label + '/rawplot_' + self.label + '.pdf')
-#         save_modelresult(fitresult, self.label + '/modelresult_' + self.label + '.sav')
-#         plt.clf()
-#
-#
+def FitSpectrumInit(x, y, oldlabel, label):
+    # Fit the spectrum with the fit params of another spectrum
+    # (given by label) as initial values. Useful when you fit big number
+    # of similar spectra.
+
+    borders = np.genfromtxt(oldlabel + '/spectrumborders_' + oldlabel + '.txt',
+                            unpack = True)
+    np.savetxt(label + '/spectrumborders_' + label + '.txt', borders)
+    maxyvalue = np.max(y)
+    y = y[(x > borders[0])  &  (x < borders[-1])]
+    x = x[(x > borders[0])  &  (x < borders[-1])]
+    FitData =  np.load(oldlabel + '/fitparams_' + oldlabel + '.npz')
+    baseline = FitData['c'] / maxyvalue
+    ctr = FitData['x0']
+    sigma = FitData['sigma']
+    gamma = FitData['gamma']
+    ramanmodel = ConstantModel()
+    ramanmodel.set_param_hint('c', value = baseline[0], min = 0)
+
+    for i in range(len(sigma)):
+        prefix = 'p' + str(i + 1)
+        temp = Model(func = voigtn, prefix = prefix)
+        temp.set_param_hint(prefix + 'x0', value = ctr[i], min = 0)
+        temp.set_param_hint(prefix + 'sigma', value = sigma[i], min = 0)
+        temp.set_param_hint(prefix + 'gamma', value = gamma[i], min = 0)
+        temp.set_param_hint(prefix + 'height', expr = 'wofz(((0) + 1j*'+
+                            prefix + 'gamma) / '+ prefix +
+                            'sigma / sqrt(2)).real')
+        temp.set_param_hint(prefix + 'fwhm', expr = '0.5346 * 2 *' + prefix +
+                            'gamma + sqrt(0.2166 * (2*' + prefix +
+                            'gamma)**2 + (2 * ' + prefix +
+                            'sigma * sqrt(2 * log(2) ) )**2  )')
+        ramanmodel += temp
+
+    pars = ramanmodel.make_params()
+    fitresult = ramanmodel.fit(y, pars, x = x, scale_covar = True)
+
+    plt.clf()
+    comps = fitresult.eval_components()
+    xplot = np.linspace(x[0], x[-1], 1000)
+    plt.plot(x, y*maxyvalue, 'rx')
+    plt.plot(x, fitresult.best_fit*maxyvalue)
+    for i in range(0, len(sigma)):
+        plt.plot(x, comps['p' + str(i+1)]*maxyvalue +
+                 comps['constant']*maxyvalue, 'k-')
+    plt.savefig(label + '/rawplot_' + label + '.pdf')
+    plt.clf()
+    return fitresult
+
 def SaveFitParams(x, y, fitresult, label):
     #Save the Results of the fit in a .zip file using numpy.savez().
 
