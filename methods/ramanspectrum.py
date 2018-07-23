@@ -1,18 +1,18 @@
 import numpy as np
+
 import matplotlib.pyplot as plt
-from uncertainties import correlated_values
-from scipy.optimize import curve_fit
+
+from uncertainties import correlated_values, ufloat
 from uncertainties.unumpy import nominal_values as noms
 from uncertainties.unumpy import std_devs as stds
+
+from scipy.optimize import curve_fit
+from scipy.special import wofz, erf
+
 from lmfit import Model
-from scipy.special import wofz
-from scipy.special import erf
 from lmfit.models import ConstantModel
-from lmfit.model import save_modelresult
-from lmfit.model import load_modelresult
-from lmfit.model import save_model
-from lmfit.model import load_model
-from uncertainties import ufloat
+from lmfit.model import save_modelresult, load_modelresult
+from lmfit.model import save_model, load_model
 
 def voigt(x, x0, sigma, gamma):
     """
