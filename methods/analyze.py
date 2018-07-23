@@ -5,17 +5,14 @@ import time
 
 
 def analyze(label):
-    """
-    Combination of the methods provided by ramanspectrum class.
-    """
+    # Combination of the methods provided by functions.py
 
-    x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
-    print(maxyvalue)
-    #spec = ramanspectrum(label + '/data_' + label + '.txt', label = label)
-    #spec.SelectSpectrum()
-    #spec.SelectBaseline()
-    #spec.SelectPeaks()
-    #spec.FitSpectrum()
+    x, y = initialize(label + '/data_' + label + '.txt')
+    xred, yred = SelectSpectrum(x, y, label)
+    baselinefile = SelectBaseline(xred, yred, label)
+    SelectPeaks(xred, yred, label)
+    fitresult = FitSpectrum(xred, yred, label)
+    SaveFitParams(xred, yred, fitresult, label)
 
 
 if __name__ == '__main__':

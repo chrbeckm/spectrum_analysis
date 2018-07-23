@@ -3,11 +3,9 @@ import glob
 import shutil
 
 def create_structure():
-    """
-    Method to create a folder structure for the spectra.
-    Later you can store the results for every spectrum in the folder
-    named by the file with the original data.
-    """
+    # Method to create a folder structure for the spectra.
+    # Later you can store the results for every spectrum in the folder
+    # named by the file with the original data.
 
     # take all files in the current folder with *.txt ending
     labels = glob.glob('*.txt')
