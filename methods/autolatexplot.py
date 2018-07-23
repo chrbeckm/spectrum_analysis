@@ -1,7 +1,5 @@
-"""
-Run autolatexplot.py labels.txt. Creates latex plots for all spectra in labels.txt.
-"""
-
+# Run autolatexplot.py labels.txt.
+# Creates latex plots for all spectra in labels.txt.
 
 from latexplot import *
 import sys

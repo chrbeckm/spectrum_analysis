@@ -1,8 +1,4 @@
-"""
-Creates Plot of the fit result with latex fonts.
-"""
-
-
+# Creates Plot of the fit results with latex fonts.
 
 import uncertainties.unumpy as unp
 from scipy.special import wofz
@@ -10,6 +6,7 @@ import matplotlib as mlp
 mlp.use('pgf')
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+import numpy as np
 
 rcParams['font.family'] = 'serif'
 rcParams['font.serif'] = '[lmroman10-regular]:+tlig;'  #change font here
@@ -23,15 +20,14 @@ rcParams['axes.formatter.use_mathtext'] = True
 rcParams['legend.fontsize'] = 10
 rcParams['figure.figsize'] = 5.906, 3.937 #size of plot in inches
 rcParams['savefig.dpi'] = 300
+
 from matplotlib.patches import Rectangle
 from uncertainties.unumpy import nominal_values as noms
 from uncertainties.unumpy import std_devs as stds
-from siunitx import *
 import sys
 
 def voigt(x, x0, sigma, gamma):
     return  np.real(wofz(((x - x0) + 1j*gamma) / sigma / np.sqrt(2)))
-
 
 def latexplot(label):
     plt.clf()
@@ -52,7 +48,6 @@ def latexplot(label):
     yfit = np.ones(len(xplot)) * baseline
     for i in range(0, len(sigma)):
         ypeak = voigt(xplot, ctr[i], sigma[i], gamma[i]) * np.max(y)
-        #ax.text(ctr[i], voigt(ctr[i], ctr[i], sigma[i], gamma[i]) * np.max(y) + baseline, str(i + 1), fontsize=9) 
         if i == 0:
             ax.plot(xplot, ypeak + baseline , linewidth = 0.5, color = 'grey', label = 'Peaks')
         else:
@@ -60,11 +55,8 @@ def latexplot(label):
 
         yfit += ypeak
 
-
-
     ax.plot(x, y, 'b-',label = 'Data', linewidth = 0.5)
     ax.plot(xplot, yfit, 'r-', label = 'Fit', linewidth = 0.5)
-    #siunitx_ticklabels(ax)
 
     ax.set_xlabel(r'Raman Shift' r'$\displaystyle \,  / \si{cm^{-1}}$')
     ax.set_ylabel(r'Intensity' r'$\displaystyle\,  /  \si{Counts\per\second}$')

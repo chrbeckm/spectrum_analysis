@@ -1,6 +1,14 @@
 # spectrum_analysis
 Python methods to fit spectra, interactively or automatically.
 
+## Needed packages
+
+uncertainties
+matplotlib
+uncertainties
+scipy
+lmfit
+
 ## How to use the methods for spectrum fit:
 
 **step 1**: put all the spectra you want to analyze in the methods folder
