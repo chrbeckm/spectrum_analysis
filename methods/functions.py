@@ -34,6 +34,33 @@ def initialize(data_file):
                                                     # faster fit
     return x, y, maxyvalue                          # return x and y
 
+def PlotVerticalLines(ymax, color, fig):
+    # create variable for x-region and define range
+    xregion = []
+    # choose region by clicking on the plot
+    def onclickbase(event):
+        if event.button:
+            xregion.append(event.xdata)
+            # plot vertical lines to mark chosen region
+            plt.vlines(x = event.xdata, color = color, linestyle = '--',
+                       ymin = 0, ymax = ymax)
+            if(len(xregion) % 2 == 0 & len(xregion) != 1):
+                barx0 = np.array([(xregion[-1] - xregion[-2])/2])
+                height = np.array([ymax])
+                width = np.array([xregion[-1] - xregion[-2]])
+                # fill region between vlines
+                plt.bar(xregion[-2], height = height, width = width,
+                        align = 'edge', facecolor = color, alpha=0.2,
+                        edgecolor='black',linewidth = 5, ecolor = 'black',
+                        bottom = 0)
+            fig.canvas.draw()
+
+    cid = fig.canvas.mpl_connect('button_press_event', onclickbase)
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+
+    return xregion
+
 def SelectSpectrum(x, y, label):
     # Select the interesting region in the spectrum, by clicking on the plot
 
@@ -44,29 +71,8 @@ def SelectSpectrum(x, y, label):
     ax.set_ylim(bottom = 0)         # set ylim as zero
     ymax = np.max(y)                # calculate max of y
 
-    # create variable for x-region and define range
-    xregion = []
-    # choose region by clicking on the plot
-    def onclickbase(event):
-        if event.button:
-            xregion.append(event.xdata)
-            # plot vertical lines to marke chosen region
-            plt.vlines(x = event.xdata, color = 'g', linestyle = '--',
-                       ymin = 0, ymax = ymax)
-            if(len(xregion) % 2 == 0 & len(xregion) != 1):
-                barx0 = np.array([(xregion[-1] - xregion[-2])/2])
-                height = np.array([ymax])
-                width = np.array([xregion[-1] - xregion[-2]])
-                # fill region between vlines
-                plt.bar(xregion[-2], height = height, width = width,
-                        align = 'edge', facecolor="green", alpha=0.2,
-                        edgecolor="black",linewidth = 5, ecolor = 'black',
-                        bottom = 0)
-            fig.canvas.draw()
+    xregion = PlotVerticalLines(ymax, 'green', fig)
 
-    cid = fig.canvas.mpl_connect('button_press_event', onclickbase)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
     plt.show()
     yreduced = y[(x > xregion[0]) & (x < xregion[-1])]
     xreduced = x[(x > xregion[0]) & (x < xregion[-1])]
@@ -87,25 +93,7 @@ def SelectBaseline(x, y, label):
     ymax = np.max(y)
 
     # choose the region
-    xregion = []
-    def onclickbase(event):
-        if event.button:
-            xregion.append(event.xdata)
-            plt.vlines(x = event.xdata, color = 'r', linestyle = '--',
-                       ymin = 0, ymax = ymax)
-            if(len(xregion) % 2 == 0 & len(xregion) != 1):
-                barx0 = np.array([(xregion[-1] - xregion[-2])/2])
-                height = np.array([ymax])
-                width = np.array([xregion[-1] - xregion[-2]])
-                plt.bar(xregion[-2], height = height, width = width,
-                        align = 'edge',facecolor="red", alpha=0.2,
-                        edgecolor="black",linewidth = 5, ecolor = 'black',
-                        bottom = 0)
-            fig.canvas.draw()
-
-    cid = fig.canvas.mpl_connect('button_press_event', onclickbase)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    xregion = PlotVerticalLines(ymax, 'red', fig)
     plt.show()
 
     np.savetxt(label + '/baseline_'+ label + '.txt', np.array(xregion))
@@ -144,15 +132,7 @@ def Fitbaseline(x, y, baselinefile, show = False):
     base = polyparams[0]
     return correlated_values(polyparams, cov)
 
-def SelectPeaks(x, y, label):
-    # Function that opens a Window with the data,
-    # you can choose initial values for the peaks by clicking on the plot.
-
-    # plot
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
-    polyparams = Fitbaseline(x, y, label + '/baseline_'+ label + '.txt')
-    ax.plot(x, poly(x, *noms(polyparams)), 'r-')
+def PlotPeaks(fig):
     xpeak = []
     ypeak = []
 
@@ -166,6 +146,21 @@ def SelectPeaks(x, y, label):
     cid = fig.canvas.mpl_connect('button_press_event', onclickpeaks)
     figManager = plt.get_current_fig_manager()
     figManager.window.showMaximized()
+
+    return xpeak, ypeak
+
+def SelectPeaks(x, y, label):
+    # Function that opens a Window with the data,
+    # you can choose initial values for the peaks by clicking on the plot.
+
+    # plot
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    polyparams = Fitbaseline(x, y, label + '/baseline_'+ label + '.txt')
+    ax.plot(x, poly(x, *noms(polyparams)), 'r-')
+
+    xpeak, ypeak = PlotPeaks(fig)
+
     plt.show()
     # store the chosen initial values
     np.savetxt(label + '/locpeak_' + label + '.txt',
