@@ -28,36 +28,43 @@ def poly(x, a):
     return [a for i in x]
 
 def initialize(data_file):
+    # function that initializes data for evaluation
     x, y = np.genfromtxt(data_file, unpack = True)  # get data
-    maxyvalue = np.max(y)                           # get max to
+    maxyvalue = np.max(y)                           # get max of y to
     y = y / maxyvalue                               # norm the intensity for
                                                     # faster fit
-    return x, y, maxyvalue                          # return x and y
+    return x, y, maxyvalue                          # return x and y and maxyvalue
 
 def PlotVerticalLines(ymax, color, fig):
-    # create variable for x-region and define range
-    xregion = []
-    # choose region by clicking on the plot
-    def onclickbase(event):
-        if event.button:
-            xregion.append(event.xdata)
+    # function that plots regions chosen by clicking into the plot
+    xregion = []                            # variable to save chosen region
+
+    def onclickbase(event):                 # choose region by clicking
+        if event.button:                    # if clicked
+            xregion.append(event.xdata)     # append data to region
             # plot vertical lines to mark chosen region
-            plt.vlines(x = event.xdata, color = color, linestyle = '--',
+            plt.vlines(x = event.xdata,
+                       color = color,
+                       linestyle = '--',
                        ymin = 0, ymax = ymax)
+            # fill selected region with transparent colorbar
             if(len(xregion) % 2 == 0 & len(xregion) != 1):
-                barx0 = np.array([(xregion[-1] - xregion[-2])/2])
-                height = np.array([ymax])
-                width = np.array([xregion[-1] - xregion[-2]])
-                # fill region between vlines
-                plt.bar(xregion[-2], height = height, width = width,
-                        align = 'edge', facecolor = color, alpha=0.2,
-                        edgecolor='black',linewidth = 5, ecolor = 'black',
-                        bottom = 0)
+                barheight = np.array([ymax])                    # define bar height
+                barwidth = np.array([xregion[-1] - xregion[-2]])# define bar width
+                # fill region between vertical lines with prior defined bar
+                plt.bar(xregion[-2],
+                        height = barheight, width = barwidth,
+                        facecolor = color,
+                        alpha=0.2,
+                        align = 'edge',
+                        edgecolor='black',
+                        linewidth = 5)
             fig.canvas.draw()
 
+    # actual execution of the defined function onclickbase
     cid = fig.canvas.mpl_connect('button_press_event', onclickbase)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    figManager = plt.get_current_fig_manager()  # get current figure
+    figManager.window.showMaximized()           # show it maximized
 
     return xregion
 
@@ -133,19 +140,21 @@ def Fitbaseline(x, y, baselinefile, show = False):
     return correlated_values(polyparams, cov)
 
 def PlotPeaks(fig):
-    xpeak = []
-    ypeak = []
+    # function that allows you to select peaks for fitting
+    xpeak = []  # x and
+    ypeak = []  # y arrays for peak coordinates
 
-    def onclickpeaks(event):
-        if event.button:
-            xpeak.append(event.xdata)
-            ypeak.append(event.ydata)
-            plt.plot(event.xdata, event.ydata, 'ko')
-            fig.canvas.draw()
+    def onclickpeaks(event):                        # choose region by clicking
+        if event.button:                            # if clicked
+            xpeak.append(event.xdata)               # append x data and
+            ypeak.append(event.ydata)               # append y data
+            plt.plot(event.xdata, event.ydata, 'ko')# plot the selected peak
+            fig.canvas.draw()                       # and show it
 
+    # actual execution of the defined function oneclickpeaks
     cid = fig.canvas.mpl_connect('button_press_event', onclickpeaks)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    figManager = plt.get_current_fig_manager()  # get current figure
+    figManager.window.showMaximized()           # show it maximized
 
     return xpeak, ypeak
 
@@ -218,6 +227,10 @@ def FitSpectrum(x, y, maxyvalue, label):
     for i in range(0, len(xpeak)):
         plt.plot(x, comps['p' + str(i+1)] * maxyvalue +
                  comps['constant'] * maxyvalue, 'k-')
+
+    figManager = plt.get_current_fig_manager()  # get current figure
+    figManager.window.showMaximized()           # show it maximized
+
     plt.savefig(label + '/rawplot_' + label + '.pdf')
     plt.show()
     return fitresult
