@@ -32,6 +32,7 @@ def voigt(x, x0, sigma, gamma):
 def latexplot(label):
     plt.clf()
     x, y = np.genfromtxt(label + '/data_' + label + '.txt', unpack = True)
+    maxyvalue = np.max(y)
     borders = np.genfromtxt(label + '/spectrumborders_' + label + '.txt', unpack = True)
     y = y[(x > borders[0])  &  (x < borders[-1])]
     x = x[(x > borders[0])  &  (x < borders[-1])]
@@ -47,7 +48,7 @@ def latexplot(label):
 
     yfit = np.ones(len(xplot)) * baseline
     for i in range(0, len(sigma)):
-        ypeak = voigt(xplot, ctr[i], sigma[i], gamma[i]) * np.max(y)
+        ypeak = voigt(xplot, ctr[i], sigma[i], gamma[i]) * maxyvalue
         if i == 0:
             ax.plot(xplot, ypeak + baseline , linewidth = 0.5, color = 'grey', label = 'Peaks')
         else:

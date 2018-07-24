@@ -11,7 +11,7 @@ for i in range(len(labels)):
 
 for label in labels:
 	label = label.split(r'\n')[0]
-	x, y = initialize(label + '/data_' + label + '.txt')
+	x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
 	plt.clf()
 	plt.plot(x, y, 'b-')
 	plt.xlim(x[0], 550)

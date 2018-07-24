@@ -15,16 +15,16 @@ for i in range(len(labels)):
 for i in range(len(labels)):
 	label = labels[i]
 	label = label.split(r'\n')[0]
-	x, y = initialize(label + '/data_' + label + '.txt')
+	x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
 	print('analyzing ' + label)
 
 	if i == 0:
 		xred, yred = SelectSpectrum(x, y, label)
 		baselinefile = SelectBaseline(xred, yred, label)
 		SelectPeaks(xred, yred, label)
-		fitresult = FitSpectrum(xred, yred, label)
-		SaveFitParams(xred, yred, fitresult, label)
+		fitresult = FitSpectrum(xred, yred, maxyvalue, label)
+		SaveFitParams(xred, yred, maxyvalue, fitresult, label)
 
 	else:
-		fitresult = FitSpectrumInit(x, y, labels[i - 1], label)
-		SaveFitParams(x, y, fitresult, label)
+		fitresult = FitSpectrumInit(x, y, maxyvalue, labels[i - 1], label)
+		SaveFitParams(x, y, maxyvalue, fitresult, label)

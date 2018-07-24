@@ -32,7 +32,7 @@ def initialize(data_file):
     maxyvalue = np.max(y)                           # get max to
     y = y / maxyvalue                               # norm the intensity for
                                                     # faster fit
-    return x, y                                     # return x and y
+    return x, y, maxyvalue                          # return x and y
 
 def SelectSpectrum(x, y, label):
     # Select the interesting region in the spectrum, by clicking on the plot
@@ -42,7 +42,7 @@ def SelectSpectrum(x, y, label):
     ax.plot(x, y)                   # plot data to figure
     ax.set_title('Select Spectrum') # define title
     ax.set_ylim(bottom = 0)         # set ylim as zero
-    maxyvalue = np.max(y)           # calculate max of y
+    ymax = np.max(y)                # calculate max of y
 
     # create variable for x-region and define range
     xregion = []
@@ -52,10 +52,10 @@ def SelectSpectrum(x, y, label):
             xregion.append(event.xdata)
             # plot vertical lines to marke chosen region
             plt.vlines(x = event.xdata, color = 'g', linestyle = '--',
-                       ymin = 0, ymax = maxyvalue)
+                       ymin = 0, ymax = ymax)
             if(len(xregion) % 2 == 0 & len(xregion) != 1):
                 barx0 = np.array([(xregion[-1] - xregion[-2])/2])
-                height = np.array([maxyvalue])
+                height = np.array([ymax])
                 width = np.array([xregion[-1] - xregion[-2]])
                 # fill region between vlines
                 plt.bar(xregion[-2], height = height, width = width,
@@ -84,7 +84,7 @@ def SelectBaseline(x, y, label):
     ax.plot(x, y)
     ax.set_title('Baseline-Fit')
     ax.set_ylim(bottom = 0)
-    maxyvalue = np.max(y)
+    ymax = np.max(y)
 
     # choose the region
     xregion = []
@@ -92,10 +92,10 @@ def SelectBaseline(x, y, label):
         if event.button:
             xregion.append(event.xdata)
             plt.vlines(x = event.xdata, color = 'r', linestyle = '--',
-                       ymin = 0, ymax = maxyvalue)
+                       ymin = 0, ymax = ymax)
             if(len(xregion) % 2 == 0 & len(xregion) != 1):
                 barx0 = np.array([(xregion[-1] - xregion[-2])/2])
-                height = np.array([maxyvalue])
+                height = np.array([ymax])
                 width = np.array([xregion[-1] - xregion[-2]])
                 plt.bar(xregion[-2], height = height, width = width,
                         align = 'edge',facecolor="red", alpha=0.2,
@@ -172,7 +172,7 @@ def SelectPeaks(x, y, label):
                np.transpose([np.array(xpeak), np.array(ypeak)]))
     peakfile = label + '/locpeak_' + label + '.txt'
 
-def FitSpectrum(x, y, label):
+def FitSpectrum(x, y, maxyvalue, label):
     # Fit Spectrum with initial values provided by SelectBaseline()
     # and SelectPeaks()
 
@@ -218,7 +218,6 @@ def FitSpectrum(x, y, label):
     print(fitresult.fit_report(min_correl=0.5))
     comps = fitresult.eval_components()
     xplot = np.linspace(x[0], x[-1], 1000)
-    maxyvalue = np.max(y)
     plt.plot(x, y * maxyvalue, 'rx')
     plt.plot(x, fitresult.best_fit * maxyvalue)
     for i in range(0, len(xpeak)):
@@ -228,7 +227,7 @@ def FitSpectrum(x, y, label):
     plt.show()
     return fitresult
 
-def FitSpectrumInit(x, y, oldlabel, label):
+def FitSpectrumInit(x, y, maxyvalue, oldlabel, label):
     # Fit the spectrum with the fit params of another spectrum
     # (given by label) as initial values. Useful when you fit big number
     # of similar spectra.
@@ -236,7 +235,6 @@ def FitSpectrumInit(x, y, oldlabel, label):
     borders = np.genfromtxt(oldlabel + '/spectrumborders_' + oldlabel + '.txt',
                             unpack = True)
     np.savetxt(label + '/spectrumborders_' + label + '.txt', borders)
-    maxyvalue = np.max(y)
     y = y[(x > borders[0])  &  (x < borders[-1])]
     x = x[(x > borders[0])  &  (x < borders[-1])]
     FitData =  np.load(oldlabel + '/fitparams_' + oldlabel + '.npz')
@@ -268,19 +266,18 @@ def FitSpectrumInit(x, y, oldlabel, label):
     plt.clf()
     comps = fitresult.eval_components()
     xplot = np.linspace(x[0], x[-1], 1000)
-    plt.plot(x, y*maxyvalue, 'rx')
-    plt.plot(x, fitresult.best_fit*maxyvalue)
+    plt.plot(x, y * maxyvalue, 'rx')
+    plt.plot(x, fitresult.best_fit * maxyvalue)
     for i in range(0, len(sigma)):
-        plt.plot(x, comps['p' + str(i+1)]*maxyvalue +
-                 comps['constant']*maxyvalue, 'k-')
+        plt.plot(x, comps['p' + str(i+1)] * maxyvalue +
+                 comps['constant'] * maxyvalue, 'k-')
     plt.savefig(label + '/rawplot_' + label + '.pdf')
     plt.clf()
     return fitresult
 
-def SaveFitParams(x, y, fitresult, label):
+def SaveFitParams(x, y, maxyvalue, fitresult, label):
     #Save the Results of the fit in a .zip file using numpy.savez().
 
-    maxyvalue = np.max(y)
     fitparams = fitresult.params
 
     c, stdc, \
