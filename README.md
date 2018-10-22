@@ -8,6 +8,7 @@ matplotlib
 uncertainties
 scipy
 lmfit
+statsmodels
 pywt
 
 ## How to use the methods for spectrum fit:
@@ -31,3 +32,17 @@ python analyze.py 01  # here the label 01 is chosen to be worked on
 **step 3d**: Again a new window opens and shows you the background line that will be substracted from your spectral region. Now select the maxima of peaks you want to be fitted. Again this is done by clicking on the spectrum by clicking. By closing the window, you will start the fitting process. Now the programm runs and you got to wait some time. When the programm is finished it will show you a new plot window with the selected spectral region and the fit plotted. Now you should find everything (data, results and plots) inside the recently created folder.
 
 **step 4**: if you want to analyze several, similar spectra, run autoanalyze.py labels.txt, you have to follow the steps 3a - 3d for the first spectrum, the others will be fitted automatically with the same model
+
+## How to denoise data
+
+**step 1**: put all the spectra you want to analyze in the methods folder
+
+**step 2**: run create_structure.py. This will create a folder for each spectrum to save all the relevant data in.
+```
+python create_structure.py
+```
+
+**step 3**: run denoise.py. This will denoise your data and plot the measured and the denoised data.
+```
+python denoise.py 01 4  # here a label (01) and a wavelet level (4) have to be defined
+```
