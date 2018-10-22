@@ -8,6 +8,7 @@ matplotlib
 uncertainties
 scipy
 lmfit
+pywt
 
 ## How to use the methods for spectrum fit:
 
