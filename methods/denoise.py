@@ -3,7 +3,7 @@ import pywt                         # for wavelet operations
 import numpy as np
 from statsmodels.robust import mad # median absolute deviation from array
 
-from functions import *
+from functions_fitting import *
 
 def WaveletSmooth(noisydata, wavelet="sym8", level=1):
     # calculate wavelet coefficients
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     label = sys.argv[1]
     level = int(sys.argv[2])
 
-    x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
+    x, y, maxyvalue = initialize(label + '/' + label + '_0001.txt')
     yrec, sigma = WaveletSmooth(y, level=level)
 
     print("level: " + str(level))
