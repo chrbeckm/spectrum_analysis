@@ -35,14 +35,9 @@ python analyze.py 01  # here the label 01 is chosen to be worked on
 
 ## How to denoise data
 
-**step 1**: put all the spectra you want to analyze in the methods folder
+**step 1**: put all the spectra you want to analyze in a folder in the methods folder
 
-**step 2**: run create_structure.py. This will create a folder for each spectrum to save all the relevant data in.
+**step 2**: run denoise.py label level. This will denoise your data from folder named label with a wavelet level of level and plot the first measured and denoised spectrum.
 ```
-python create_structure.py
-```
-
-**step 3**: run denoise.py. This will denoise your data and plot the measured and the denoised data.
-```
-python denoise.py 01 4  # here a label (01) and a wavelet level (4) have to be defined
+python denoise.py 01 4  # here a label (01) and a wavelet level (4) have been defined
 ```
