@@ -7,14 +7,39 @@ from scipy.optimize import curve_fit    # for interpolating muons
 
 from functions_fitting import *
 
+# function to split muons from each other
+def SplitMuons(indices):
+    # create multidimensional list
+    grouped_array = [[]]
+
+    # muon counter
+    muons = 0
+
+    # loop through list and find gaps in the list to group the muons
+    for i in range(0, len(indices) - 1):
+        # as long as the index is increasing by one the indices belong to one muon
+        if indices[i] + 1 == indices[i + 1]:
+            grouped_array[muons].append(indices[i])
+        # as soon as there is a jump, a new muon was found and is added to the list
+        else:
+            grouped_array[muons].append(indices[i])
+            grouped_array.append([])
+            muons += 1
+    # add the last element to the list and
+    grouped_array[muons].append(indices[i + 1])
+    # print the number of muons found
+    print(str(muons + 1) + ' muons have been found.')
+
+    return grouped_array
+
 # detect muons for removal and returns non vanishing indices
-def WaveletMuon(noisydata, wavelet='sym8', level=1):
+def WaveletMuon(noisydata, multiplicator, wavelet='sym8', level=1):
     # calculate wavelet coefficients
     coeff = pywt.wavedec(noisydata, wavelet)    # symmetric signal extension mode
 
-    # calculate a threshold
+    # calculate a threshold (1.5 the size of usual threshold)
     sigma = mad(coeff[-level])
-    threshold = sigma * np.sqrt(2 * np.log(len(noisydata)))
+    threshold = sigma * np.sqrt(2 * np.log(len(noisydata))) * multiplicator
 
     # detect spikes on D1 details (written in the last entry of coeff)
     # calculate thresholded coefficients
@@ -27,11 +52,17 @@ def WaveletMuon(noisydata, wavelet='sym8', level=1):
     # reconstruct the signal using the thresholded coefficients
     denoised = pywt.waverec(coeff, wavelet)
 
-    # get non vanishing indices
-    indices = np.nonzero(denoised[:-1])[0]
-
-    # return the value of denoised and the non vanishing indices
-    return denoised[:-1], indices
+    if (len(noisydata) % 2) == 0:
+        # get non vanishing indices
+        indices = np.nonzero(denoised)[0]
+        grouped = SplitMuons(indices)
+        # return the value of denoised and the non vanishing indices
+        return denoised, grouped
+    else:
+        # get non vanishing indices
+        indices = np.nonzero(denoised[:-1])[0]
+        # return the value of denoised and the non vanishing indices
+        return denoised[:-1], grouped
 
 # linear function for muon approximation
 def linear(x, m, b):
@@ -42,18 +73,19 @@ def RemoveMuon(xdata, y, indices):
     # prevent python from working on original data
     ydata = np.copy(y)
 
-    # calculate limits for indices to use for fitting
-    limit = int(len(indices)/4)
-    lower = indices[:limit]
-    upper = indices[-limit:]
-    fit_indices = np.append(lower, upper)
+    for muon in indices:
+        # calculate limits for indices to use for fitting
+        limit = int(len(muon)/4)
+        lower = muon[:limit]
+        upper = muon[-limit:]
+        fit_indices = np.append(lower, upper)
 
-    # fit to the data
-    popt, pcov = curve_fit(linear, xdata[fit_indices], ydata[fit_indices])
+        # fit to the data
+        popt, pcov = curve_fit(linear, xdata[fit_indices], ydata[fit_indices])
 
-    # calculate approximated y values and remove muon
-    for index in indices[limit:-limit]:
-        ydata[index] = linear(xdata[index], *popt)
+        # calculate approximated y values and remove muon
+        for index in muon[limit:-limit]:
+            ydata[index] = linear(xdata[index], *popt)
 
     return ydata
 
@@ -75,7 +107,10 @@ def WaveletSmooth(noisydata, wavelet='sym8', level=1):
     denoised = pywt.waverec(coeff, wavelet)
 
     # return the value of denoised except for the last value
-    return denoised[:-1], sigma
+    if (len(noisydata) % 2) == 0:
+        return denoised, sigma
+    else:
+        return denoised[:-1], sigma
 
 # plot noisy and denoised data
 def WaveletPlot(x, noisydata, denoised, title=None):
@@ -94,9 +129,10 @@ if __name__ == '__main__':
     level = int(sys.argv[2])
 
     # initialize data
-    x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
+    #x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
+    x, y, maxyvalue = initialize(label + '/' + label + '_0017.txt')
     # find and remove muons
-    muonrec, indices = WaveletMuon(y)
+    muonrec, indices = WaveletMuon(y, 1.5)
     if len(indices) > 0 :
         ymuon = RemoveMuon(x, y, indices)
     else:
@@ -107,4 +143,4 @@ if __name__ == '__main__':
     print('level: ' + str(level))
     print('sigma: ' + str(sigma))
     # plot muonfree and reconstructed spectra
-    WaveletPlot(x, ymuon, yrec)
+    WaveletPlot(x, y, yrec)
