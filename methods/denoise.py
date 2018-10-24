@@ -25,21 +25,22 @@ def SplitMuons(indices):
             grouped_array[muons].append(indices[i])
             grouped_array.append([])
             muons += 1
-    # add the last element to the list and
-    grouped_array[muons].append(indices[i + 1])
-    # print the number of muons found
-    print(str(muons + 1) + ' muons have been found.')
+    if len(indices) > 0:
+        # add the last element to the list and
+        grouped_array[muons].append(indices[-1])
+        # print the number of muons found
+        print(str(muons + 1) + ' muons have been found.')
 
     return grouped_array
 
 # detect muons for removal and returns non vanishing indices
-def WaveletMuon(noisydata, multiplicator, wavelet='sym8', level=1):
+def WaveletMuon(noisydata, thresh_mod, wavelet='sym8', level=1):
     # calculate wavelet coefficients
     coeff = pywt.wavedec(noisydata, wavelet)    # symmetric signal extension mode
 
     # calculate a threshold (1.5 the size of usual threshold)
     sigma = mad(coeff[-level])
-    threshold = sigma * np.sqrt(2 * np.log(len(noisydata))) * multiplicator
+    threshold = sigma * np.sqrt(2 * np.log(len(noisydata))) * thresh_mod
 
     # detect spikes on D1 details (written in the last entry of coeff)
     # calculate thresholded coefficients
@@ -61,6 +62,7 @@ def WaveletMuon(noisydata, multiplicator, wavelet='sym8', level=1):
     else:
         # get non vanishing indices
         indices = np.nonzero(denoised[:-1])[0]
+        grouped = SplitMuons(indices)
         # return the value of denoised and the non vanishing indices
         return denoised[:-1], grouped
 
@@ -122,25 +124,32 @@ def WaveletPlot(x, noisydata, denoised, title=None):
     ax.set_xlim(min(x), max(x))
     plt.show()
 
-if __name__ == '__main__':
-    # name of the spectra to be analyzed
-    label = sys.argv[1]
-    # level of smoothing
-    level = int(sys.argv[2])
-
-    # initialize data
-    #x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
-    x, y, maxyvalue = initialize(label + '/' + label + '_0017.txt')
+def DenoiseSpectrum(x, ynormed, thresh_mod=1.5, level=2):
     # find and remove muons
-    muonrec, indices = WaveletMuon(y, 1.5)
-    if len(indices) > 0 :
-        ymuon = RemoveMuon(x, y, indices)
+    muonrec, indices = WaveletMuon(ynormed, thresh_mod)
+    if len(indices[0]) > 0:
+        ymuon = RemoveMuon(x, ynormed, indices)
     else:
-        ymuon = np.copy(y)
+        ymuon = np.copy(ynormed)
     # smooth the spectra
     yrec, sigma = WaveletSmooth(ymuon, level=level)
 
-    print('level: ' + str(level))
-    print('sigma: ' + str(sigma))
+    return ymuon, yrec
+
+def renormalize(y, ymuon):
+    return (y - np.min(ymuon)) / (np.max(ymuon) - np.min(ymuon))
+
+if __name__ == '__main__':
+    # name of the spectra to be analyzed
+    label = sys.argv[1]
+
+    # initialize data
+    x, y, maxyvalue = initialize(label + '/' + label + '_0017.txt')
+
+    # denoise spectrum
+    ymuon, yrec = DenoiseSpectrum(x, y)
+
+    region = range(700, 900)
+
     # plot muonfree and reconstructed spectra
-    WaveletPlot(x, y, yrec)
+    WaveletPlot(x[region], renormalize(ymuon[region], ymuon[region]), renormalize(yrec[region], ymuon[region]))
