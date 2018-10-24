@@ -115,14 +115,24 @@ def WaveletSmooth(noisydata, wavelet='sym8', level=1):
         return denoised[:-1], sigma
 
 # plot noisy and denoised data
-def WaveletPlot(x, noisydata, denoised, title=None):
+def WaveletPlot(x, noisydata, denoised, title=None, save=False, name='plot'):
+    # create plot
     f, ax = plt.subplots()
+    # plot the data
     ax.plot(x, noisydata, color='b', alpha=0.5)
     ax.plot(x, denoised, color='b')
+    # name the axis
+    ax.set_xlabel('Raman shift (cm$^{-1}$)')
+    ax.set_ylabel('Intensity (arb. u.)')
+    # set x limits
+    ax.set_xlim(min(x), max(x))
+    # set title if given
     if title:
         ax.set_title(title)
-    ax.set_xlim(min(x), max(x))
-    plt.show()
+    f.show()
+    # save figure if save is true
+    if save:
+        f.savefig(name + '.pdf', format='pdf')
 
 def DenoiseSpectrum(x, ynormed, thresh_mod=1.5, level=2):
     # find and remove muons
