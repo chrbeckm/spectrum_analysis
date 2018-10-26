@@ -374,7 +374,7 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
     comps = fitresult_peaks.eval_components()
 
     #Plot the sprectrum, the fitted data, and the background
-    plt.plot(x, y * maxyvalue, 'b.', label = 'Data') #raw-data
+    plt.plot(x, y * maxyvalue, 'b.', label = 'Data',  markersize=2) #raw-data
     plt.plot(x, background.eval(fitresult_background.params, x = x) * maxyvalue, 'k-', label = 'Background') #background
     plt.plot(x, (ramanmodel.eval(fitresult_peaks.params, x = x) + background.eval(fitresult_background.params, x = x)) * maxyvalue, 'r-', label = 'Fit') #fit + background
 
@@ -554,7 +554,7 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
 
     #save plot
     plt.clf()
-    plt.plot(x, y * maxyvalue, 'b.', label = 'Data') #raw-data
+    plt.plot(x, y * maxyvalue, 'b.', label = 'Data',  markersize=2) #raw-data
     plt.plot(x, background.eval(fitresult_background.params, x = x) * maxyvalue, 'k-', label = 'Background') #background
     plt.plot(x, (ramanmodel.eval(fitresult_peaks.params, x = x) + background.eval(fitresult_background.params, x = x)) * maxyvalue, 'r-', label = 'Fit') #fit + background
     plt.legend(loc = 'upper right')
