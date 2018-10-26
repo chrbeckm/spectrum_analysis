@@ -1,0 +1,5 @@
+*.txt
+*.pdf
+ramanspectrum.pyc
+0*
+__pycache__/
