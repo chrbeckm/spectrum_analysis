@@ -8,7 +8,7 @@ def create_structure():
     # named by the file with the original data.
 
     # take all files in the current folder with *.txt ending
-    labels = glob.glob('*.txt')
+    labels = sorted(glob.glob('*.txt'))
 
     # create folders and rename data files
     for i in labels:
@@ -23,6 +23,10 @@ def create_structure():
     with open('labels.txt', 'w') as w:
         for i in labels:
             w.write(i + '\n')
+
+    #create folders for results
+    os.makedirs('results_plot/')
+    os.makedirs('results_fitparameter/')
 
 if __name__ == '__main__':
     create_structure()
