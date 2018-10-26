@@ -6,6 +6,11 @@ from functions_mapping import *
 from denoise import *
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+from sklearn import datasets
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+
 '''
 folder = '02018-10-18-Stage-IV-mapping/'
 xdim = 15
@@ -76,6 +81,50 @@ for spectrum in ynormed:
 WaveletPlot(x[0], ymuon_sized.sum(axis=0), yrec_sized.sum(axis=0),
             save=save, name=name + '_sum',
             title='Sum of ' + folder + ' (' + name + ' sample)')
+
+
+# reduce data to two main principal components
+pca = PCA(n_components=2)
+yrec_sized_pca = pca.fit(yrec_sized).transform(yrec_sized)
+print('explained variance ratio (first two components): %s'
+     % str(pca.explained_variance_ratio_))
+
+# cluster the data
+cluster = 10
+kmeans = KMeans(init='k-means++', n_clusters=cluster)
+kmeans.fit(yrec_sized_pca)
+
+# plot reduced data with kmeans labels
+f_pca, ax_pca = plt.subplots()
+lw = 2
+colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
+          'lightgreen', 'turquoise', 'lightblue', 'yellow']
+
+cluster_sum = np.empty([cluster, y.shape[1]])
+
+# plot kmeans labeled pca analysis
+for point in range(0, len(yrec_sized_pca)):
+    # get cluster from kmeans
+    clust=kmeans.labels_[point]
+
+    # calculate sum spectra for each cluster
+    cluster_sum[clust] = cluster_sum[clust] + yrec_sized[point, :]
+
+    # plot each pca point
+    ax_pca.scatter(yrec_sized_pca[point, 0], yrec_sized_pca[point, 1],
+                color=colors[clust], alpha=.8, lw=lw)
+# set title and show image
+ax_pca.set_title('PCA of ' + folder + ' Dataset with kmeans coloring')
+f_pca.show()
+
+f, ax = plt.subplots(cluster, 1)
+# plot each sum spectra of the cluster given
+for clust in range(0, cluster):
+    # plot cluster
+    ax[clust].plot(x[0], cluster_sum[clust], color=colors[clust])
+    ax[clust].set_title('Cluster ' + str(clust))
+f.show()
+
 
 # create x and y ticks accordingly to the parameters of the mapping
 x_ticks = np.arange(stepsize, stepsize * (xdim + 1), step=xticker*stepsize)
