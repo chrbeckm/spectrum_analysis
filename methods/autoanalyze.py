@@ -16,8 +16,10 @@ for i in range(len(labels)):
 	label = labels[i]
 	label = label.split(r'\n')[0]
 	x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
+	# show in terminal which spectrum is currently analyzed
 	print('\n ----- ANALYZING ' + label + ' ----- \n')
 
+	# analyze the first spectrum
 	if i == 0:
 		xred, yred = SelectSpectrum(x, y, label)
 		baselinefile = SelectBaseline(xred, yred, label)
@@ -26,6 +28,7 @@ for i in range(len(labels)):
 		fitresult_peaks = FitSpectrum(xred, yred, maxyvalue, fitresult_background, label)
 		SaveFitParams(xred, yred, maxyvalue, fitresult_peaks, fitresult_background, label)
 
+	# analyze all following spectra with initial values from the previous spectrum
 	else:
 		fitresult_peaks, fitresult_background = FitSpectrumInit(x, y, maxyvalue, labels[i - 1], label, baselinefile)
 		SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
