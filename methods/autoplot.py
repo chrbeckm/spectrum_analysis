@@ -1,4 +1,4 @@
-from functions import *
+from functions_fitting import *
 import sys
 
 # Run python 'autoplot.py labels.txt'. Creates simple plots of the spectra.

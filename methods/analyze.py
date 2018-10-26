@@ -1,4 +1,4 @@
-from functions import *
+from functions_fitting import *
 import sys
 import time
 
