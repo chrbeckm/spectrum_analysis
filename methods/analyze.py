@@ -19,7 +19,7 @@ def analyze(label):
     baselinefile = SelectBaseline(xred, yred, label)
 
     # fit the baseline
-    fitresult_background = Fitbaseline(xred, yred, baselinefile, show = False)
+    fitresult_background = FitBaseline(xred, yred, baselinefile, show = False)
 
     # Function that opens a Window with the data,
     # you can choose initial values for the peaks by clicking on the plot.

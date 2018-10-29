@@ -23,7 +23,7 @@ for i in range(len(labels)):
 	if i == 0:
 		xred, yred = SelectSpectrum(x, y, label)
 		baselinefile = SelectBaseline(xred, yred, label)
-		fitresult_background = Fitbaseline(xred, yred, baselinefile, show = False)
+		fitresult_background = FitBaseline(xred, yred, baselinefile, show = False)
 		SelectPeaks(xred, yred, fitresult_background, label)
 		fitresult_peaks = FitSpectrum(xred, yred, maxyvalue, fitresult_background, label)
 		SaveFitParams(xred, yred, maxyvalue, fitresult_peaks, fitresult_background, label)

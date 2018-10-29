@@ -30,6 +30,8 @@ def initialize(data_file):
 # function that plots regions chosen by clicking into the plot
 def PlotVerticalLines(ymax, color, fig):
     xregion = []                            # variable to save chosen region
+    ax = plt.gca()                          # get current axis
+    plt_ymin, plt_ymax = ax.get_ylim()      # get plot min and max
 
     def onclickbase(event):                 # choose region by clicking
         if event.button:                    # if clicked
@@ -38,14 +40,17 @@ def PlotVerticalLines(ymax, color, fig):
             plt.vlines(x = event.xdata,
                        color = color,
                        linestyle = '--',
-                       ymin = 0, ymax = ymax)
+                       ymin = plt_ymin, ymax = plt_ymax)
             # fill selected region with transparent colorbar
             if(len(xregion) % 2 == 0 & len(xregion) != 1):
-                barheight = np.array([ymax])                    # define bar height
-                barwidth = np.array([xregion[-1] - xregion[-2]])# define bar width
+                # define bar height
+                barheight = np.array([plt_ymax - plt_ymin])
+                # define bar width
+                barwidth = np.array([xregion[-1] - xregion[-2]])
                 # fill region between vertical lines with prior defined bar
                 plt.bar(xregion[-2],
                         height = barheight, width = barwidth,
+                        bottom = plt_ymin,
                         facecolor = color,
                         alpha=0.2,
                         align = 'edge',
@@ -66,7 +71,7 @@ def SelectSpectrum(x, y, label):
     # plot spectrum
     fig, ax = plt.subplots()        # create figure
     ax.plot(x, y, 'b-', label = 'Data')     # plot data to figure
-    ax.set_title('Select the part of the spectrum you wish to consider by clicking into the plot.') 
+    ax.set_title('Select the part of the spectrum you wish to consider by clicking into the plot.')
     ax.set_ylim(bottom = 0)         # set ylim as zero
     ymax = np.max(y)                # calculate max of y
 
@@ -101,6 +106,24 @@ def SelectBaseline(x, y, label):
     #return the name of the baselinefile
     return label + '/baseline_'+ label + '.txt'
 
+def SelectBaseline2(x, y, folder):
+    # plot the reduced spectrum
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'b-', label = 'Data')
+    ax.set_title('Select the area of the spectrum you wish to consider for the background by licking into the plot \n (3rd-degree polynomial assumed)')
+    #ax.set_ylim(bottom = 0)
+    ymax = np.max(y)
+
+    # choose the region
+    xregion = PlotVerticalLines(ymax, 'red', fig)
+
+    plt.legend(loc = 'upper right')
+    plt.show()
+
+    np.savetxt(folder + 'baseline.dat', np.array(xregion))
+
+    #return the name of the baselinefile
+    return folder + 'baseline.dat'
 
 # Creates a plot of the raw data.
 def PlotRawData(x, y, show = True, ax = None):    # show = True will show the plot, show = False will return a matplotlib object
@@ -115,7 +138,7 @@ def PlotRawData(x, y, show = True, ax = None):    # show = True will show the pl
 
 
 # actual fit of the baseline
-def Fitbaseline(x, y, baselinefile, show = False):
+def FitBaseline(x, y, baselinefile, show = False):
     # Load the bounderies for the relevent data from SelectBaseline()
     bed = np.genfromtxt(baselinefile, unpack = True)
 
@@ -126,13 +149,13 @@ def Fitbaseline(x, y, baselinefile, show = False):
     relevant = relevant | (x >= bed[-1]) #bed[-1] is the highest border
 
     # Third-degree polynomial to model the background
-    background = PolynomialModel(degree = 3) 
+    background = PolynomialModel(degree = 3)
     pars = background.guess(y[relevant], x = x[relevant])
     fitresult_background = background.fit(y[relevant], pars, x = x[relevant])
 
     # plot the fitted function in the hole range
     if (show == True):
-        PlotRawData(False)
+        PlotRawData(x, y, show=True)
         xplot = np.linspace(x[0], x[-1], 100)
         plt.plot(xplot, background.eval(fitresult_background.params, x = xplot), 'r-')
         plt.show()
@@ -146,8 +169,8 @@ def PlotPeaks(fig):
     xpeak = []  # x and
     ypeak = []  # y arrays for peak coordinates
 
-    def onclickpeaks(event):                        
-        if event.button:                            
+    def onclickpeaks(event):
+        if event.button:
             xpeak.append(event.xdata)               # append x data and
             ypeak.append(event.ydata)               # append y data
             plt.plot(event.xdata, event.ydata, 'ko')# plot the selected peak
@@ -219,23 +242,23 @@ def SelectPeaks(x, y, fitresult_background, label):
 # Fit the Voigt-, Fano-, Lorentzian-, and Gaussian-Peaks for detailed describtions see:
 # https://lmfit.github.io/lmfit-py/builtin_models.html
 def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
-    
+
     #values from the background fit and the SelctPeak-funtion are used in the following
     background = PolynomialModel(degree = 3) # Third-degree polynomial to model the background
     y_fit = y - background.eval(fitresult_background.params, x = x) #substracted-data
-    
+
     # Create a composed model of a ConstantModel, (possibly) multiple Voigt-, Fano-, Gaussian-, and Lorentzian-Models:
     ramanmodel = ConstantModel() #Add a constant for a better fit
 
     #VOIGT-PEAKS (VoigtModel)
-    if(os.stat(label + '/locpeak_voigt_' + label + '.txt').st_size > 0):  #check, if a Voigt peak has been selected  
+    if(os.stat(label + '/locpeak_voigt_' + label + '.txt').st_size > 0):  #check, if a Voigt peak has been selected
         xpeak_voigt, ypeak_voigt = np.genfromtxt(label + '/locpeak_voigt_' + label + '.txt', #get the selected peak positions
                                      unpack = True)
 
         if type(xpeak_voigt) == np.float64:
             xpeak_voigt = [xpeak_voigt]
             ypeak_voigt = [ypeak_voigt]
-        
+
         #define starting values for the fit
         for i in range(0, len(xpeak_voigt)):
             prefix = 'voigt_p' + str(i + 1) + '_' #prefix for the different peaks from one model
@@ -268,15 +291,15 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
                                        'gamma + sqrt(0.2166 * (2*' + prefix +
                                        'gamma)**2 + (2 * ' + prefix +
                                        'sigma * sqrt(2 * log(2) ) )**2  )')
-    
+
             ramanmodel += temp #add the models to 'ramanmodel'
 
-    
+
     #FANO-PEAKS (BreitWignerModel)
-    if(os.stat(label + '/locpeak_fano_' + label + '.txt').st_size > 0):  #check, if a Fano-peak has been selected 
+    if(os.stat(label + '/locpeak_fano_' + label + '.txt').st_size > 0):  #check, if a Fano-peak has been selected
         xpeak_fano, ypeak_fano = np.genfromtxt(label + '/locpeak_fano_' + label + '.txt',
                                      unpack = True) #get the selected peak positions
-    
+
         if type(xpeak_fano) == np.float64:
             xpeak_fano = [xpeak_fano]
             ypeak_fano = [ypeak_fano]
@@ -306,14 +329,14 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
             ramanmodel += temp #add the models to 'ramanmodel'
 
     #LORENTZIAN-PEAKS (LorentzianModel)
-    if(os.stat(label + '/locpeak_lorentzian_' + label + '.txt').st_size > 0):  #check, if a lorentzian-peak has been selected 
+    if(os.stat(label + '/locpeak_lorentzian_' + label + '.txt').st_size > 0):  #check, if a lorentzian-peak has been selected
         xpeak_lorentzian, ypeak_lorentzian = np.genfromtxt(label + '/locpeak_lorentzian_' + label + '.txt',
                                      unpack = True) #get the selected peak positions
-    
+
         if type(xpeak_lorentzian) == np.float64:
             xpeak_lorentzian = [xpeak_lorentzian]
             ypeak_lorentzian = [ypeak_lorentzian]
-      
+
         for i in range(0, len(xpeak_lorentzian)):
             prefix = 'lorentzian_p' + str(i + 1) + '_' #prefix for the different peaks from one model
 
@@ -333,14 +356,14 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
             #parameters calculated based on the fit-parameters
             temp.set_param_hint('height') # function evaluation
             temp.set_param_hint('fwhm') # 2*sigma (see website lmfit)
-    
+
             ramanmodel += temp #compose the models to 'ramanmodel'
 
     #GAUSSIAN-PEAKS (GaussianModel)
-    if(os.stat(label + '/locpeak_gaussian_' + label + '.txt').st_size > 0):  #check, if a gaussian-peak has been selected 
+    if(os.stat(label + '/locpeak_gaussian_' + label + '.txt').st_size > 0):  #check, if a gaussian-peak has been selected
         xpeak_gaussian, ypeak_gaussian = np.genfromtxt(label + '/locpeak_gaussian_' + label + '.txt',
                                      unpack = True) #get the selected peak positions
-    
+
         if type(xpeak_gaussian) == np.float64:
             xpeak_gaussian = [xpeak_gaussian]
             ypeak_gaussian = [ypeak_gaussian]
@@ -361,12 +384,12 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
             temp.set_param_hint('amplitude', # starting value amplitude is approxamitaly 11*height (my guess)
                                 value = ypeak_lorentzian[i]*11,
                                 min = 0)
-            #parameters cacluated based on the fit parameters 
+            #parameters cacluated based on the fit parameters
             temp.set_param_hint('height') #function evaluation
             temp.set_param_hint('fwhm') #=2.3548*sigma (see website lmfit)
-    
+
             ramanmodel += temp #add the models to 'ramanmodel'
-    
+
 
     pars = ramanmodel.make_params() #create the fit parameters of the background substracted fit
     fitresult_peaks = ramanmodel.fit(y_fit, pars, x = x, method = 'leastsq', scale_covar = True) #acutal fit
@@ -392,7 +415,7 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
 
 
 # Fit the spectrum with the fit params of another spectrum
-# (given by oldlabel, oldlabel = label from the previous spectrum) as initial values. 
+# (given by oldlabel, oldlabel = label from the previous spectrum) as initial values.
 # Useful when you fit several similar spectra.
 def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
 
@@ -429,10 +452,10 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
     #Fit Baseline (with starting values from the previous spectrum)
     # Same data range as the previous spectrum
     bed = np.genfromtxt(baselinefile, unpack = True)
-    relevant = (x <= bed[0]) 
-    for i in range(1, len(bed) - 2, 2): 
-        relevant = relevant | ((x >= bed[i]) & (x <= bed[i + 1])) 
-    relevant = relevant | (x >= bed[-1]) 
+    relevant = (x <= bed[0])
+    for i in range(1, len(bed) - 2, 2):
+        relevant = relevant | ((x >= bed[i]) & (x <= bed[i + 1]))
+    relevant = relevant | (x >= bed[-1])
 
     background = PolynomialModel(degree = 3) # Third-degree polynomial to model the background
     background.set_param_hint('c0', value = baseline[0])
@@ -494,7 +517,7 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
                             value = q_fano[i],
                             min = -100,
                             max = 100)
-        temp.set_param_hint('amplitude', 
+        temp.set_param_hint('amplitude',
                             value = amplitude_fano[i],
                             min = 0)
 
@@ -513,12 +536,12 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
                                 value = sigma_lorentzian[i],
                                 min = 0,
                                 max = 200)
-            temp.set_param_hint('amplitude', 
+            temp.set_param_hint('amplitude',
                                 value = amplitude_lorentzian[i],
                                 min = 0)
             temp.set_param_hint('height')
             temp.set_param_hint('fwhm')
-    
+
             ramanmodel += temp #add the models to 'ramanmodel'
 
         #GAUSSIAN-PEAKS
@@ -534,12 +557,12 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
                                 value = sigma_gaussian[i],
                                 min = 0,
                                 max = 100)
-            temp.set_param_hint('amplitude', 
+            temp.set_param_hint('amplitude',
                                 value = amplitude_gaussian[i],
                                 min = 0)
             temp.set_param_hint('height')
             temp.set_param_hint('fwhm')
-    
+
             ramanmodel += temp #add the models to 'ramanmodel'
 
 
@@ -581,10 +604,10 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
     height_gaussian, amplitude_gaussian, x0_gaussian, sigma_gaussian, fwhm_gaussian, \
     = ([] for i in range(22))
 
-    #put the fit-paramters into the right arrays 
+    #put the fit-paramters into the right arrays
     for name in list(fitparams_peaks.keys()):
         par_peaks = fitparams_peaks[name]
-        
+
         #voigt-peaks
         if('voigt' in name):
             if ('height' in name):
@@ -598,10 +621,10 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
 
             elif ('sigma' in name):
                 sigma_voigt.append(par_peaks.value)
-    
+
             elif ('gamma' in name):
                 gamma_voigt.append(par_peaks.value)
-    
+
             elif ('fwhm' in name):
                 fwhm_voigt.append(par_peaks.value)
 
@@ -612,16 +635,16 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
 
             elif ('amplitude' in name):
                 amplitude_fano.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-    
+
             elif ('center' in name):
                 x0_fano.append(par_peaks.value)
 
             elif ('sigma' in name):
                 sigma_fano.append(par_peaks.value)
-    
+
             elif ('fwhm' in name):
                 fwhm_fano.append(par_peaks.value)
-            
+
             elif ('q' in name):
                 q_fano.append(par_peaks.value)
 
@@ -632,13 +655,13 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
 
             elif ('amplitude' in name):
                 amplitude_lorentzian.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-    
+
             elif ('center' in name):
                 x0_lorentzian.append(par_peaks.value)
 
             elif ('sigma' in name):
                 sigma_lorentzian.append(par_peaks.value)
-    
+
             elif ('fwhm' in name):
                 fwhm_lorentzian.append(par_peaks.value)
 
@@ -650,16 +673,16 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
 
             elif ('amplitude' in name):
                 amplitude_gaussian.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-    
+
             elif ('center' in name):
                 x0_gaussian.append(par_peaks.value)
 
             elif ('sigma' in name):
                 sigma_gaussian.append(par_peaks.value)
-    
+
             elif ('fwhm' in name):
                 fwhm_gaussian.append(par_peaks.value)
-            
+
 
         elif('c' in name):
             c = par_peaks.value * maxyvalue #because the fitted spectrum is normalized
@@ -670,7 +693,7 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
 
         if ('c0' in name):
             c0 = par_back.value * maxyvalue
-            
+
         elif ('c1' in name):
             c1 = par_back.value * maxyvalue
 
@@ -681,20 +704,20 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
             c3 = par_back.value * maxyvalue
 
     # save as .npz-file
-    np.savez(label + '/fitparams_' + label , x0_voigt = x0_voigt,            
+    np.savez(label + '/fitparams_' + label , x0_voigt = x0_voigt,
         height_voigt = height_voigt, sigma_voigt = sigma_voigt, gamma_voigt = gamma_voigt,
         fwhm_voigt = fwhm_voigt, amplitude_voigt = amplitude_voigt,
-        x0_fano = x0_fano, height_fano = height_fano,          
+        x0_fano = x0_fano, height_fano = height_fano,
         sigma_fano = sigma_fano, q_fano = q_fano, fwhm_fano = fwhm_fano, amplitude_fano = amplitude_fano,
-        x0_lorentzian = x0_lorentzian, height_lorentzian = height_lorentzian,          
+        x0_lorentzian = x0_lorentzian, height_lorentzian = height_lorentzian,
         sigma_lorentzian = sigma_lorentzian, fwhm_lorentzian = fwhm_lorentzian, amplitude_lorentzian = amplitude_lorentzian,
-        x0_gaussian = x0_gaussian, height_gaussian = height_gaussian,          
+        x0_gaussian = x0_gaussian, height_gaussian = height_gaussian,
         sigma_gaussian = sigma_gaussian, fwhm_gaussian = fwhm_gaussian, amplitude_gaussian = amplitude_gaussian,
         c0 = c0, c1 = c1, c2=c2, c3=c3 )
 
-    
+
     # save fit parameter of single peakt in txt-files:
-    # save the voigt-peak parameters 
+    # save the voigt-peak parameters
     for peak in range(0,len(x0_voigt)):
         f = open('results_fitparameter/' + label + '_voigt_' + str(peak + 1) + '.txt','a')
         f.write('Peak Position [cm^-1]: ' + str(x0_voigt[peak]) + ' +/- '  + '\n \n')
