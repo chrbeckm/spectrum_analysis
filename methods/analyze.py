@@ -3,8 +3,8 @@ import sys
 import time
 
 
-
-def analyze(label): # Combination of the methods provided by functions.py
+# Combination of the methods provided by functions_fitting.py
+def analyze(label):
 
     # function that initializes data for evaluation
     x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
@@ -13,8 +13,9 @@ def analyze(label): # Combination of the methods provided by functions.py
     xred, yred = SelectSpectrum(x, y, label)
 
     # Function opens a window with the data,
-    # you can select the regions that do not belong to the third degree polynominal
-    # background signal by clicking in the plot
+    # you can select the regions that do not belong to
+    # the third degree polynominal background signal
+    # by clicking in the plot
     baselinefile = SelectBaseline(xred, yred, label)
 
     # fit the baseline
@@ -26,16 +27,18 @@ def analyze(label): # Combination of the methods provided by functions.py
 
     # Fit Spectrum with initial values provided by SelectBaseline()
     # and SelectPeaks()
-    fitresult_peaks = FitSpectrum(xred, yred, maxyvalue, fitresult_background, label)
+    fitresult_peaks = FitSpectrum(xred, yred, maxyvalue,
+                                  fitresult_background, label)
 
-    #Save the Results of the fit in a .zip file using numpy.savez() and in additional txt-files (in folder results_fitparameter)
+    # Save the Results of the fit in a .zip file using numpy.savez()
+    # and in additional txt-files (in folder results_fitparameter)
     SaveFitParams(xred, yred, maxyvalue, fitresult_peaks, fitresult_background, label)
 
-    # delete temporary files 
+    # delete temporary files
     DeleteTempFiles(label)
 
 
 if __name__ == '__main__':
-    label = sys.argv[1] 
+    label = sys.argv[1]
     # label is the typed in name of the data file to analyze
     analyze(label)

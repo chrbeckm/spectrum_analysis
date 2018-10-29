@@ -3,7 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from functions_mapping import *
-from denoise import *
+from functions_denoising import *
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
