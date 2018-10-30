@@ -185,13 +185,10 @@ def PlotPeaks(fig):
 
 # function that allows you to select Voigt-, Fano-, Lorentzian-,
 # and Gaussian-peaks for fitting
-def SelectPeaks(x, y, fitresult_background, label):
+def SelectPeaks(x, y, fitresult_background, label, peaks):
 
     # Load the background
     background = PolynomialModel(degree = 3) # Third-degree polynomial
-
-    # possible peaks
-    peaks = ['voigt', 'fano', 'lorentzian', 'gaussian']
 
     # loop over all peaks and save the selected positions
     for peaktype in peaks:
@@ -215,16 +212,19 @@ def SelectPeaks(x, y, fitresult_background, label):
 # https://lmfit.github.io/lmfit-py/builtin_models.html
 def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
 
-    #values from the background fit and the SelctPeak-funtion are used in the following
-    background = PolynomialModel(degree = 3) # Third-degree polynomial to model the background
-    y_fit = y - background.eval(fitresult_background.params, x = x) #substracted-data
+    # values from the background fit and the SelectPeak-funtion are used
+    # in the following
+    background = PolynomialModel(degree = 3) # Third-degree polynomial
+    y_fit = y - background.eval(fitresult_background.params, x = x)
 
-    # Create a composed model of a ConstantModel, (possibly) multiple Voigt-, Fano-, Gaussian-, and Lorentzian-Models:
-    ramanmodel = ConstantModel() #Add a constant for a better fit
+    # Create a composed model of a ConstantModel,
+    # (possibly) multiple Voigt-, Fano-, Gaussian-, and Lorentzian-Models:
+    ramanmodel = ConstantModel() # Add a constant for a better fit
 
-    #VOIGT-PEAKS (VoigtModel)
-    if(os.stat(label + '/locpeak_voigt_' + label + '.txt').st_size > 0):  #check, if a Voigt peak has been selected
-        xpeak_voigt, ypeak_voigt = np.genfromtxt(label + '/locpeak_voigt_' + label + '.txt', #get the selected peak positions
+    # check, if a Voigt peak has been selected
+    if(os.stat(label + '/locpeak_voigt_' + label + '.txt').st_size > 0):
+        # get the selected peak positions
+        xpeak_voigt, ypeak_voigt = np.genfromtxt(label + '/locpeak_voigt_' + label + '.txt',
                                      unpack = True)
 
         if type(xpeak_voigt) == np.float64:

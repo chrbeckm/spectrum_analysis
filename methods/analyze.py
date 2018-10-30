@@ -2,6 +2,8 @@ from functions_fitting import *
 import sys
 import time
 
+# possible peaks
+peaks = ['voigt', 'fano', 'lorentzian', 'gaussian']
 
 # Combination of the methods provided by functions_fitting.py
 def analyze(label):
@@ -23,7 +25,7 @@ def analyze(label):
 
     # Function that opens a Window with the data,
     # you can choose initial values for the peaks by clicking on the plot.
-    SelectPeaks(xred, yred, fitresult_background, label)
+    SelectPeaks(xred, yred, fitresult_background, label, peaks)
 
     # Fit Spectrum with initial values provided by SelectBaseline()
     # and SelectPeaks()
