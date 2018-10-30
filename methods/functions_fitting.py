@@ -69,8 +69,8 @@ def SelectSpectrum(x, y, label):
     # plot spectrum
     fig, ax = plt.subplots()        # create figure
     ax.plot(x, y, 'b-', label = 'Data')     # plot data to figure
-    ax.set_title('Select the part of the spectrum you wish to consider by clicking into the plot.')
-    ax.set_ylim(bottom = 0)         # set ylim as zero
+    ax.set_title('Select the part of the spectrum you wish to consider\
+    by clicking into the plot.')
     ymax = np.max(y)                # calculate max of y
 
     xregion = PlotVerticalLines(ymax, 'green', fig)
@@ -88,8 +88,9 @@ def SelectBaseline(x, y, label):
     # plot the reduced spectrum
     fig, ax = plt.subplots()
     ax.plot(x, y, 'b-', label = 'Data')
-    ax.set_title('Normalized spectrum \n Select the area of the spectrum you wish to consider for the background by licking into the plot \n (3rd-degree polynomial assumed)')
-    ax.set_ylim(bottom = 0)
+    ax.set_title('Normalized spectrum \n Select the area of the spectrum \
+    you wish to exclude from the background by licking into the plot \n \
+    (3rd-degree polynomial assumed)')
     ymax = np.max(y)
 
     # choose the region
@@ -107,8 +108,9 @@ def SelectBaseline2(x, y, folder):
     # plot the reduced spectrum
     fig, ax = plt.subplots()
     ax.plot(x, y, 'b-', label = 'Data')
-    ax.set_title('Select the area of the spectrum you wish to consider for the background by licking into the plot \n (3rd-degree polynomial assumed)')
-    #ax.set_ylim(bottom = 0)
+    ax.set_title('Normalized spectrum \n Select the area of the spectrum \
+    you wish to exclude from the background by licking into the plot \n \
+    (3rd-degree polynomial assumed)')    #ax.set_ylim(bottom = 0)
     ymax = np.max(y)
 
     # choose the region
@@ -123,7 +125,8 @@ def SelectBaseline2(x, y, folder):
     return folder + 'baseline.dat'
 
 # Creates a plot of the raw data.
-def PlotRawData(x, y, show = True, ax = None):    # show = True will show the plot, show = False will return a matplotlib object
+# show = True will show the plot, show = False will return a matplotlib object
+def PlotRawData(x, y, show = True, ax = None):
 
     if (ax != None):
         return ax.plot(x, y, 'kx', label = 'Data', linewidth = 0.5)
@@ -138,10 +141,12 @@ def FitBaseline(x, y, baselinefile, show = False):
     # Load the bounderies for the relevent data from SelectBaseline()
     bed = np.genfromtxt(baselinefile, unpack = True)
 
-    #generate mask for the baseline fit, for relevent data relevant = True, else relevant = False
+    # generate mask for the baseline fit, for relevent data relevant = True,
+    # else relevant = False
     relevant = (x <= bed[0]) #bed[0] is the lowest border
     for i in range(1, len(bed) - 2, 2): #upper borders i
-        relevant = relevant | ((x >= bed[i]) & (x <= bed[i + 1])) #take only the data between the borders
+        # take only data between the borders
+        relevant = relevant | ((x >= bed[i]) & (x <= bed[i + 1]))
     relevant = relevant | (x >= bed[-1]) #bed[-1] is the highest border
 
     # Third-degree polynomial to model the background
@@ -153,7 +158,8 @@ def FitBaseline(x, y, baselinefile, show = False):
     if (show == True):
         PlotRawData(x, y, show=True)
         xplot = np.linspace(x[0], x[-1], 100)
-        plt.plot(xplot, background.eval(fitresult_background.params, x = xplot), 'r-')
+        baseline = background.eval(fitresult_background.params, x = xplot)
+        plt.plot(xplot, baseline , 'r-')
         plt.show()
 
     return fitresult_background #return fit parameters
@@ -177,61 +183,35 @@ def PlotPeaks(fig):
 
     return xpeak, ypeak
 
-# function that allows you to select Voigt-, Fano-, Lorentzian-, and Gaussian-peaks for fitting
+# function that allows you to select Voigt-, Fano-, Lorentzian-,
+# and Gaussian-peaks for fitting
 def SelectPeaks(x, y, fitresult_background, label):
 
-    #Load the background
-    background = PolynomialModel(degree = 3) # Third-degree polynomial to model the background
+    # Load the background
+    background = PolynomialModel(degree = 3) # Third-degree polynomial
 
-    #Select VOIGT-PEAKS
-    fig, ax = plt.subplots()
-    ax.plot(x, y - background.eval(fitresult_background.params, x = x), 'b-') #row-data
-    ax.set_title('Background substracted, normalized spectrum \n Select the maxima of the VOIGT-PEAKS to fit.') #title
-    xpeak_voigt, ypeak_voigt = PlotPeaks(fig) #arrays of initial values for the fits
-    plt.legend(loc = 'upper right')
-    plt.show()
-    # store the chosen initial values
-    peakfile = label + '/locpeak_voigt_' + label + '.txt'
-    np.savetxt(peakfile,
-               np.transpose([np.array(xpeak_voigt), np.array(ypeak_voigt)]))
+    # possible peaks
+    peaks = ['voigt', 'fano', 'lorentzian', 'gaussian']
 
-    #Select FANO-PEAKS
-    fig, ax = plt.subplots()
-    ax.plot(x, y - background.eval(fitresult_background.params, x = x), 'b-') #row-data
-    ax.set_title('Background substracted, normalized spectrum \n Select the maxima of the FANO-PEAKS to fit.') #title
-    xpeak_fano, ypeak_fano = PlotPeaks(fig) #arrays of initial values for the fits
-    plt.legend(loc = 'upper right')
-    plt.show()
-    # store the chosen initial values
-    peakfile = label + '/locpeak_fano_' + label + '.txt'
-    np.savetxt(peakfile,
-               np.transpose([np.array(xpeak_fano), np.array(ypeak_fano)]))
+    # loop over all peaks and save the selected positions
+    for peaktype in peaks:
+        # create plot and baseline
+        fig, ax = plt.subplots()
+        baseline = background.eval(fitresult_background.params, x = x)
+        # plot corrected data
+        ax.plot(x, y - baseline, 'b-')
+        ax.set_title('Background substracted, normalized spectrum \n\
+                      Select the maxima of the ' + peaktype + '-PEAKS to fit.')
+        xpeak, ypeak = PlotPeaks(fig) #arrays of initial values for the fits
+        plt.legend(loc = 'upper right')
+        plt.show()
+        # store the chosen initial values
+        peakfile = label + '/locpeak_' + peaktype + '_' + label + '.txt'
+        np.savetxt(peakfile,
+                   np.transpose([np.array(xpeak), np.array(ypeak)]))
 
-    #Select LORENTZIAN-PEAKS
-    fig, ax = plt.subplots()
-    ax.plot(x, y - background.eval(fitresult_background.params, x = x), 'b-') #row-data
-    ax.set_title('Background substracted, normalized spectrum \n Select the maxima of the LORENTZIAN-PEAKS to fit.') #title
-    xpeak_lorentzian, ypeak_lorentzian = PlotPeaks(fig) # arrays of initial values
-    plt.legend(loc = 'upper right')
-    plt.show()
-    # store the chosen initial values
-    peakfile = label + '/locpeak_lorentzian_' + label + '.txt'
-    np.savetxt(peakfile,
-               np.transpose([np.array(xpeak_lorentzian), np.array(ypeak_lorentzian)]))
-
-    #Select GAUSSIAN-PEAKS
-    fig, ax = plt.subplots()
-    ax.plot(x, y - background.eval(fitresult_background.params, x = x), 'b-') #row-data
-    ax.set_title('Background substracted, normalized spectrum \n Select the maxima of the GAUSSIAN-PEAKS to fit.') #title
-    xpeak_gaussian, ypeak_gaussian = PlotPeaks(fig) # arrays of initial values
-    plt.legend(loc = 'upper right')
-    plt.show()
-    # store the chosen initial values
-    peakfile = label + '/locpeak_gaussian_' + label + '.txt'
-    np.savetxt(peakfile,
-               np.transpose([np.array(xpeak_gaussian), np.array(ypeak_gaussian)]))
-
-# Fit the Voigt-, Fano-, Lorentzian-, and Gaussian-Peaks for detailed describtions see:
+# Fit the Voigt-, Fano-, Lorentzian-, and Gaussian-Peaks
+# for detailed describtions see:
 # https://lmfit.github.io/lmfit-py/builtin_models.html
 def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
 
@@ -406,7 +386,8 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
     return fitresult_peaks
 
 # Fit the spectrum with the fit params of another spectrum
-# (given by oldlabel, oldlabel = label from the previous spectrum) as initial values.
+# (given by oldlabel, oldlabel = label from the previous spectrum)
+# as initial values.
 # Useful when you fit several similar spectra.
 def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
 
@@ -579,7 +560,8 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
 
     return fitresult_peaks, fitresult_background #return fitresult_peaks
 
-#Save the Results of the fit in a .zip file using numpy.savez() and in txt-files (in folder results_fitparameter).
+#Save the Results of the fit in a .zip file using numpy.savez()
+# and in txt-files (in folder results_fitparameter).
 def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label):
 
     # get the data to be stored
