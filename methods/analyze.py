@@ -2,8 +2,8 @@ from functions_fitting import *
 import sys
 import time
 
-# possible peaks
-peaks = ['voigt', 'fano', 'lorentzian', 'gaussian']
+# possible peaks (breit_wigner == fano)
+peaks = ['voigt', 'breit_wigner', 'lorentzian', 'gaussian']
 
 # Combination of the methods provided by functions_fitting.py
 def analyze(label):
@@ -30,7 +30,7 @@ def analyze(label):
     # Fit Spectrum with initial values provided by SelectBaseline()
     # and SelectPeaks()
     fitresult_peaks = FitSpectrum(xred, yred, maxyvalue,
-                                  fitresult_background, label)
+                                  fitresult_background, label, peaks)
 
     # Save the Results of the fit in a .zip file using numpy.savez()
     # and in additional txt-files (in folder results_fitparameter)
@@ -38,7 +38,7 @@ def analyze(label):
                   fitresult_background, label)
 
     # delete temporary files
-    DeleteTempFiles(label)
+    #DeleteTempFiles(label)
 
 
 if __name__ == '__main__':
