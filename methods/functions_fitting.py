@@ -26,7 +26,6 @@ def initialize(data_file):
                                                     # faster fit
     return x, y, maxyvalue                          # return x and y and maxyvalue
 
-
 # function that plots regions chosen by clicking into the plot
 def PlotVerticalLines(ymax, color, fig):
     xregion = []                            # variable to save chosen region
@@ -65,7 +64,6 @@ def PlotVerticalLines(ymax, color, fig):
 
     return xregion
 
-
 # Select the interesting region in the spectrum, by clicking on the plot
 def SelectSpectrum(x, y, label):
     # plot spectrum
@@ -84,7 +82,6 @@ def SelectSpectrum(x, y, label):
     np.savetxt(label + '/spectrumborders_' + label + '.txt', np.array(xregion))
 
     return xreduced, yreduced #arrays with data from the spectra
-
 
 #function to select the data that is relevent for the background
 def SelectBaseline(x, y, label):
@@ -136,7 +133,6 @@ def PlotRawData(x, y, show = True, ax = None):    # show = True will show the pl
     else:
         return plt.plot(x, y, 'b.', label = 'Data', linewidth = 0.5)
 
-
 # actual fit of the baseline
 def FitBaseline(x, y, baselinefile, show = False):
     # Load the bounderies for the relevent data from SelectBaseline()
@@ -162,8 +158,6 @@ def FitBaseline(x, y, baselinefile, show = False):
 
     return fitresult_background #return fit parameters
 
-
-
 # function that plots the dots at the peaks you wish to fit
 def PlotPeaks(fig):
     xpeak = []  # x and
@@ -182,7 +176,6 @@ def PlotPeaks(fig):
     figManager.window.showMaximized()           # show it maximized
 
     return xpeak, ypeak
-
 
 # function that allows you to select Voigt-, Fano-, Lorentzian-, and Gaussian-peaks for fitting
 def SelectPeaks(x, y, fitresult_background, label):
@@ -237,7 +230,6 @@ def SelectPeaks(x, y, fitresult_background, label):
     peakfile = label + '/locpeak_gaussian_' + label + '.txt'
     np.savetxt(peakfile,
                np.transpose([np.array(xpeak_gaussian), np.array(ypeak_gaussian)]))
-
 
 # Fit the Voigt-, Fano-, Lorentzian-, and Gaussian-Peaks for detailed describtions see:
 # https://lmfit.github.io/lmfit-py/builtin_models.html
@@ -413,7 +405,6 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label):
 
     return fitresult_peaks
 
-
 # Fit the spectrum with the fit params of another spectrum
 # (given by oldlabel, oldlabel = label from the previous spectrum) as initial values.
 # Useful when you fit several similar spectra.
@@ -587,8 +578,6 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
     plt.clf()
 
     return fitresult_peaks, fitresult_background #return fitresult_peaks
-
-
 
 #Save the Results of the fit in a .zip file using numpy.savez() and in txt-files (in folder results_fitparameter).
 def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label):
@@ -765,9 +754,6 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
     f.write('c2: ' + str(c2) + ' +/- '  + '\n')
     f.write('c3: ' + str(c3) + ' +/- '  + '\n')
     f.close()
-
-
-
 
 # function: delete temporary files
 def DeleteTempFiles(label):
