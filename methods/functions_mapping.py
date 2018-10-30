@@ -126,3 +126,34 @@ def RemoveBaselineMapping(x, y, baselinefile, degree=3, display=False):
         iterator += 1
 
     return y_bgfree
+
+# plot pca reduced data with cluster labels
+def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
+                     n_clusters, colors):
+    cluster_sum = np.empty([n_clusters, yden.shape[1]])
+
+    f_algorithm, ax_algorithm = plt.subplots()
+    # plot algorithm labeled pca analysis
+    for point in range(0, len(pca)):
+        # get cluster from algorithm
+        clust = algorithm.labels_[point]
+
+        # calculate sum spectra for each cluster
+        cluster_sum[clust] = cluster_sum[clust] + yden[point, :]
+
+        # plot each pca point
+        ax_algorithm.scatter(pca[point, 0], pca[point, 1],
+                    color=colors[clust], alpha=.8)
+
+    # set title and show image
+    ax_algorithm.set_title('PCA of ' + folder + ' Dataset with '
+                           + cluster_algorithm + ' coloring')
+    f_algorithm.show()
+
+    f, ax = plt.subplots(n_clusters, 1)
+    # plot each sum spectra of the cluster given
+    for clust in range(0, n_clusters):
+        # plot cluster
+        ax[clust].plot(x[0], cluster_sum[clust], color=colors[clust])
+        ax[clust].set_title('Cluster ' + str(clust))
+    f.show()

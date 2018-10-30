@@ -10,7 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from sklearn import datasets
 from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, SpectralClustering
 
 from lmfit.models import PolynomialModel
 
@@ -27,7 +27,7 @@ rmax = 1050         # maximal index for integration
 
 # define number of kmeans cluster and
 # if you want to see the kmeans labeled PCA data
-cluster = 10
+cluster = 3            # need to add more colors if more than 10 clusters
 plotLabeledPCA = True
 
 # define if you want to display the denoised sum of all spectra and save it
@@ -45,6 +45,10 @@ save_mapping = False
 # define special parameters of the mapping
 xticker = 2             # only every 2nd xtick is plotted
 colormap = 'RdYlGn'     # which colormap do you want?
+
+# colors for clustering (add more if you use more than 10 clusters)
+colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
+          'lightgreen', 'turquoise', 'lightblue', 'yellow']
 
 # create list of all files and read data from mapping
 listOfFiles = get_folder_content(folder, 'txt')
@@ -84,37 +88,14 @@ print('explained variance ratio (first two components): %s'
 kmeans = KMeans(init='k-means++', n_clusters=cluster)
 kmeans.fit(yden_bgfree_pca)
 
+# cluster with spectral clustering
+#spectral = SpectralClustering(n_clusters=cluster)
+#spectral.fit(yden_bgfree_pca)
+
 # plot pca reduced data with kmeans labels
 if plotLabeledPCA:
-    colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
-              'lightgreen', 'turquoise', 'lightblue', 'yellow']
-
-    cluster_sum = np.empty([cluster, y.shape[1]])
-
-    f_pca, ax_pca = plt.subplots()
-    # plot kmeans labeled pca analysis
-    for point in range(0, len(yden_bgfree_pca)):
-        # get cluster from kmeans
-        clust=kmeans.labels_[point]
-
-        # calculate sum spectra for each cluster
-        cluster_sum[clust] = cluster_sum[clust] + yden[point, :]
-
-        # plot each pca point
-        ax_pca.scatter(yden_bgfree_pca[point, 0], yden_bgfree_pca[point, 1],
-                    color=colors[clust], alpha=.8)
-
-    # set title and show image
-    ax_pca.set_title('PCA of ' + folder + ' Dataset with kmeans coloring')
-    f_pca.show()
-
-    f, ax = plt.subplots(cluster, 1)
-    # plot each sum spectra of the cluster given
-    for clust in range(0, cluster):
-        # plot cluster
-        ax[clust].plot(x[0], cluster_sum[clust], color=colors[clust])
-        ax[clust].set_title('Cluster ' + str(clust))
-    f.show()
+    PlotClusteredPCA(x, yden, folder, yden_bgfree_pca, kmeans, 'KMeans', cluster, colors)
+#    PlotClusteredPCA(x, yden, folder, yden_bgfree_pca, spectral, 'spectral', cluster, colors)
 
 # create x and y ticks accordingly to the parameters of the mapping
 x_ticks = np.arange(stepsize, stepsize * (xdim + 1), step=xticker*stepsize)
