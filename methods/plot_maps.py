@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 from functions_mapping import *
 from functions_denoising import *
+from functions_fitting import *
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -11,120 +12,109 @@ from sklearn import datasets
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
-'''
-folder = '02018-10-18-Stage-IV-mapping/'
-xdim = 15
-ydim = 15
-name = 'dry'
-'''
-folder = '02018-10-12-Stage-III-mapping/'
-xdim = 25
-ydim = 10
-name = 'oil'
+from lmfit.models import PolynomialModel
 
-save = True
+# define folder containting data from a mapping
+folder = '02018-10-12-Stage-III-mapping/'
+sample_name = '150C 10N 300000u'
 
 # define parameters of the mapping
-xticker = 2
-stepsize = 10
-integrationtime = 60
-file = 'results_1330cm'
-title = ''
+xdim = 25           # number of steps in x
+ydim = 10           # number of steps in y
+stepsize = 10       # size of each step
+rmin = 950          # minimal index for integration
+rmax = 1050         # maximal index for integration
 
-colormap = 'RdYlGn'
+# define number of kmeans cluster and
+# if you want to see the kmeans labeled PCA data
+cluster = 10
+plotLabeledPCA = True
+
+# define if you want to display the denoised sum of all spectra and save it
+# with sample_name in folder
+display_sumwavelet = False
+save_sumwavelet = False
+
+# save the mapping
+save_mapping = False
+
+#############################################################
+# fine tuning (most likely nothing has to be adjusted)
+#############################################################
+
+# define special parameters of the mapping
+xticker = 2             # only every 2nd xtick is plotted
+colormap = 'RdYlGn'     # which colormap do you want?
 
 # create list of all files and read data from mapping
 listOfFiles = get_folder_content(folder, 'txt')
 x, y = get_mono_data(listOfFiles)
+
+# prepare y for fitting
 ymax = np.max(y, axis=1)    # get maximum of each spectrum
 ynormed = y/ymax[:,None]    # norm each spectrum to its maximum
-ymuon = np.empty_like(y)    # array to save muon removed spectra
-yrec = np.empty_like(y)     # array to save denoised spectra
-ymuon_ren = np.empty_like(y)# array to save muon removed spectra renormalized
-yrec_ren = np.empty_like(y) # array to save denoised spectra renormalized
-ymuon_sized = np.empty_like(y) # array to save muon remoced spectra resized
-yrec_sized = np.empty_like(y) # array to save denoised spectra resized
 
-# generate all denoised spectra
-iterator = 0
-for spectrum in ynormed:
-    print('spectrum ' + str(iterator + 1).zfill(4))
-    # denoise spectrum
-    muon, rec = DenoiseSpectrum(x[0], spectrum, thresh_mod=2)
-    ymuon[iterator] = muon
-    yrec[iterator] = rec
-    ymuon_ren[iterator] = renormalize(muon, muon)
-    yrec_ren[iterator] = renormalize(rec, muon)
-    yrec_sized[iterator] = yrec[iterator] * ymax[iterator]
-    ymuon_sized[iterator] = ymuon[iterator] * ymax[iterator]
-    print('Maximum: %.2f at index: %4d and position: %4d' %
-         (max(yrec_sized[iterator]),
-          np.argmax(yrec_sized[iterator]),
-          x[iterator][np.argmax(yrec_sized[iterator])]))
+# create arrays to save data to
+ymuon = np.empty_like(y) # save muon removed spectra rescaled
+yden = np.empty_like(y) # save denoised spectra rescaled
+yden_bgfree = np.empty_like(y) # save background free spectra
 
-    # save the muons removed spectra
-    np.savetxt(folder + 'muons-removed/' + str(iterator + 1).zfill(4) + '.dat',
-               np.transpose([x[iterator], ymuon_sized[iterator]]),
-               fmt='%3.3f')
+# Denoise the whole mapping
+ymuon, yden = DenoiseMapping(x, ynormed, ymax, folder)
 
-    # save the denoised spectra
-    np.savetxt(folder + 'denoised/' + str(iterator + 1).zfill(4) + '.dat',
-               np.transpose([x[iterator], yrec_sized[iterator]]),
-               fmt='%3.3f')
+if display_sumwavelet:
+    WaveletPlot(x[0], ymuon.sum(axis=0), yden.sum(axis=0),
+            save=save_sumwavelet, name=folder + sample_name + '_sum',
+            title='Sum of ' + folder + ' (' + sample_name + ' sample)')
 
-    # plot muonfree and reconstructed spectra
-    #WaveletPlot(x[0], ymuon_sized[iterator],
-    #                  yrec_sized[iterator],
-    #                  title=('Spectrum ' + str(iterator + 1)))
-    iterator += 1
+# select region for baseline and save points to file
+baselinefile = SelectBaseline2(x[0], yden.sum(axis=0), folder)
 
-WaveletPlot(x[0], ymuon_sized.sum(axis=0), yrec_sized.sum(axis=0),
-            save=save, name=name + '_sum',
-            title='Sum of ' + folder + ' (' + name + ' sample)')
-
+# fit and remove baseline from each denoised spectrum
+yden_bgfree = RemoveBaselineMapping(x, yden, baselinefile)
 
 # reduce data to two main principal components
 pca = PCA(n_components=2)
-yrec_sized_pca = pca.fit(yrec_sized).transform(yrec_sized)
+#yden_bgfree_pca = pca.fit(yden).transform(yden) # -> seems to generate better results
+yden_bgfree_pca = pca.fit(yden_bgfree).transform(yden_bgfree)
 print('explained variance ratio (first two components): %s'
      % str(pca.explained_variance_ratio_))
 
-# cluster the data
-cluster = 10
+# cluster the data with kmeans
 kmeans = KMeans(init='k-means++', n_clusters=cluster)
-kmeans.fit(yrec_sized_pca)
+kmeans.fit(yden_bgfree_pca)
 
-# plot reduced data with kmeans labels
-f_pca, ax_pca = plt.subplots()
-lw = 2
-colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
-          'lightgreen', 'turquoise', 'lightblue', 'yellow']
+# plot pca reduced data with kmeans labels
+if plotLabeledPCA:
+    colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
+              'lightgreen', 'turquoise', 'lightblue', 'yellow']
 
-cluster_sum = np.empty([cluster, y.shape[1]])
+    cluster_sum = np.empty([cluster, y.shape[1]])
 
-# plot kmeans labeled pca analysis
-for point in range(0, len(yrec_sized_pca)):
-    # get cluster from kmeans
-    clust=kmeans.labels_[point]
+    f_pca, ax_pca = plt.subplots()
+    # plot kmeans labeled pca analysis
+    for point in range(0, len(yden_bgfree_pca)):
+        # get cluster from kmeans
+        clust=kmeans.labels_[point]
 
-    # calculate sum spectra for each cluster
-    cluster_sum[clust] = cluster_sum[clust] + yrec_sized[point, :]
+        # calculate sum spectra for each cluster
+        cluster_sum[clust] = cluster_sum[clust] + yden[point, :]
 
-    # plot each pca point
-    ax_pca.scatter(yrec_sized_pca[point, 0], yrec_sized_pca[point, 1],
-                color=colors[clust], alpha=.8, lw=lw)
-# set title and show image
-ax_pca.set_title('PCA of ' + folder + ' Dataset with kmeans coloring')
-f_pca.show()
+        # plot each pca point
+        ax_pca.scatter(yden_bgfree_pca[point, 0], yden_bgfree_pca[point, 1],
+                    color=colors[clust], alpha=.8)
 
-f, ax = plt.subplots(cluster, 1)
-# plot each sum spectra of the cluster given
-for clust in range(0, cluster):
-    # plot cluster
-    ax[clust].plot(x[0], cluster_sum[clust], color=colors[clust])
-    ax[clust].set_title('Cluster ' + str(clust))
-f.show()
+    # set title and show image
+    ax_pca.set_title('PCA of ' + folder + ' Dataset with kmeans coloring')
+    f_pca.show()
 
+    f, ax = plt.subplots(cluster, 1)
+    # plot each sum spectra of the cluster given
+    for clust in range(0, cluster):
+        # plot cluster
+        ax[clust].plot(x[0], cluster_sum[clust], color=colors[clust])
+        ax[clust].set_title('Cluster ' + str(clust))
+    f.show()
 
 # create x and y ticks accordingly to the parameters of the mapping
 x_ticks = np.arange(stepsize, stepsize * (xdim + 1), step=xticker*stepsize)
@@ -132,13 +122,13 @@ y_ticks = np.arange(stepsize, stepsize * (ydim + 1), step=stepsize)
 y_ticks = y_ticks[::-1]
 
 # sum up each spectrum and create matrix
-ysum = yrec_sized[:, 950:1050].sum(axis=1)
+ysum = yden_bgfree[:, rmin:rmax].sum(axis=1)
 ysum_matrix = np.reshape(ysum, (ydim, xdim))
 ysum_matrix = np.flipud(ysum_matrix)
 
 # create figure
 fig = plt.figure(figsize=(18,6))
-plt.suptitle(title)
+plt.suptitle('Mapping of ' + sample_name)
 
 # set font and parameters
 matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
@@ -148,8 +138,7 @@ tick_locator = matplotlib.ticker.MaxNLocator(nbins=5)
 # create the different subplots and modify them
 ax = fig.add_subplot(1,1,1)
 ax.set_aspect('equal')
-plt.imshow(ysum_matrix,
-           cmap=colormap)
+plt.imshow(ysum_matrix, cmap=colormap)
 plt.xticks(np.arange(xdim, step=xticker), x_ticks)
 plt.yticks(np.arange(ydim), y_ticks)
 plt.ylabel('y-Position ($\mathrm{\mu}$m)')
@@ -165,8 +154,7 @@ clb.update_ticks()
 plt.tight_layout()
 
 # save everything and show the plot
-#plt.savefig(file + '_short.png', format='png')
-#plt.savefig(file + '_short.pdf', format='pdf')
-#plt.savefig(file + '_short.svg', format='svg')
+if save_mapping:
+    plt.savefig(folder + 'mapping_bgfree.pdf', format='pdf')
 
 plt.show()
