@@ -250,19 +250,24 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
                     temp = GaussianModel(prefix = prefix, nan_policy = 'omit')
                 temp = StartingParameters(xpeak, ypeak, i, temp, peaks)
 
-                ramanmodel += temp #add the models to 'ramanmodel'
+                ramanmodel += temp # add the models to 'ramanmodel'
 
-    pars = ramanmodel.make_params() #create the fit parameters of the background substracted fit
-    fitresult_peaks = ramanmodel.fit(y_fit, pars, x = x, method = 'leastsq', scale_covar = True) #acutal fit
+    # create the fit parameters of the background substracted fit
+    pars = ramanmodel.make_params()
+    # fit the data to the created model
+    fitresult_peaks = ramanmodel.fit(y_fit, pars, x = x, method = 'leastsq',
+                                     scale_covar = True)
 
-    #show fit report in terminal
+    # show fit report in terminal
     #print(fitresult_peaks.fit_report(min_correl=0.5))
     comps = fitresult_peaks.eval_components()
 
-    #Plot the sprectrum, the fitted data, and the background
-    plt.plot(x, y * maxyvalue, 'b.', label = 'Data',  markersize=2) #raw-data
-    plt.plot(x, background.eval(fitresult_background.params, x = x) * maxyvalue, 'k-', label = 'Background') #background
-    plt.plot(x, (ramanmodel.eval(fitresult_peaks.params, x = x) + background.eval(fitresult_background.params, x = x)) * maxyvalue, 'r-', label = 'Fit') #fit + background
+    # Plot the raw sprectrum, the fitted data, and the background
+    bg_line = background.eval(fitresult_background.params, x = x)
+    fit_line = ramanmodel.eval(fitresult_peaks.params, x = x)
+    plt.plot(x, y * maxyvalue, 'b.', label = 'Data',  markersize=2)
+    plt.plot(x, bg_line * maxyvalue, 'k-', label = 'Background')
+    plt.plot(x, (fit_line + bg_line) * maxyvalue, 'r-', label = 'Fit')
 
     figManager = plt.get_current_fig_manager()  # get current figure
     figManager.window.showMaximized()           # show it maximized
