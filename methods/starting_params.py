@@ -4,9 +4,9 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
     # starting position for the peak position is not allowed to vary much
     fitmodel.set_param_hint('center',
                              value = xpeak[i],
-                             min = xpeak[i] - 20,
-                             max = xpeak[i] + 20)
-    # get model name
+                             min = xpeak[i] - 50,
+                             max = xpeak[i] + 50)
+    # get model name1
     model = re.findall('\((.*?),', fitmodel.name)
     model = model[0]
     # search if model is in peak list

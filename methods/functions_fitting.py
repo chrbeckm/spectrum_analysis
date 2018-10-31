@@ -239,7 +239,7 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
             #define starting values for the fit
             for i in range(0, len(xpeak)):
                 # prefix for the different peaks from one model
-                prefix = peaktype + 'p'+ str(i + 1) + '_'
+                prefix = peaktype + '_p'+ str(i + 1) + '_'
                 temp = ConstantModel()
                 if peaktype == 'voigt':
                     temp = VoigtModel(prefix = prefix, nan_policy = 'omit')

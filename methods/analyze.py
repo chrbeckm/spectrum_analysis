@@ -30,13 +30,11 @@ def analyze(label):
 
     # Fit Spectrum with initial values provided by SelectBaseline()
     # and SelectPeaks()
-    fitresult_peaks = FitSpectrum(xred, yred, maxyvalue,
-                                  fitresult_background, label, peaks)
+    fitresult_peaks = FitSpectrum(xred, yred, maxyvalue, fitresult_background, label, peaks)
 
     # Save the Results of the fit in a .zip file using numpy.savez()
     # and in additional txt-files (in folder results_fitparameter)
-    SaveFitParams(xred, yred, maxyvalue, fitresult_peaks,
-                  fitresult_background, label)
+    SaveFitParams(xred, yred, maxyvalue, fitresult_peaks, fitresult_background, label)
 
     # delete temporary files
     #DeleteTempFiles(label)

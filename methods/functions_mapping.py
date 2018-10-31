@@ -157,3 +157,5 @@ def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
         ax[clust].plot(x[0], cluster_sum[clust], color=colors[clust])
         ax[clust].set_title('Cluster ' + str(clust))
     f.show()
+
+    return cluster_sum
