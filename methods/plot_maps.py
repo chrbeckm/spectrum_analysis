@@ -51,8 +51,8 @@ colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
           'lightgreen', 'turquoise', 'lightblue', 'yellow']
 
 # create list of all files and read data from mapping
-listOfFiles = get_folder_content(folder, 'txt')
-x, y = get_mono_data(listOfFiles)
+listOfFiles = GetFolderContent(folder, 'txt')
+x, y = GetMonoData(listOfFiles)
 
 # prepare y for fitting
 ymax = np.max(y, axis=1)    # get maximum of each spectrum

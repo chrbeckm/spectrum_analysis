@@ -15,7 +15,7 @@ def teller(number, kind, location):
         print()
 
 # return a list of all files in a folder
-def get_folder_content(foldername, filetype):
+def GetFolderContent(foldername, filetype):
     #generate list of txt-files in requested folder
     foldername = foldername + '*.' + filetype
     listOfFiles = sorted(glob.glob(foldername))
@@ -26,7 +26,7 @@ def get_folder_content(foldername, filetype):
     return listOfFiles
 
 # returns arrays containing the measured data
-def get_mono_data(listOfFiles):
+def GetMonoData(listOfFiles):
     # define arrays to hold data from the files
     inversecm = np.array([])
     intensity = np.array([])
