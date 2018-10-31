@@ -3,7 +3,8 @@ import sys
 import time
 
 # possible peaks (breit_wigner == fano)
-peaks = ['voigt', 'breit_wigner', 'lorentzian', 'gaussian']
+# implemented are: breit_wigner, lorentzian, gaussian, voigt
+peaks = ['breit_wigner', 'lorentzian']
 
 # Combination of the methods provided by functions_fitting.py
 def analyze(label):

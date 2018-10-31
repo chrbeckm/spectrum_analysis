@@ -11,6 +11,7 @@ from uncertainties.unumpy import std_devs as stds
 from scipy.optimize import curve_fit
 from scipy.special import wofz, erf
 
+import lmfit
 from lmfit import Model
 from lmfit.models import PolynomialModel, ConstantModel
 from lmfit.models import VoigtModel, BreitWignerModel, LorentzianModel, GaussianModel
@@ -257,10 +258,11 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
     # fit the data to the created model
     fitresult_peaks = ramanmodel.fit(y_fit, pars, x = x, method = 'leastsq',
                                      scale_covar = True)
+    # calculate confidence band
+    dely = fitresult_peaks.eval_uncertainty(x = x, sigma=3)
 
     # show fit report in terminal
-    #print(fitresult_peaks.fit_report(min_correl=0.5))
-    comps = fitresult_peaks.eval_components()
+    print(fitresult_peaks.fit_report(min_correl=0.5))
 
     # Plot the raw sprectrum, the fitted data, and the background
     bg_line = background.eval(fitresult_background.params, x = x)
@@ -268,6 +270,10 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
     plt.plot(x, y * maxyvalue, 'b.', label = 'Data',  markersize=2)
     plt.plot(x, bg_line * maxyvalue, 'k-', label = 'Background')
     plt.plot(x, (fit_line + bg_line) * maxyvalue, 'r-', label = 'Fit')
+    # plot confidence band
+    plt.fill_between(x, (fit_line + bg_line + dely) * maxyvalue,
+                        (fit_line + bg_line - dely) * maxyvalue,
+                        color = 'r', alpha = 0.5, label = '3$\sigma$')
 
     figManager = plt.get_current_fig_manager()  # get current figure
     figManager.window.showMaximized()           # show it maximized
