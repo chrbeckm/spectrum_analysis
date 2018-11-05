@@ -1,4 +1,5 @@
 import re
+import lmfit
 
 def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
     # starting position for the peak position is not allowed to vary much
@@ -80,3 +81,13 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
         print('Used ' + model + ' model is not in List')
 
     return fitmodel
+
+def ChoosePeakType(peaktype, prefix):
+    if peaktype == 'voigt':
+        return lmfit.models.VoigtModel(prefix = prefix, nan_policy = 'omit')
+    elif peaktype == 'breit_wigner':
+        return lmfit.models.BreitWignerModel(prefix = prefix, nan_policy = 'omit')
+    elif peaktype == 'lorentzian':
+        return lmfit.models.LorentzianModel(prefix = prefix, nan_policy = 'omit')
+    elif peaktype == 'gaussian':
+        return lmfit.models.GaussianModel(prefix = prefix, nan_policy = 'omit')

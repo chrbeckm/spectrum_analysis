@@ -241,14 +241,7 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
                 # prefix for the different peaks from one model
                 prefix = peaktype + '_p'+ str(i + 1) + '_'
                 temp = ConstantModel()
-                if peaktype == 'voigt':
-                    temp = VoigtModel(prefix = prefix, nan_policy = 'omit')
-                elif peaktype == 'breit_wigner':
-                    temp = BreitWignerModel(prefix = prefix, nan_policy = 'omit')
-                elif peaktype == 'lorentzian':
-                    temp = LorentzianModel(prefix = prefix, nan_policy = 'omit')
-                elif peaktype == 'gaussian':
-                    temp = GaussianModel(prefix = prefix, nan_policy = 'omit')
+                temp = ChoosePeakType(peaktype, prefix)
                 temp = StartingParameters(xpeak, ypeak, i, temp, peaks)
 
                 ramanmodel += temp # add the models to 'ramanmodel'
