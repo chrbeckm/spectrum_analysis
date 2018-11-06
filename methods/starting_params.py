@@ -7,7 +7,8 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
                              value = xpeak[i],
                              min = xpeak[i] - 50,
                              max = xpeak[i] + 50)
-    # get model name1
+    # get model name
+    # search all letters between ( and ,
     model = re.findall('\((.*?),', fitmodel.name)
     model = model[0]
     # search if model is in peak list

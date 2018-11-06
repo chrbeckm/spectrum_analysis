@@ -34,10 +34,10 @@ def analyze(label):
 
     # Save the Results of the fit in a .zip file using numpy.savez()
     # and in additional txt-files (in folder results_fitparameter)
-    SaveFitParams(xred, yred, maxyvalue, fitresult_peaks, fitresult_background, label)
+    SaveFitParams(xred, yred, maxyvalue, fitresult_peaks, fitresult_background, label, peaks)
 
     # delete temporary files
-    #DeleteTempFiles(label)
+    #DeleteTempFiles(label, peaks)
 
 
 if __name__ == '__main__':

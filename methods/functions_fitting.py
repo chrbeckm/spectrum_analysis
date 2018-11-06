@@ -455,132 +455,61 @@ def FitSpectrumInit(x, y, maxyvalue, oldlabel, label, baselinefile):
 
 #Save the Results of the fit in a .zip file using numpy.savez()
 # and in txt-files (in folder results_fitparameter).
-def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label):
+def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label, peaks):
 
     # get the data to be stored
     fitparams_back = fitresult_background.params #Fitparameter Background
     fitparams_peaks = fitresult_peaks.params #Fitparamter Peaks
 
-    #fit-parameters of the composed ramanmodel (arrays in case of several peaks per spectrum)
-    height_voigt, x0_voigt, sigma_voigt, gamma_voigt, fwhm_voigt, amplitude_voigt, \
-    height_fano, amplitude_fano, x0_fano, sigma_fano, q_fano, fwhm_fano, \
-    height_lorentzian, amplitude_lorentzian, x0_lorentzian, sigma_lorentzian, fwhm_lorentzian, \
-    height_gaussian, amplitude_gaussian, x0_gaussian, sigma_gaussian, fwhm_gaussian, \
-    = ([] for i in range(22))
+    # save background parameters
+    f = open('results_fitparameter/' + label + '_background.txt','a')
+    # iterate through all the background parameters
+    for name in fitparams_back:
+        # get parameters for saving
+        parametervalue = fitparams_back[name].value
+        parametererror = fitparams_back[name].stderr
 
-    #put the fit-paramters into the right arrays
-    for name in list(fitparams_peaks.keys()):
-        par_peaks = fitparams_peaks[name]
+        # add background from peaks fit
+        if name == 'c0':
+            parametervalue = fitparams_peaks['c'].value
+            parametererror = np.sqrt(parametererror**2 + fitparams_peaks['c'].stderr**2)
 
-        #voigt-peaks
-        if('voigt' in name):
-            if ('height' in name):
-                height_voigt.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
+        f.write(name.ljust(5) + '{:>13.5f}'.format(parametervalue)
+                              + ' +/- ' + '{:>11.5f}'.format(parametererror)
+                              + '\n')
+    f.close()
 
-            elif ('amplitude' in name):
-                amplitude_voigt.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
+    # find all prefixes used in the current model
+    modelpeaks = re.findall('prefix=\'(.*?)\'', fitresult_peaks.model.name)
 
-            elif ('center' in name):
-                x0_voigt.append(par_peaks.value)
+    # iterate through all peaks used in the current model
+    for peak in modelpeaks:
+        print(peak)
+        peakfile = 'results_fitparameter/' + label + '_' + peak + '.txt'
+        f = open(peakfile, 'a')
+        # iterate through all fit parameters
+        for name in fitparams_peaks.keys():
+            # and find the current peak
+            peakparameter = re.findall(peak, name)
+            if peakparameter:
+                # get parameters for saving
+                peakparameter = name.replace(peak, '')
+                parametervalue = fitparams_peaks[name].value
+                parametererror = fitparams_peaks[name].stderr
 
-            elif ('sigma' in name):
-                sigma_voigt.append(par_peaks.value)
+                # if parameter is height or amplitude
+                # it has to be scaled properly as the fit was normalized
+                if (peakparameter == 'amplitude') or (peakparameter == 'height'):
+                    parametervalue = parametervalue * maxyvalue
+                    parametererror = parametererror * maxyvalue
 
-            elif ('gamma' in name):
-                gamma_voigt.append(par_peaks.value)
-
-            elif ('fwhm' in name):
-                fwhm_voigt.append(par_peaks.value)
-
-        #fano-peaks
-        elif('fano' in name):
-            if ('height' in name):
-                height_fano.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-
-            elif ('amplitude' in name):
-                amplitude_fano.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-
-            elif ('center' in name):
-                x0_fano.append(par_peaks.value)
-
-            elif ('sigma' in name):
-                sigma_fano.append(par_peaks.value)
-
-            elif ('fwhm' in name):
-                fwhm_fano.append(par_peaks.value)
-
-            elif ('q' in name):
-                q_fano.append(par_peaks.value)
-
-        #lorentzian-peaks
-        elif('lorentzian' in name):
-            if ('height' in name):
-                height_lorentzian.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-
-            elif ('amplitude' in name):
-                amplitude_lorentzian.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-
-            elif ('center' in name):
-                x0_lorentzian.append(par_peaks.value)
-
-            elif ('sigma' in name):
-                sigma_lorentzian.append(par_peaks.value)
-
-            elif ('fwhm' in name):
-                fwhm_lorentzian.append(par_peaks.value)
-
-
-        #gaussian-peaks
-        elif('gaussian' in name):
-            if ('height' in name):
-                height_gaussian.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-
-            elif ('amplitude' in name):
-                amplitude_gaussian.append(par_peaks.value*maxyvalue) #because the fitted spectrum is normalized
-
-            elif ('center' in name):
-                x0_gaussian.append(par_peaks.value)
-
-            elif ('sigma' in name):
-                sigma_gaussian.append(par_peaks.value)
-
-            elif ('fwhm' in name):
-                fwhm_gaussian.append(par_peaks.value)
-
-
-        elif('c' in name):
-            c = par_peaks.value * maxyvalue #because the fitted spectrum is normalized
-
-    #background
-    for name in list(fitparams_back.keys()):
-        par_back = fitparams_back[name]
-
-        if ('c0' in name):
-            c0 = par_back.value * maxyvalue
-
-        elif ('c1' in name):
-            c1 = par_back.value * maxyvalue
-
-        elif ('c2' in name):
-            c2 = par_back.value * maxyvalue
-
-        elif ('c3' in name):
-            c3 = par_back.value * maxyvalue
-
-    # save as .npz-file
-    np.savez(label + '/fitparams_' + label , x0_voigt = x0_voigt,
-        height_voigt = height_voigt, sigma_voigt = sigma_voigt, gamma_voigt = gamma_voigt,
-        fwhm_voigt = fwhm_voigt, amplitude_voigt = amplitude_voigt,
-        x0_fano = x0_fano, height_fano = height_fano,
-        sigma_fano = sigma_fano, q_fano = q_fano, fwhm_fano = fwhm_fano, amplitude_fano = amplitude_fano,
-        x0_lorentzian = x0_lorentzian, height_lorentzian = height_lorentzian,
-        sigma_lorentzian = sigma_lorentzian, fwhm_lorentzian = fwhm_lorentzian, amplitude_lorentzian = amplitude_lorentzian,
-        x0_gaussian = x0_gaussian, height_gaussian = height_gaussian,
-        sigma_gaussian = sigma_gaussian, fwhm_gaussian = fwhm_gaussian, amplitude_gaussian = amplitude_gaussian,
-        c0 = c0, c1 = c1, c2=c2, c3=c3 )
-
-
-    # save fit parameter of single peakt in txt-files:
+                # write to file
+                f.write(peakparameter.ljust(12) + '{:>13.5f}'.format(parametervalue)
+                                      + ' +/- ' + '{:>11.5f}'.format(parametererror)
+                                      + '\n')
+        f.close()
+    '''
+    # save fit parameter of single peaks in txt-files:
     # save the voigt-peak parameters
     for peak in range(0,len(x0_voigt)):
         f = open('results_fitparameter/' + label + '_voigt_' + str(peak + 1) + '.txt','a')
@@ -621,17 +550,10 @@ def SaveFitParams(x, y, maxyvalue, fitresult_peaks, fitresult_background, label)
         f.write('Sigma [cm^-1]: ' + str(sigma_gaussian[peak]) + ' +/- ' + '\n')
         f.write('FWHM [cm^-1]: ' + str(fwhm_gaussian[peak]) + ' +/- ' + '\n')
         f.close()
-    #save background parameters
-    f = open('results_fitparameter/' + label + '_background.txt','a')
-    f.write('Third degree polynominal: c0 + c1*x + c2*x^2 + c3*x^3 \n')
-    f.write('c0: ' + str(c+c0) + ' +/- '  + '\n')
-    f.write('c1: ' + str(c1) + ' +/- '  + '\n')
-    f.write('c2: ' + str(c2) + ' +/- '  + '\n')
-    f.write('c3: ' + str(c3) + ' +/- '  + '\n')
-    f.close()
+    '''
 
 # function: delete temporary files
-def DeleteTempFiles(label):
+def DeleteTempFiles(label, peaks):
     os.remove(label + '/baseline_'+ label + '.txt')
     os.remove(label + '/locpeak_voigt_' + label + '.txt')
     os.remove(label + '/locpeak_fano_' + label + '.txt')
