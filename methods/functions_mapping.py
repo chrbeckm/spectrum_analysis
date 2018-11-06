@@ -17,7 +17,7 @@ def teller(number, kind, location):
 # return a list of all files in a folder
 def GetFolderContent(foldername, filetype):
     #generate list of txt-files in requested folder
-    foldername = foldername + '*.' + filetype
+    foldername = foldername + '/*.' + filetype
     listOfFiles = sorted(glob.glob(foldername))
     numberOfFiles = len(listOfFiles)
     # tell the number of files in the requested folder
@@ -53,9 +53,10 @@ def DenoiseMapping(x, ynormed, ymax, folder,
 
     # create dirs for muon removed and denoised spectra
     # if they not already exist
-    if not os.path.exists(folder + 'muons-removed/'):
-        os.makedirs(folder + 'muons-removed/')
-        os.makedirs(folder + 'denoised/')
+    if not os.path.exists(folder + '/muons-removed/'):
+        os.makedirs(folder + '/muons-removed/')
+        os.makedirs(folder + '/denoised/')
+        os.makedirs(folder + '/temp/')
 
     # loop through all spectra
     iterator = 0
@@ -79,13 +80,13 @@ def DenoiseMapping(x, ynormed, ymax, folder,
 
         if sav:
             # save the muons removed spectra
-            np.savetxt(folder + 'muons-removed/' +
+            np.savetxt(folder + '/muons-removed/' +
                        str(iterator + 1).zfill(4) + '.dat',
                        np.transpose([x[iterator], ymuon_scaled[iterator]]),
                        fmt='%3.3f')
 
             # save the denoised spectra
-            np.savetxt(folder + 'denoised/' +
+            np.savetxt(folder + '/denoised/' +
                        str(iterator + 1).zfill(4) + '.dat',
                        np.transpose([x[iterator], yden_scaled[iterator]]),
                        fmt='%3.3f')
@@ -128,6 +129,7 @@ def RemoveBaselineMapping(x, y, baselinefile, degree=3, display=False):
     return y_bgfree
 
 # plot pca reduced data with cluster labels
+# returns the sum for each cluster
 def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
                      n_clusters, colors):
     cluster_sum = np.empty([n_clusters, yden.shape[1]])
@@ -150,12 +152,7 @@ def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
                            + cluster_algorithm + ' coloring')
     f_algorithm.show()
 
-    f, ax = plt.subplots(n_clusters, 1)
-    # plot each sum spectra of the cluster given
-    for clust in range(0, n_clusters):
-        # plot cluster
-        ax[clust].plot(x[0], cluster_sum[clust], color=colors[clust])
-        ax[clust].set_title('Cluster ' + str(clust))
-    f.show()
-
     return cluster_sum
+
+# plot a mapping of data
+#def PlotMapping():

@@ -15,7 +15,7 @@ from sklearn.cluster import KMeans, SpectralClustering
 from lmfit.models import PolynomialModel
 
 # define folder containting data from a mapping
-folder = '02018-10-12-Stage-III-mapping/'
+folder = '02018-10-12-Stage-III-mapping'
 sample_name = '150C 10N 300000u'
 
 # define parameters of the mapping
@@ -35,8 +35,12 @@ plotLabeledPCA = True
 display_sumwavelet = False
 save_sumwavelet = False
 
+# possible peaks (breit_wigner == fano)
+# implemented are: breit_wigner, lorentzian, gaussian, voigt
+peaks = ['breit_wigner', 'lorentzian']
+
 # save the mapping
-save_mapping = False
+save_mapping = True
 
 #############################################################
 # fine tuning (most likely nothing has to be adjusted)
@@ -58,13 +62,8 @@ x, y = GetMonoData(listOfFiles)
 ymax = np.max(y, axis=1)    # get maximum of each spectrum
 ynormed = y/ymax[:,None]    # norm each spectrum to its maximum
 
-# create arrays to save data to
-ymuon = np.empty_like(y) # save muon removed spectra rescaled
-yden = np.empty_like(y) # save denoised spectra rescaled
-yden_bgfree = np.empty_like(y) # save background free spectra
-
 # Denoise the whole mapping
-ymuon, yden = DenoiseMapping(x, ynormed, ymax, folder)
+ymuon, yden = DenoiseMapping(x, ynormed, ymax, folder, prnt=False)
 
 if display_sumwavelet:
     WaveletPlot(x[0], ymuon.sum(axis=0), yden.sum(axis=0),
@@ -87,16 +86,36 @@ print('explained variance ratio (first two components): %s'
 # cluster the data with kmeans
 kmeans = KMeans(init='k-means++', n_clusters=cluster)
 kmeans.fit(yden_bgfree_pca)
-
-# cluster with spectral clustering
-#spectral = SpectralClustering(n_clusters=cluster)
-#spectral.fit(yden_bgfree_pca)
+SpectraPerCluster = np.bincount(kmeans.labels_)
 
 # plot pca reduced data with kmeans labels
-if plotLabeledPCA:
-    PlotClusteredPCA(x, yden, folder, yden_bgfree_pca, kmeans, 'KMeans', cluster, colors)
-#    PlotClusteredPCA(x, yden, folder, yden_bgfree_pca, spectral, 'spectral', cluster, colors)
+cluster_sum = PlotClusteredPCA(x, yden, folder, yden_bgfree_pca,
+                               kmeans, 'KMeans',
+                               cluster, colors)
+'''
+# iterate over all clusters and generate cluster specific fit models
+for clust in range(0, cluster):
+    if True:
+        print('In Cluster ' + str(clust + 1) + ' are ' +
+              str(SpectraPerCluster[clust]) + ' Spectra.')
+    # get a baseline for the current cluster
+    baselinefile = SelectBaseline2(x[0], cluster_sum[clust], folder,
+                                   label='cluster' + str(clust),
+                                   color=colors[clust])
+    # get the indices of the current cluster
+    indices = [i for i, x in enumerate(kmeans.labels_) if x == clust]
 
+    # select the peaks for the current cluster and fit them each by itself
+    for index in indices:
+        print(index)
+        baseline_fit = FitBaseline(x[index], y[index], baselinefile)
+        SelectPeaks(x[index], y[index], baseline_fit,
+                    folder + '/temp', str(index).zfill(4), peaks)
+        fitresult = FitSpectrum(x[index], y[index], ymax[index],
+                                baseline_fit, folder + '/temp', str(index).zfill(4), peaks)
+        SaveFitParams(x[index], y[index], ymax[index], fitresult, baseline_fit,
+                      str(index).zfill(4), peaks)
+'''
 # create x and y ticks accordingly to the parameters of the mapping
 x_ticks = np.arange(stepsize, stepsize * (xdim + 1), step=xticker*stepsize)
 y_ticks = np.arange(stepsize, stepsize * (ydim + 1), step=stepsize)
@@ -136,6 +155,6 @@ plt.tight_layout()
 
 # save everything and show the plot
 if save_mapping:
-    plt.savefig(folder + 'mapping_bgfree.pdf', format='pdf')
+    plt.savefig(folder + 'mapping_yden_bgfree.pdf', format='pdf')
 
 plt.show()

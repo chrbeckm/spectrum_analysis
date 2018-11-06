@@ -8,7 +8,7 @@ from scipy.optimize import curve_fit    # for interpolating muons
 from functions_fitting import *
 
 # function to split muons from each other
-def SplitMuons(indices):
+def SplitMuons(indices, prnt=False):
     # create multidimensional list
     grouped_array = [[]]
 
@@ -29,7 +29,8 @@ def SplitMuons(indices):
         # add the last element to the list and
         grouped_array[muons].append(indices[-1])
         # print the number of muons found
-        print(str(muons + 1) + ' muons have been found.')
+        if prnt:
+            print(str(muons + 1) + ' muons have been found.')
 
     return grouped_array
 

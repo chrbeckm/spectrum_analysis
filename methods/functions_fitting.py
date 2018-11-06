@@ -90,7 +90,7 @@ def SelectSpectrum(x, y, label):
 def SelectBaseline(x, y, label):
     # plot the reduced spectrum
     fig, ax = plt.subplots()
-    ax.plot(x, y, 'b-', label = 'Data')
+    ax.plot(x, y, 'b.', label = 'Data')
     ax.set_title('Normalized spectrum \n Select the area of the spectrum \
     you wish to exclude from the background by licking into the plot \n \
     (3rd-degree polynomial assumed)')
@@ -107,10 +107,10 @@ def SelectBaseline(x, y, label):
     #return the name of the baselinefile
     return label + '/baseline_'+ label + '.txt'
 
-def SelectBaseline2(x, y, folder):
+def SelectBaseline2(x, y, folder, label='', color='b'):
     # plot the reduced spectrum
     fig, ax = plt.subplots()
-    ax.plot(x, y, 'b-', label = 'Data')
+    ax.plot(x, y, 'b.', label='Data', color=color)
     ax.set_title('Normalized spectrum \n Select the area of the spectrum \
     you wish to exclude from the background by licking into the plot \n \
     (3rd-degree polynomial assumed)')    #ax.set_ylim(bottom = 0)
@@ -122,10 +122,11 @@ def SelectBaseline2(x, y, folder):
     plt.legend(loc = 'upper right')
     plt.show()
 
-    np.savetxt(folder + 'baseline.dat', np.array(xregion))
+    filename = folder + '/temp/baseline' + label + '.dat'
+    np.savetxt(filename, np.array(xregion))
 
     #return the name of the baselinefile
-    return folder + 'baseline.dat'
+    return filename
 
 # Creates a plot of the raw data.
 # show = True will show the plot, show = False will return a matplotlib object
@@ -188,7 +189,7 @@ def PlotPeaks(fig):
 
 # function that allows you to select Voigt-, Fano-, Lorentzian-,
 # and Gaussian-peaks for fitting
-def SelectPeaks(x, y, fitresult_background, label, peaks):
+def SelectPeaks(x, y, fitresult_background, folder, label, peaks):
 
     # Load the background
     background = PolynomialModel(degree = 3) # Third-degree polynomial
@@ -199,20 +200,20 @@ def SelectPeaks(x, y, fitresult_background, label, peaks):
         fig, ax = plt.subplots()
         baseline = background.eval(fitresult_background.params, x = x)
         # plot corrected data
-        ax.plot(x, y - baseline, 'b-')
+        ax.plot(x, y - baseline, 'b.')
         ax.set_title('Background substracted, normalized spectrum \n\
                       Select the maxima of the ' + peaktype + '-PEAKS to fit.')
         xpeak, ypeak = PlotPeaks(fig) #arrays of initial values for the fits
         plt.show()
         # store the chosen initial values
-        peakfile = label + '/locpeak_' + peaktype + '_' + label + '.txt'
+        peakfile = folder + '/locpeak_' + peaktype + '_' + label + '.txt'
         np.savetxt(peakfile,
                    np.transpose([np.array(xpeak), np.array(ypeak)]))
 
 # Fit the Voigt-, Fano-, Lorentzian-, and Gaussian-Peaks
 # for detailed describtions see:
 # https://lmfit.github.io/lmfit-py/builtin_models.html
-def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
+def FitSpectrum(x, y, maxyvalue, fitresult_background, folder, label, peaks):
 
     # values from the background fit and the SelectPeak-funtion are used
     # in the following
@@ -225,7 +226,7 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
 
     # go through all defined peaks
     for peaktype in peaks:
-        peakfile = label + '/locpeak_' + peaktype + '_' + label + '.txt'
+        peakfile = folder + '/locpeak_' + peaktype + '_' + label + '.txt'
         # check, if the current peaktype has been selected
         if(os.stat(peakfile).st_size > 0):
             # get the selected peak positions
@@ -274,6 +275,7 @@ def FitSpectrum(x, y, maxyvalue, fitresult_background, label, peaks):
 
     plt.legend(loc = 'upper right')
     plt.savefig('results_plot/rawplot_' + label + '.pdf')
+    plt.savefig('results_plot/rawplot_' + label + '.png')
     plt.show()
 
     return fitresult_peaks

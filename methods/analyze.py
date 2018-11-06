@@ -26,7 +26,7 @@ def analyze(label):
 
     # Function that opens a Window with the data,
     # you can choose initial values for the peaks by clicking on the plot.
-    SelectPeaks(xred, yred, fitresult_background, label, peaks)
+    SelectPeaks(xred, yred, fitresult_background, label, label, peaks)
 
     # Fit Spectrum with initial values provided by SelectBaseline()
     # and SelectPeaks()
