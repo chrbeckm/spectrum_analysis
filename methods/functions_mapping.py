@@ -56,7 +56,6 @@ def DenoiseMapping(x, ynormed, ymax, folder,
     if not os.path.exists(folder + '/muons-removed/'):
         os.makedirs(folder + '/muons-removed/')
         os.makedirs(folder + '/denoised/')
-        os.makedirs(folder + '/temp/')
 
     # loop through all spectra
     iterator = 0

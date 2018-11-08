@@ -5,8 +5,6 @@ import numpy as np
 from statsmodels.robust import mad      # median absolute deviation from array
 from scipy.optimize import curve_fit    # for interpolating muons
 
-from functions_fitting import *
-
 # function to split muons from each other
 def SplitMuons(indices, prnt=False):
     # create multidimensional list
@@ -149,18 +147,3 @@ def DenoiseSpectrum(x, ynormed, thresh_mod=1.5, level=2):
 
 def renormalize(y, ymuon):
     return (y - np.min(ymuon)) / (np.max(ymuon) - np.min(ymuon))
-
-if __name__ == '__main__':
-    # name of the spectra to be analyzed
-    label = sys.argv[1]
-
-    # initialize data
-    x, y, maxyvalue = initialize(label + '/' + label + '_0017.txt')
-
-    # denoise spectrum
-    ymuon, yrec = DenoiseSpectrum(x, y)
-
-    region = range(700, 900)
-
-    # plot muonfree and reconstructed spectra
-    WaveletPlot(x[region], renormalize(ymuon[region], ymuon[region]), renormalize(yrec[region], ymuon[region]))
