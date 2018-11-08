@@ -37,6 +37,8 @@ class spectrum(object):
             os.makedirs(self.folder + '/results_plot')
         if not os.path.exists(self.folder + '/results_fitparameter'):
             os.makedirs(self.folder + '/results_fitparameter')
+        if not os.path.exists(self.folder + '/results_fitlines'):
+            os.makedirs(self.folder + '/results_fitlines')
 
         # names of files created during the procedure
         self.fSpectrumBorders = None
@@ -264,7 +266,7 @@ class spectrum(object):
     # select all peaks
     def SelectAllPeaks(self, peaks):
         for i in range(self.numberOfFiles):
-            self.SelectPeaks(peaks, spectrum=i, label=str(i+1))
+            self.SelectPeaks(peaks, spectrum=i, label=str(i+1).zfill(4))
 
     # Fit the peaks selected before
     # for detailed describtions see:
@@ -311,9 +313,7 @@ class spectrum(object):
                                                   x = self.xreduced[spectrum],
                                                   method = 'leastsq',
                                                   scale_covar = True)
-            # calculate confidence band
-            self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
-                                                    sigma=3)
+
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
                                                     x = self.xreduced[spectrum])
@@ -332,13 +332,17 @@ class spectrum(object):
             ax.plot(self.xreduced[spectrum],
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
                     'r-', linewidth = 0.5, label = 'Fit') # Fitted spectrum
-            # plot confidence band
-            ax.fill_between(self.xreduced[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                 color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
 
-
+            # check if errors exist and calculate confidence band
+            if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
+                # calculate confidence band
+                self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
+                                                        sigma=3)
+                # plot confidence band
+                ax.fill_between(self.xreduced[spectrum],
+                     (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
+                     (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
+                     color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
 
             fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
@@ -352,7 +356,7 @@ class spectrum(object):
     # fit all spectra
     def FitAllSpectra(self, peaks, show=False):
         for i in range(self.numberOfFiles):
-            self.FitSpectrum(peaks, spectrum=i, label=str(i+1), show=show)
+            self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show)
 
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, label='', spectrum=0):
@@ -364,7 +368,7 @@ class spectrum(object):
             fitparams_peaks = self.fitresult_peaks[spectrum].params # Fitparamter Peaks
 
             # save background parameters
-            f = open(self.folder + '/results_fitparameter/' + label + '_background.txt','a')
+            f = open(self.folder + '/results_fitparameter/' + label + '_background.dat','a')
             # iterate through all the background parameters
             for name in fitparams_back:
                 # get parameters for saving
@@ -374,8 +378,9 @@ class spectrum(object):
                 # add background from peaks fit
                 if name == 'c0':
                     parametervalue += fitparams_peaks['c'].value * self.ymax[spectrum]
-                    parametererror = np.sqrt(parametererror**2 +\
-                                             (fitparams_peaks['c'].stderr*self.ymax[spectrum])**2)
+                    if fitparams_peaks['c'].stderr is not None:
+                        parametererror = np.sqrt(parametererror**2 +\
+                                         (fitparams_peaks['c'].stderr*self.ymax[spectrum])**2)
 
                 f.write(name.ljust(5) + '{:>13.5f}'.format(parametervalue)
                                       + ' +/- ' + '{:>11.5f}'.format(parametererror)
@@ -388,9 +393,9 @@ class spectrum(object):
 
             # iterate through all peaks used in the current model
             for peak in modelpeaks:
-                print(peak)
+                print(peak + label)
                 peakfile = self.folder + '/results_fitparameter/' + label +\
-                           '_' + peak + '.txt'
+                           '_' + peak + '.dat'
                 f = open(peakfile, 'a')
                 # iterate through all fit parameters
                 for name in fitparams_peaks.keys():
@@ -406,7 +411,12 @@ class spectrum(object):
                         # it has to be scaled properly as the fit was normalized
                         if (peakparameter == 'amplitude') or (peakparameter == 'height') or (peakparameter == 'intensity'):
                             parametervalue = parametervalue * self.ymax[spectrum]
-                            parametererror = parametererror * self.ymax[spectrum]
+                            if parametererror is not None:
+                                parametererror = parametererror * self.ymax[spectrum]
+
+                        # if there is no error set the value to -1
+                        if parametererror is None:
+                            parametererror = -1.0
 
                         # write to file
                         f.write(peakparameter.ljust(12) + '{:>13.5f}'.format(parametervalue)
@@ -414,10 +424,15 @@ class spectrum(object):
                                               + '\n')
                 f.close()
 
+            # save the fitlines
+            for line in self.fitline:
+                file = self.folder + '/results_fitlines/' + label + '_fitline.dat'
+                np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]), fmt='%.3f %.3f')
+
     # Save all the results
     def SaveAllFitParams(self, peaks):
         for i in range(self.numberOfFiles):
-            self.SaveFitParams(peaks, spectrum=i, label=str(i+1))
+            self.SaveFitParams(peaks, spectrum=i, label=str(i+1).zfill(4))
 
     # plot mapping
     # input values are
