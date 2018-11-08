@@ -393,7 +393,7 @@ class spectrum(object):
 
             # iterate through all peaks used in the current model
             for peak in modelpeaks:
-                print(peak)
+                print(peak + label)
                 peakfile = self.folder + '/results_fitparameter/' + label +\
                            '_' + peak + '.dat'
                 f = open(peakfile, 'a')
@@ -426,8 +426,8 @@ class spectrum(object):
 
             # save the fitlines
             for line in self.fitline:
-                file = self.folder + '/results_fitlines/' + label + '.dat'
-                np.savetxt(file, np.column_stack([self.x[spectrum], line * self.ymax[spectrum]]), fmt='%.3f %.3f')
+                file = self.folder + '/results_fitlines/' + label + '_fitline.dat'
+                np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]), fmt='%.3f %.3f')
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
