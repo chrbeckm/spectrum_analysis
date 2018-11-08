@@ -311,9 +311,7 @@ class spectrum(object):
                                                   x = self.xreduced[spectrum],
                                                   method = 'leastsq',
                                                   scale_covar = True)
-            # calculate confidence band
-            self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
-                                                    sigma=3)
+
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
                                                     x = self.xreduced[spectrum])
@@ -332,13 +330,17 @@ class spectrum(object):
             ax.plot(self.xreduced[spectrum],
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
                     'r-', label = 'Fit')
-            # plot confidence band
-            ax.fill_between(self.xreduced[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                 color = 'r', alpha = 0.5, label = '3$\sigma$')
 
-
+            # check if errors exist and calculate confidence band
+            if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
+                # calculate confidence band
+                self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
+                                                        sigma=3)
+                # plot confidence band
+                ax.fill_between(self.xreduced[spectrum],
+                     (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
+                     (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
+                     color = 'r', alpha = 0.5, label = '3$\sigma$')
 
             fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
@@ -374,8 +376,9 @@ class spectrum(object):
                 # add background from peaks fit
                 if name == 'c0':
                     parametervalue += fitparams_peaks['c'].value * self.ymax[spectrum]
-                    parametererror = np.sqrt(parametererror**2 +\
-                                             (fitparams_peaks['c'].stderr*self.ymax[spectrum])**2)
+                    if fitparams_peaks['c'].stderr is not None:
+                        parametererror = np.sqrt(parametererror**2 +\
+                                         (fitparams_peaks['c'].stderr*self.ymax[spectrum])**2)
 
                 f.write(name.ljust(5) + '{:>13.5f}'.format(parametervalue)
                                       + ' +/- ' + '{:>11.5f}'.format(parametererror)
@@ -406,7 +409,10 @@ class spectrum(object):
                         # it has to be scaled properly as the fit was normalized
                         if (peakparameter == 'amplitude') or (peakparameter == 'height'):
                             parametervalue = parametervalue * self.ymax[spectrum]
-                            parametererror = parametererror * self.ymax[spectrum]
+                            if parametererror is not None:
+                                parametererror = parametererror * self.ymax[spectrum]
+                            else:
+                                parametererror = -1.0
 
                         # write to file
                         f.write(peakparameter.ljust(12) + '{:>13.5f}'.format(parametervalue)
