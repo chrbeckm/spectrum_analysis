@@ -1,41 +1,44 @@
-from functions_fitting import *
-import sys
-import time
+from spectrum import *
 
+# possible peaks (breit_wigner == fano)
+# implemented are: breit_wigner, lorentzian, gaussian, voigt
+peaks = ['breit_wigner', 'lorentzian']
 
+# select folder you want to analyze and initialize everything
+# it doesn't matter if there is one or more files in the folder
+spec = spectrum('smallmap')
 
-def analyze(label): # Combination of the methods provided by functions.py
+# Select the interesting region in the spectrum,
+# by clicking on the plot
+spec.SelectSpectrum()
 
-    # function that initializes data for evaluation
-    x, y, maxyvalue = initialize(label + '/data_' + label + '.txt')
+# Function opens a window with the data,
+# you can select the regions that do not belong to
+# the third degree polynominal background signal
+# by clicking in the plot
+spec.SelectBaseline()
 
-    # Select the interesting region in the spectrum, by clicking on the plot
-    xred, yred = SelectSpectrum(x, y, label)
+# fit the baselines
+spec.FitAllBaselines()
 
-    # Function opens a window with the data,
-    # you can select the regions that do not belong to the third degree polynominal
-    # background signal by clicking in the plot
-    baselinefile = SelectBaseline(xred, yred, label)
+# Function that opens a Window with the data,
+# you can choose initial values for the peaks by clicking on the plot.
+# You have to choose peaks for all spectra to get the proper starting
+# values. -> Improvement needed
+spec.SelectAllPeaks(peaks)
 
-    # fit the baseline
-    fitresult_background = Fitbaseline(xred, yred, baselinefile, show = False)
+# Fit all spectra with initial values provided by SelectBaseline()
+# and SelectAllPeaks()
+spec.FitAllSpectra(peaks)
 
-    # Function that opens a Window with the data,
-    # you can choose initial values for the peaks by clicking on the plot.
-    SelectPeaks(xred, yred, fitresult_background, label)
+# Save the results of the fit in txt-files
+spec.SaveAllFitParams(peaks)
 
-    # Fit Spectrum with initial values provided by SelectBaseline()
-    # and SelectPeaks()
-    fitresult_peaks = FitSpectrum(xred, yred, maxyvalue, fitresult_background, label)
-
-    #Save the Results of the fit in a .zip file using numpy.savez() and in additional txt-files (in folder results_fitparameter)
-    SaveFitParams(xred, yred, maxyvalue, fitresult_peaks, fitresult_background, label)
-
-    # delete temporary files 
-    DeleteTempFiles(label)
-
-
-if __name__ == '__main__':
-    label = sys.argv[1] 
-    # label is the typed in name of the data file to analyze
-    analyze(label)
+# plot mapping
+# input values are
+# xdim:     the number of Spectra in x direction
+# ydim:     the number of Spectra in y direction
+# stepsize: the interval at which the mapping was collected in µm
+# xmin:     the lowest wavenumber to be used in the mapping
+# xmax:     the highest wavenumber to be used in the mapping
+#spec.PlotMapping(2, 2, 10, 1550, 1620)

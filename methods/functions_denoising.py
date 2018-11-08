@@ -5,10 +5,8 @@ import numpy as np
 from statsmodels.robust import mad      # median absolute deviation from array
 from scipy.optimize import curve_fit    # for interpolating muons
 
-from functions_fitting import *
-
 # function to split muons from each other
-def SplitMuons(indices):
+def SplitMuons(indices, prnt=False):
     # create multidimensional list
     grouped_array = [[]]
 
@@ -29,7 +27,8 @@ def SplitMuons(indices):
         # add the last element to the list and
         grouped_array[muons].append(indices[-1])
         # print the number of muons found
-        print(str(muons + 1) + ' muons have been found.')
+        if prnt:
+            print(str(muons + 1) + ' muons have been found.')
 
     return grouped_array
 
@@ -115,14 +114,24 @@ def WaveletSmooth(noisydata, wavelet='sym8', level=1):
         return denoised[:-1], sigma
 
 # plot noisy and denoised data
-def WaveletPlot(x, noisydata, denoised, title=None):
+def WaveletPlot(x, noisydata, denoised, title=None, save=False, name='plot'):
+    # create plot
     f, ax = plt.subplots()
+    # plot the data
     ax.plot(x, noisydata, color='b', alpha=0.5)
     ax.plot(x, denoised, color='b')
+    # name the axis
+    ax.set_xlabel('Raman shift (cm$^{-1}$)')
+    ax.set_ylabel('Intensity (arb. u.)')
+    # set x limits
+    ax.set_xlim(min(x), max(x))
+    # set title if given
     if title:
         ax.set_title(title)
-    ax.set_xlim(min(x), max(x))
-    plt.show()
+    f.show()
+    # save figure if save is true
+    if save:
+        f.savefig(name + '.pdf', format='pdf')
 
 def DenoiseSpectrum(x, ynormed, thresh_mod=1.5, level=2):
     # find and remove muons
@@ -138,18 +147,3 @@ def DenoiseSpectrum(x, ynormed, thresh_mod=1.5, level=2):
 
 def renormalize(y, ymuon):
     return (y - np.min(ymuon)) / (np.max(ymuon) - np.min(ymuon))
-
-if __name__ == '__main__':
-    # name of the spectra to be analyzed
-    label = sys.argv[1]
-
-    # initialize data
-    x, y, maxyvalue = initialize(label + '/' + label + '_0017.txt')
-
-    # denoise spectrum
-    ymuon, yrec = DenoiseSpectrum(x, y)
-
-    region = range(700, 900)
-
-    # plot muonfree and reconstructed spectra
-    WaveletPlot(x[region], renormalize(ymuon[region], ymuon[region]), renormalize(yrec[region], ymuon[region]))
