@@ -411,8 +411,9 @@ class spectrum(object):
                             parametervalue = parametervalue * self.ymax[spectrum]
                             if parametererror is not None:
                                 parametererror = parametererror * self.ymax[spectrum]
-                            else:
-                                parametererror = -1.0
+
+                        if parametererror is None:
+                            parametererror = -1.0
 
                         # write to file
                         f.write(peakparameter.ljust(12) + '{:>13.5f}'.format(parametervalue)
