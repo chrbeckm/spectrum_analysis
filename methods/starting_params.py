@@ -52,6 +52,11 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
             fitmodel.set_param_hint('amplitude', # starting value amplitude is approxamitaly 11*height (my guess)
                                 value = ypeak[i]/50,
                                 min = 0)
+            fitmodel.set_param_hint('height', # maximum calculated to be at A(q^2+1)
+                                expr = fitmodel.prefix +'amplitude * ((' +fitmodel.prefix + 'q )**2+1)' )
+            fitmodel.set_param_hint('intensity', # intensity is A*q^2 (compared to the used expression in the paper)
+                                expr = fitmodel.prefix +'amplitude * (' +fitmodel.prefix + 'q )**2' )
+ 
 
         if model == 'lorentzian':
             print(model)

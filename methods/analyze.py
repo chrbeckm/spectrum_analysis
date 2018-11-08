@@ -6,7 +6,7 @@ peaks = ['breit_wigner', 'lorentzian']
 
 # select folder you want to analyze and initialize everything
 # it doesn't matter if there is one or more files in the folder
-spec = spectrum('smallmap')
+spec = spectrum('smallmap2')
 
 # Select the interesting region in the spectrum,
 # by clicking on the plot
