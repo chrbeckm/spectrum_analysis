@@ -228,7 +228,7 @@ class spectrum(object):
             if event.button:
                 xpeak.append(event.xdata)               # append x data and
                 ypeak.append(event.ydata)               # append y data
-                plt.plot(event.xdata, event.ydata, 'ko')# plot the selected peak
+                plt.plot(event.xdata, event.ydata, 'ro')# plot the selected peak
                 fig.canvas.draw()                       # and show it
 
         # actual execution of the defined function oneclickpeaks
