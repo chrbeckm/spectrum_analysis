@@ -299,7 +299,6 @@ class spectrum(object):
                     for i in range(0, len(xpeak)):
                         # prefix for the different peaks from one model
                         prefix = peaktype + '_p'+ str(i + 1) + '_'
-                        temp = ConstantModel()
                         temp = ChoosePeakType(peaktype, prefix)
                         temp = StartingParameters(xpeak, ypeak, i, temp, peaks)
 
@@ -326,18 +325,18 @@ class spectrum(object):
             fig, ax = plt.subplots()
             ax.plot(self.xreduced[spectrum],
                     self.yreduced[spectrum] * self.ymax[spectrum],
-                    'b.', label = 'Data')
+                    'b.', alpha = 0.8, markersize = 1, label = 'Data') # Measured data
             ax.plot(self.xreduced[spectrum],
                     self.baseline[spectrum] * self.ymax[spectrum],
-                    'k-', label = 'Background')
+                    'k-', linewidth = 1, label = 'Background') # Fitted background
             ax.plot(self.xreduced[spectrum],
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
-                    'r-', label = 'Fit')
+                    'r-', linewidth = 0.5, label = 'Fit') # Fitted spectrum
             # plot confidence band
             ax.fill_between(self.xreduced[spectrum],
                  (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
                  (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                 color = 'r', alpha = 0.5, label = '3$\sigma$')
+                 color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
 
 
 
