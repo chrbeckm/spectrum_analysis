@@ -1,5 +1,5 @@
 *.pdf
 ramanspectrum.pyc
-0*
+0*/
 __pycache__/
 methods/smallmap/*/
