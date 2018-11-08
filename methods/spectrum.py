@@ -331,17 +331,7 @@ class spectrum(object):
                     'k-', linewidth = 1, label = 'Background') # Fitted background
             ax.plot(self.xreduced[spectrum],
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
-<<<<<<< HEAD
-                    'r-', label = 'Fit')
-=======
                     'r-', linewidth = 0.5, label = 'Fit') # Fitted spectrum
-            # plot confidence band
-            ax.fill_between(self.xreduced[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                 color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
-
->>>>>>> Fano-resonance heigt and intensity edited
 
             # check if errors exist and calculate confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
@@ -352,9 +342,9 @@ class spectrum(object):
                 ax.fill_between(self.xreduced[spectrum],
                      (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
                      (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                     color = 'r', alpha = 0.5, label = '3$\sigma$')
+                     color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
 
-            fig.legend(loc = 'upper right')
+            #fig.legend(loc = 'best')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
 
@@ -419,19 +409,14 @@ class spectrum(object):
 
                         # if parameter is height or amplitude
                         # it has to be scaled properly as the fit was normalized
-                        if (peakparameter == 'amplitude') or (peakparameter == 'height') or (peakparameter == 'intensity'):
+                        if (peakparameter == 'amplitude') or (peakparameter == 'height'):
                             parametervalue = parametervalue * self.ymax[spectrum]
                             if parametererror is not None:
                                 parametererror = parametererror * self.ymax[spectrum]
-<<<<<<< HEAD
 
                         # if there is no error set the value to -1
                         if parametererror is None:
                             parametererror = -1.0
-=======
-                            else:
-                                parametererror = -1.0
->>>>>>> added error handling
 
                         # write to file
                         f.write(peakparameter.ljust(12) + '{:>13.5f}'.format(parametervalue)
