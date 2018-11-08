@@ -412,6 +412,7 @@ class spectrum(object):
                             if parametererror is not None:
                                 parametererror = parametererror * self.ymax[spectrum]
 
+                        # if there is no error set the value to -1
                         if parametererror is None:
                             parametererror = -1.0
 
