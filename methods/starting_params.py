@@ -14,7 +14,6 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
     # search if model is in peak list
     if any(model in peak for peak in peaks):
         if model == 'voigt':
-            print(model)
             fitmodel.set_param_hint('sigma', #starting value gauß-width
                                 value = 1,
                                 min = 0,
@@ -39,7 +38,6 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
                                        'sigma * sqrt(2 * log(2) ) )**2  )')
 
         if model == 'breit_wigner': # should be BreitWignerModel!
-            print(model)
             #fit-parameter
             fitmodel.set_param_hint('sigma', #starting value width
                                 value = 100,
@@ -56,10 +54,9 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
                                 expr = fitmodel.prefix +'amplitude * ((' +fitmodel.prefix + 'q )**2+1)' )
             fitmodel.set_param_hint('intensity', # intensity is A*q^2 (compared to the used expression in the paper)
                                 expr = fitmodel.prefix +'amplitude * (' +fitmodel.prefix + 'q )**2' )
- 
+
 
         if model == 'lorentzian':
-            print(model)
             fitmodel.set_param_hint('sigma', #starting value gaussian-width
                                 value = 50,
                                 min = 0,
@@ -72,7 +69,6 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
             fitmodel.set_param_hint('fwhm') # 2*sigma (see website lmfit)
 
         if model == 'gaussian':
-            print(model)
             fitmodel.set_param_hint('sigma', #starting value gaussian-width
                                 value = 1,
                                 min = 0,

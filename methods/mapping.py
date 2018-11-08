@@ -7,12 +7,23 @@ from spectrum import *
 # Class for spectra (under development)
 class mapping(object):
 
-    def __init__(self, foldername):
-        self.folder = foldername + '/results_fitlines'
+    def __init__(self, foldername, raw=False):
+        if raw:
+            self.raw = True
+            self.folder = foldername
+            self.listOfFiles, self.numberOfFiles = spectrum.GetFolderContent(self, 'txt')
+        else:
+            self.raw=False
+            self.folder = foldername + '/results_fitlines'
+            self.listOfFiles, self.numberOfFiles = spectrum.GetFolderContent(self, 'dat')
+
         self.savefolder = foldername
-        self.listOfFiles, self.numberOfFiles = spectrum.GetFolderContent(self, 'dat')
         self.x, self.y = spectrum.GetMonoData(self)
         self.ymax = np.max(self.y, axis=1)
+        
+        # create results folders
+        if not os.path.exists(self.folder + '/results_plot'):
+            os.makedirs(self.folder + '/results_plot')
 
     # plot mapping
     # input values are
@@ -68,5 +79,8 @@ class mapping(object):
         plt.tight_layout()
 
         # save everything and show the plot
-        plt.savefig(self.savefolder + '/results_plot/mapping_map.pdf', format='pdf')
+        if self.raw:
+            plt.savefig(self.savefolder + '/results_plot/mapping_map_raw.pdf', format='pdf')
+        else:
+            plt.savefig(self.savefolder + '/results_plot/mapping_map.pdf', format='pdf')
         plt.show()

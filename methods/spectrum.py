@@ -208,7 +208,7 @@ class spectrum(object):
                                                   x = self.xreduced[spectrum])
 
             # plot the fitted function in the selected range
-            if (show == True):
+            if show:
                 plt.plot(self.xreduced[spectrum], self.yreduced[spectrum],
                          'b.', label = 'Data')
                 plt.plot(self.xreduced[spectrum], self.baseline[spectrum], 'r-', label = 'Baseline')
@@ -271,7 +271,7 @@ class spectrum(object):
     # Fit the peaks selected before
     # for detailed describtions see:
     # https://lmfit.github.io/lmfit-py/builtin_models.html
-    def FitSpectrum(self, peaks, spectrum=0, label='', show=True):
+    def FitSpectrum(self, peaks, spectrum=0, label='', show=True, report=False):
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -313,13 +313,16 @@ class spectrum(object):
                                                   x = self.xreduced[spectrum],
                                                   method = 'leastsq',
                                                   scale_covar = True)
+            # print which fit is conducted
+            print('Spectrum ' + label + ' fitted')
 
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
                                                     x = self.xreduced[spectrum])
 
             # show fit report in terminal
-            print(self.fitresult_peaks[spectrum].fit_report(min_correl=0.5))
+            if report:
+                print(self.fitresult_peaks[spectrum].fit_report(min_correl=0.5))
 
             # Plot the raw sprectrum, the fitted data, and the background
             fig, ax = plt.subplots()
@@ -354,9 +357,9 @@ class spectrum(object):
                 plt.show()
 
     # fit all spectra
-    def FitAllSpectra(self, peaks, show=False):
+    def FitAllSpectra(self, peaks, show=False, report=False):
         for i in range(self.numberOfFiles):
-            self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show)
+            self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show, report=report)
 
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, label='', spectrum=0):
@@ -393,7 +396,6 @@ class spectrum(object):
 
             # iterate through all peaks used in the current model
             for peak in modelpeaks:
-                print(peak + label)
                 peakfile = self.folder + '/results_fitparameter/' + label +\
                            '_' + peak + '.dat'
                 f = open(peakfile, 'a')
@@ -429,65 +431,10 @@ class spectrum(object):
                 file = self.folder + '/results_fitlines/' + label + '_fitline.dat'
                 np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]))
 
+            # print which spectrum is saved
+            print('Spectrum ' + label + ' saved')
+
     # Save all the results
     def SaveAllFitParams(self, peaks):
         for i in range(self.numberOfFiles):
             self.SaveFitParams(peaks, spectrum=i, label=str(i+1).zfill(4))
-
-    # plot mapping
-    # input values are
-    # xdim:     the number of Spectra in x direction
-    # ydim:     the number of Spectra in y direction
-    # stepsize: the interval at which the mapping was collected in µm
-    # xmin:     the lowest wavenumber to be used in the mapping
-    # xmax:     the highest wavenumber to be used in the mapping
-    def PlotMapping(self, xdim, ydim, stepsize, xmin, xmax,
-                    xticker=2, colormap='RdYlGn'):
-        # create x and y ticks accordingly to the parameters of the mapping
-        x_ticks = np.arange(stepsize, stepsize * (xdim + 1), step=xticker*stepsize)
-        y_ticks = np.arange(stepsize, stepsize * (ydim + 1), step=stepsize)
-        y_ticks = y_ticks[::-1]
-
-        # sum up each spectrum and create matrix
-        ysum = np.empty_like(self.ymax)
-        iterator = 0
-        for spectrum in self.fitline:
-            selectedvalues = spectrum[(self.xreduced[0] > xmin) & (self.xreduced[0] < xmax)]
-            ysum[iterator] = sum(selectedvalues)
-            iterator += 1
-        ysum = ysum * self.ymax
-        ysum_matrix = np.reshape(ysum, (ydim, xdim))
-        ysum_matrix = np.flipud(ysum_matrix)
-
-        # create figure
-        fig = plt.figure(figsize=(18,6))
-        plt.suptitle('Mapping of ' + self.folder)
-
-        # set font and parameters
-        matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
-        matplotlib.rcParams.update({'font.size': 22})
-        tick_locator = matplotlib.ticker.MaxNLocator(nbins=5)
-
-        # create mapping
-        ax = fig.add_subplot(1,1,1)
-        ax.set_aspect('equal')
-        plt.imshow(ysum_matrix, cmap=colormap)
-        plt.xticks(np.arange(xdim, step=xticker), x_ticks)
-        plt.yticks(np.arange(ydim), y_ticks)
-
-        # label everything
-        plt.ylabel('y-Position ($\mathrm{\mu}$m)')
-        plt.xlabel('x-Position ($\mathrm{\mu}$m)')
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
-        clb = plt.colorbar(cax=cax)
-        clb.set_label('Integrated Intensity\n(arb. u.)')
-        clb.locator = tick_locator
-        clb.update_ticks()
-
-        # have a tight layout
-        plt.tight_layout()
-
-        # save everything and show the plot
-        plt.savefig(self.folder + '/results_plot/mapping_spec.pdf', format='pdf')
-        plt.show()
