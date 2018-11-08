@@ -41,4 +41,4 @@ spec.SaveAllFitParams(peaks)
 # stepsize: the interval at which the mapping was collected in µm
 # xmin:     the lowest wavenumber to be used in the mapping
 # xmax:     the highest wavenumber to be used in the mapping
-#spec.PlotMapping(2, 2, 10, 1550, 1620)
+spec.PlotMapping(2, 2, 10, 1550, 1620)

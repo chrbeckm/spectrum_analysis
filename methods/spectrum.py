@@ -67,7 +67,7 @@ class spectrum(object):
         listOfFiles = sorted(glob.glob(files))
         numberOfFiles = len(listOfFiles)
         # tell the number of files in the requested folder
-        self.Teller(numberOfFiles, 'file', 'folder')
+        spectrum.Teller(self, numberOfFiles, 'file', 'folder')
 
         return listOfFiles, numberOfFiles
 
@@ -427,7 +427,7 @@ class spectrum(object):
             # save the fitlines
             for line in self.fitline:
                 file = self.folder + '/results_fitlines/' + label + '_fitline.dat'
-                np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]), fmt='%.3f %.3f')
+                np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]))
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
@@ -450,9 +450,11 @@ class spectrum(object):
 
         # sum up each spectrum and create matrix
         ysum = np.empty_like(self.ymax)
+        iterator = 0
         for spectrum in self.fitline:
             selectedvalues = spectrum[(self.xreduced[0] > xmin) & (self.xreduced[0] < xmax)]
-            np.append(ysum, selectedvalues.sum)
+            ysum[iterator] = sum(selectedvalues)
+            iterator += 1
         ysum = ysum * self.ymax
         ysum_matrix = np.reshape(ysum, (ydim, xdim))
         ysum_matrix = np.flipud(ysum_matrix)
@@ -487,5 +489,5 @@ class spectrum(object):
         plt.tight_layout()
 
         # save everything and show the plot
-        plt.savefig(self.folder + '/results_plot/mapping.pdf', format='pdf')
+        plt.savefig(self.folder + '/results_plot/mapping_spec.pdf', format='pdf')
         plt.show()
