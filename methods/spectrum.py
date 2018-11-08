@@ -376,8 +376,7 @@ class spectrum(object):
                 if name == 'c0':
                     parametervalue += fitparams_peaks['c'].value * self.ymax[spectrum]
                     parametererror = np.sqrt(parametererror**2 +\
-                                             fitparams_peaks['c'].stderr**2) *\
-                                             self.ymax[spectrum]
+                                             (fitparams_peaks['c'].stderr*self.ymax[spectrum])**2)
 
                 f.write(name.ljust(5) + '{:>13.5f}'.format(parametervalue)
                                       + ' +/- ' + '{:>11.5f}'.format(parametererror)
