@@ -299,7 +299,6 @@ class spectrum(object):
                     for i in range(0, len(xpeak)):
                         # prefix for the different peaks from one model
                         prefix = peaktype + '_p'+ str(i + 1) + '_'
-                        temp = ConstantModel()
                         temp = ChoosePeakType(peaktype, prefix)
                         temp = StartingParameters(xpeak, ypeak, i, temp, peaks)
 
