@@ -37,6 +37,8 @@ class spectrum(object):
             os.makedirs(self.folder + '/results_plot')
         if not os.path.exists(self.folder + '/results_fitparameter'):
             os.makedirs(self.folder + '/results_fitparameter')
+        if not os.path.exists(self.folder + '/results_fitlines'):
+            os.makedirs(self.folder + '/results_fitlines')
 
         # names of files created during the procedure
         self.fSpectrumBorders = None
@@ -264,7 +266,7 @@ class spectrum(object):
     # select all peaks
     def SelectAllPeaks(self, peaks):
         for i in range(self.numberOfFiles):
-            self.SelectPeaks(peaks, spectrum=i, label=str(i+1))
+            self.SelectPeaks(peaks, spectrum=i, label=str(i+1).zfill(4))
 
     # Fit the peaks selected before
     # for detailed describtions see:
@@ -354,7 +356,7 @@ class spectrum(object):
     # fit all spectra
     def FitAllSpectra(self, peaks, show=False):
         for i in range(self.numberOfFiles):
-            self.FitSpectrum(peaks, spectrum=i, label=str(i+1), show=show)
+            self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show)
 
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, label='', spectrum=0):
@@ -366,7 +368,7 @@ class spectrum(object):
             fitparams_peaks = self.fitresult_peaks[spectrum].params # Fitparamter Peaks
 
             # save background parameters
-            f = open(self.folder + '/results_fitparameter/' + label + '_background.txt','a')
+            f = open(self.folder + '/results_fitparameter/' + label + '_background.dat','a')
             # iterate through all the background parameters
             for name in fitparams_back:
                 # get parameters for saving
@@ -393,7 +395,7 @@ class spectrum(object):
             for peak in modelpeaks:
                 print(peak)
                 peakfile = self.folder + '/results_fitparameter/' + label +\
-                           '_' + peak + '.txt'
+                           '_' + peak + '.dat'
                 f = open(peakfile, 'a')
                 # iterate through all fit parameters
                 for name in fitparams_peaks.keys():
@@ -422,10 +424,15 @@ class spectrum(object):
                                               + '\n')
                 f.close()
 
+            # save the fitlines
+            for line in self.fitline:
+                file = self.folder + '/results_fitlines/' + label + '.dat'
+                np.savetxt(file, np.column_stack([self.x[spectrum], line * self.ymax[spectrum]]), fmt='%.3f %.3f')
+
     # Save all the results
     def SaveAllFitParams(self, peaks):
         for i in range(self.numberOfFiles):
-            self.SaveFitParams(peaks, spectrum=i, label=str(i+1))
+            self.SaveFitParams(peaks, spectrum=i, label=str(i+1).zfill(4))
 
     # plot mapping
     # input values are
