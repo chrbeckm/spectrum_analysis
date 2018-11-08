@@ -404,7 +404,7 @@ class spectrum(object):
 
                         # if parameter is height or amplitude
                         # it has to be scaled properly as the fit was normalized
-                        if (peakparameter == 'amplitude') or (peakparameter == 'height'):
+                        if (peakparameter == 'amplitude') or (peakparameter == 'height') or (peakparameter == 'intensity'):
                             parametervalue = parametervalue * self.ymax[spectrum]
                             parametererror = parametererror * self.ymax[spectrum]
 
