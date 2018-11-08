@@ -344,7 +344,7 @@ class spectrum(object):
                      (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
                      color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
 
-            #fig.legend(loc = 'best')
+            fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
 
@@ -409,7 +409,7 @@ class spectrum(object):
 
                         # if parameter is height or amplitude
                         # it has to be scaled properly as the fit was normalized
-                        if (peakparameter == 'amplitude') or (peakparameter == 'height'):
+                        if (peakparameter == 'amplitude') or (peakparameter == 'height') or (peakparameter == 'intensity'):
                             parametervalue = parametervalue * self.ymax[spectrum]
                             if parametererror is not None:
                                 parametererror = parametererror * self.ymax[spectrum]
