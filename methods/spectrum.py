@@ -325,13 +325,23 @@ class spectrum(object):
             fig, ax = plt.subplots()
             ax.plot(self.xreduced[spectrum],
                     self.yreduced[spectrum] * self.ymax[spectrum],
-                    'b.', label = 'Data')
+                    'b.', alpha = 0.8, markersize = 1, label = 'Data') # Measured data
             ax.plot(self.xreduced[spectrum],
                     self.baseline[spectrum] * self.ymax[spectrum],
-                    'k-', label = 'Background')
+                    'k-', linewidth = 1, label = 'Background') # Fitted background
             ax.plot(self.xreduced[spectrum],
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
+<<<<<<< HEAD
                     'r-', label = 'Fit')
+=======
+                    'r-', linewidth = 0.5, label = 'Fit') # Fitted spectrum
+            # plot confidence band
+            ax.fill_between(self.xreduced[spectrum],
+                 (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
+                 (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
+                 color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
+
+>>>>>>> Fano-resonance heigt and intensity edited
 
             # check if errors exist and calculate confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
@@ -344,7 +354,7 @@ class spectrum(object):
                      (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
                      color = 'r', alpha = 0.5, label = '3$\sigma$')
 
-            fig.legend(loc = 'upper right')
+            #fig.legend(loc = 'best')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
 
