@@ -354,7 +354,7 @@ class spectrum(object):
                      (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
                      color = 'r', alpha = 0.5, label = '3$\sigma$')
 
-            #fig.legend(loc = 'best')
+            fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
 
