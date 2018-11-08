@@ -340,7 +340,7 @@ class spectrum(object):
 
 
 
-            #fig.legend(loc = 'best')
+            fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
 
