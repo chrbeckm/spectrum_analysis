@@ -324,30 +324,36 @@ class spectrum(object):
             if report:
                 print(self.fitresult_peaks[spectrum].fit_report(min_correl=0.5))
 
-            # Plot the raw sprectrum, the fitted data, and the background
-            fig, ax = plt.subplots()
-            ax.plot(self.xreduced[spectrum],
-                    self.yreduced[spectrum] * self.ymax[spectrum],
-                    'b.', alpha = 0.8, markersize = 1, label = 'Data') # Measured data
-            ax.plot(self.xreduced[spectrum],
-                    self.baseline[spectrum] * self.ymax[spectrum],
-                    'k-', linewidth = 1, label = 'Background') # Fitted background
-            ax.plot(self.xreduced[spectrum],
-                    (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
-                    'r-', linewidth = 0.5, label = 'Fit') # Fitted spectrum
 
             # check if errors exist and calculate confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
                 # calculate confidence band
                 self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
                                                         sigma=3)
-                # plot confidence band
-                ax.fill_between(self.xreduced[spectrum],
-                     (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
-                     (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                     color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
 
-            fig.legend(loc = 'upper right')
+            # Plot the raw sprectrum, the fitted data, the background, and the confidence interval
+            fig, ax = plt.subplots()
+            ax.fill_between(self.xreduced[spectrum],
+                 (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
+                 (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
+                 color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
+            ax.plot(self.xreduced[spectrum],
+                    self.yreduced[spectrum] * self.ymax[spectrum],
+                    'b.', alpha = 0.8, markersize = 1, zorder = 0, label = 'Data') # Measured data
+            ax.plot(self.xreduced[spectrum],
+                    self.baseline[spectrum] * self.ymax[spectrum],
+                    'k-', linewidth = 1, zorder = 0, label = 'Background') # Fitted background
+            ax.plot(self.xreduced[spectrum],
+                    (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
+                    'r-', linewidth = 0.5, zorder = 1, label = 'Fit') # Fitted spectrum
+
+            # check if errors exist and calculate confidence band
+            if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
+                # calculate confidence band
+                self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
+                                                        sigma=3)
+
+            #fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
 
