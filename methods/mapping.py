@@ -1,4 +1,5 @@
 import os
+import re
 
 import numpy as np
 import matplotlib
@@ -21,53 +22,53 @@ class mapping(object):
         self.ydim = ydim
         self.stepsize = stepsize
         self.raw = raw
-        self.savefolder = foldername
+        self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'txt')
 
         # create results folders
-        if not os.path.exists(self.savefolder + '/results/plot'):
-            os.makedirs(self.savefolder + '/results/plot')
+        if not os.path.exists(self.folder + '/results/plot'):
+            os.makedirs(self.folder + '/results/plot')
 
     # plot mapping
     # input values are
     # xmin:     the lowest wavenumber to be used in the mapping
     # xmax:     the highest wavenumber to be used in the mapping
     def PlotMapping(self, xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
-                    test=0,
+                    maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     xticker=2, colormap='RdYlGn'):
         # create x and y ticks accordingly to the parameters of the mapping
         x_ticks = np.arange(self.stepsize, self.stepsize * (self.xdim + 1), step=xticker*self.stepsize)
         y_ticks = np.arange(self.stepsize, self.stepsize * (self.ydim + 1), step=self.stepsize)
         y_ticks = y_ticks[::-1]
 
+        plot_value = np.empty(self.numberOfFiles)
+
         # if fitlines should be integrated
         if (xmin != None) & (xmax != None):
-
             # get data from rawfiles or fitlines
             if self.raw:
-                self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'txt')
-                self.x, self.y = GetMonoData(self.listOfFiles)
-                self.ymax = np.max(self.y, axis=1)
+                x, y = GetMonoData(self.listOfFiles)
             else:
-                self.folder = self.folder + '/results/fitlines'
-                self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'dat')
-                self.x, self.y = GetMonoData(self.listOfFiles)
-                self.ymax = np.max(self.y, axis=1)
+                folder = self.folder + '/results/fitlines'
+                self.listOfFiles, self.numberOfFiles = GetFolderContent(folder, 'dat')
+                x, y = GetMonoData(listOfFiles)
 
             # sum up each spectrum
-            ysum = np.empty(self.numberOfFiles)
             iterator = 0
-            for spectrum in self.y:
-                selectedvalues = spectrum[(self.x[0] > xmin) & (self.x[0] < xmax)]
-                ysum[iterator] = sum(selectedvalues)
+            for spectrum in y:
+                selectedvalues = spectrum[(x[0] > xmin) & (x[0] < xmax)]
+                plot_value[iterator] = sum(selectedvalues)
                 iterator += 1
+        if maptype != '':
+            folder = self.folder + '/results/fitparameter/peakwise/' + maptype + '.dat'
+            plot_value, error = GetMonoData([folder])
 
         # create matrix for plotting
-        ysum_matrix = np.reshape(ysum, (self.ydim, self.xdim))
-        ysum_matrix = np.flipud(ysum_matrix)
+        plot_matrix = np.reshape(plot_value, (self.ydim, self.xdim))
+        plot_matrix = np.flipud(plot_matrix)
 
         # create figure
         fig = plt.figure(figsize=(18,6))
-        plt.suptitle('Mapping of ' + self.folder)
+        plt.suptitle('Mapping of ' + self.folder + ' ' + maptype)
 
         # set font and parameters
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
@@ -77,7 +78,7 @@ class mapping(object):
         # create mapping
         ax = fig.add_subplot(1,1,1)
         ax.set_aspect('equal')
-        plt.imshow(ysum_matrix, cmap=colormap)
+        plt.imshow(plot_matrix, cmap=colormap)
         plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
         plt.yticks(np.arange(self.ydim), y_ticks)
 
@@ -96,7 +97,21 @@ class mapping(object):
 
         # save everything and show the plot
         if self.raw:
-            plt.savefig(self.savefolder + '/results/plot/mapping_map_raw.pdf', format='pdf')
+            plt.savefig(self.folder + '/results/plot/map_raw.pdf', format='pdf')
+            plt.savefig(self.folder + '/results/plot/map_raw.png', dpi=300)
+        if maptype != '':
+            plt.savefig(self.folder + '/results/plot/map_' + maptype + '.pdf', format='pdf')
+            plt.savefig(self.folder + '/results/plot/map_' + maptype + '.png', dpi=300)
         else:
-            plt.savefig(self.savefolder + '/results/plot/mapping_map.pdf', format='pdf')
-        plt.show()
+            plt.savefig(self.folder + '/results/plot/map.pdf', format='pdf')
+            plt.savefig(self.folder + '/results/plot/map.png', dpi=300)
+
+    def PlotAllMappings(self):
+        folder = self.folder + '/results/fitparameter/peakwise/'
+        listOfFiles, numberOfFiles = GetFolderContent(folder, 'dat', object='parameter', where='fit')
+        print('The following maps have been plotted:')
+        for map in listOfFiles:
+            map = re.sub(folder, '', map)
+            map = re.sub('.dat', '', map)
+            self.PlotMapping(maptype=map)
+            print(map)
