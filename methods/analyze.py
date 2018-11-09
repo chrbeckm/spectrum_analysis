@@ -2,7 +2,7 @@ from spectrum import *
 
 # possible peaks (breit_wigner == fano)
 # implemented are: breit_wigner, lorentzian, gaussian, voigt
-peaks = ['breit_wigner', 'lorentzian']
+peaks = ['lorentzian']
 
 # select folder you want to analyze and initialize everything
 # it doesn't matter if there is one or more files in the folder
