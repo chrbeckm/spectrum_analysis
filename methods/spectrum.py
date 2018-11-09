@@ -1,23 +1,21 @@
-import glob
 import os
 
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-
 from lmfit.models import *
 
 from starting_params import *
+from functions import *
 
 # Class for spectra (under development)
 class spectrum(object):
 
     def __init__(self, foldername):
         self.folder = foldername
-        self.listOfFiles, self.numberOfFiles = self.GetFolderContent('txt')
-        self.x, self.y = self.GetMonoData()
+        self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'txt')
+        self.x, self.y = GetMonoData(self.listOfFiles)
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
             self.y = np.array([self.y])
@@ -50,46 +48,6 @@ class spectrum(object):
         self.fitresult_peaks = [None] * self.numberOfFiles
         self.fitline = [None] * self.numberOfFiles
         self.confidence = [None] * self.numberOfFiles
-
-    # print out the number of files in folder
-    def Teller(self, number, kind, location):
-        if number != 1:
-            print('There are {} {}s in this {}.'.format(number, kind, location))
-            print()
-        else:
-            print('There is {} {} in this {}.'.format(number, kind, location))
-            print()
-
-    # get a list of files with defined type in the folder
-    def GetFolderContent(self, filetype):
-        #generate list of files in requested folder
-        files = self.folder + '/*.' + filetype
-        listOfFiles = sorted(glob.glob(files))
-        numberOfFiles = len(listOfFiles)
-        # tell the number of files in the requested folder
-        spectrum.Teller(self, numberOfFiles, 'file', 'folder')
-
-        return listOfFiles, numberOfFiles
-
-    # returns arrays containing the measured data
-    def GetMonoData(self):
-        # define arrays to hold data from the files
-        inversecm = np.array([])
-        intensity = np.array([])
-
-        # read all files
-        for fileName in self.listOfFiles:
-            # read one file
-            index = self.listOfFiles.index(fileName)
-            cm, inty = np.genfromtxt(self.listOfFiles[index], unpack=True)
-            if index != 0:
-                inversecm = np.vstack((inversecm, cm))
-                intensity = np.vstack((intensity, inty))
-            else:
-                inversecm = cm
-                intensity = inty
-
-        return inversecm, intensity
 
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):

@@ -1,0 +1,42 @@
+import glob
+import numpy as np
+
+# print out the number of files in folder
+def Teller(number, kind, location):
+    if number != 1:
+        print('There are {} {}s in this {}.'.format(number, kind, location))
+        print()
+    else:
+        print('There is {} {} in this {}.'.format(number, kind, location))
+        print()
+
+# get a list of files with defined type in the folder
+def GetFolderContent(folder, filetype):
+    #generate list of files in requested folder
+    files = folder + '/*.' + filetype
+    listOfFiles = sorted(glob.glob(files))
+    numberOfFiles = len(listOfFiles)
+    # tell the number of files in the requested folder
+    Teller(numberOfFiles, 'file', 'folder')
+
+    return listOfFiles, numberOfFiles
+
+# returns arrays containing the measured data
+def GetMonoData(listOfFiles):
+    # define arrays to hold data from the files
+    inversecm = np.array([])
+    intensity = np.array([])
+
+    # read all files
+    for fileName in listOfFiles:
+        # read one file
+        index = listOfFiles.index(fileName)
+        cm, inty = np.genfromtxt(listOfFiles[index], unpack=True)
+        if index != 0:
+            inversecm = np.vstack((inversecm, cm))
+            intensity = np.vstack((intensity, inty))
+        else:
+            inversecm = cm
+            intensity = inty
+
+    return inversecm, intensity

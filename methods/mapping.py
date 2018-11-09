@@ -1,25 +1,27 @@
+import os
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-from spectrum import *
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+from functions import *
 
 # Class for spectra (under development)
 class mapping(object):
 
-    def __init__(self, foldername, raw=False):
-        if raw:
-            self.raw = True
-            self.folder = foldername
-            self.listOfFiles, self.numberOfFiles = spectrum.GetFolderContent(self, 'txt')
-        else:
-            self.raw=False
-            self.folder = foldername + '/results/fitlines'
-            self.listOfFiles, self.numberOfFiles = spectrum.GetFolderContent(self, 'dat')
+    # xdim:     the number of Spectra in x direction
+    # ydim:     the number of Spectra in y direction
+    # stepsize: the interval at which the mapping was collected in µm
+    def __init__(self, foldername, xdim, ydim, stepsize, raw=False):
 
+        self.folder = foldername
+        self.xdim = xdim
+        self.ydim = ydim
+        self.stepsize = stepsize
+        self.raw = raw
         self.savefolder = foldername
-        self.x, self.y = spectrum.GetMonoData(self)
-        self.ymax = np.max(self.y, axis=1)
 
         # create results folders
         if not os.path.exists(self.savefolder + '/results/plot'):
@@ -27,26 +29,40 @@ class mapping(object):
 
     # plot mapping
     # input values are
-    # xdim:     the number of Spectra in x direction
-    # ydim:     the number of Spectra in y direction
-    # stepsize: the interval at which the mapping was collected in µm
     # xmin:     the lowest wavenumber to be used in the mapping
     # xmax:     the highest wavenumber to be used in the mapping
-    def PlotMapping(self, xdim, ydim, stepsize, xmin, xmax,
+    def PlotMapping(self, xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
+                    test=0,
                     xticker=2, colormap='RdYlGn'):
         # create x and y ticks accordingly to the parameters of the mapping
-        x_ticks = np.arange(stepsize, stepsize * (xdim + 1), step=xticker*stepsize)
-        y_ticks = np.arange(stepsize, stepsize * (ydim + 1), step=stepsize)
+        x_ticks = np.arange(self.stepsize, self.stepsize * (self.xdim + 1), step=xticker*self.stepsize)
+        y_ticks = np.arange(self.stepsize, self.stepsize * (self.ydim + 1), step=self.stepsize)
         y_ticks = y_ticks[::-1]
 
-        # sum up each spectrum and create matrix
-        ysum = np.empty(self.numberOfFiles)
-        iterator = 0
-        for spectrum in self.y:
-            selectedvalues = spectrum[(self.x[0] > xmin) & (self.x[0] < xmax)]
-            ysum[iterator] = sum(selectedvalues)
-            iterator += 1
-        ysum_matrix = np.reshape(ysum, (ydim, xdim))
+        # if fitlines should be integrated
+        if (xmin != None) & (xmax != None):
+
+            # get data from rawfiles or fitlines
+            if self.raw:
+                self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'txt')
+                self.x, self.y = GetMonoData(self.listOfFiles)
+                self.ymax = np.max(self.y, axis=1)
+            else:
+                self.folder = self.folder + '/results/fitlines'
+                self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'dat')
+                self.x, self.y = GetMonoData(self.listOfFiles)
+                self.ymax = np.max(self.y, axis=1)
+
+            # sum up each spectrum
+            ysum = np.empty(self.numberOfFiles)
+            iterator = 0
+            for spectrum in self.y:
+                selectedvalues = spectrum[(self.x[0] > xmin) & (self.x[0] < xmax)]
+                ysum[iterator] = sum(selectedvalues)
+                iterator += 1
+
+        # create matrix for plotting
+        ysum_matrix = np.reshape(ysum, (self.ydim, self.xdim))
         ysum_matrix = np.flipud(ysum_matrix)
 
         # create figure
@@ -62,8 +78,8 @@ class mapping(object):
         ax = fig.add_subplot(1,1,1)
         ax.set_aspect('equal')
         plt.imshow(ysum_matrix, cmap=colormap)
-        plt.xticks(np.arange(xdim, step=xticker), x_ticks)
-        plt.yticks(np.arange(ydim), y_ticks)
+        plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
+        plt.yticks(np.arange(self.ydim), y_ticks)
 
         # label everything
         plt.ylabel('y-Position ($\mathrm{\mu}$m)')
