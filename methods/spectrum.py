@@ -347,6 +347,15 @@ class spectrum(object):
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
                     'r-', linewidth = 0.5, zorder = 1, label = 'Fit') # Fitted spectrum
 
+            # plot the single peaks
+            self.comps = self.fitresult_peaks[spectrum].eval_components(x = self.xreduced[spectrum])
+            for name in self.comps.keys():
+                if (name != 'constant'):
+                    ax.plot(self.xreduced[spectrum],
+                            (self.comps[name] + self.baseline[spectrum]) * self.ymax[spectrum],
+                            'k-', linewidth = 0.5, zorder = 0)
+
+
             # check if errors exist and calculate confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
                 # calculate confidence band
@@ -415,7 +424,7 @@ class spectrum(object):
                         parametervalue = fitparams_peaks[name].value
                         parametererror = fitparams_peaks[name].stderr
 
-                        # if parameter is height or amplitude
+                        # if parameter is height or amplitude or intensity
                         # it has to be scaled properly as the fit was normalized
                         if (peakparameter == 'amplitude') or (peakparameter == 'height') or (peakparameter == 'intensity'):
                             parametervalue = parametervalue * self.ymax[spectrum]
