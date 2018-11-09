@@ -14,16 +14,16 @@ class mapping(object):
             self.listOfFiles, self.numberOfFiles = spectrum.GetFolderContent(self, 'txt')
         else:
             self.raw=False
-            self.folder = foldername + '/results_fitlines'
+            self.folder = foldername + '/results/fitlines'
             self.listOfFiles, self.numberOfFiles = spectrum.GetFolderContent(self, 'dat')
 
         self.savefolder = foldername
         self.x, self.y = spectrum.GetMonoData(self)
         self.ymax = np.max(self.y, axis=1)
-        
+
         # create results folders
-        if not os.path.exists(self.folder + '/results_plot'):
-            os.makedirs(self.folder + '/results_plot')
+        if not os.path.exists(self.savefolder + '/results/plot'):
+            os.makedirs(self.savefolder + '/results/plot')
 
     # plot mapping
     # input values are
@@ -80,7 +80,7 @@ class mapping(object):
 
         # save everything and show the plot
         if self.raw:
-            plt.savefig(self.savefolder + '/results_plot/mapping_map_raw.pdf', format='pdf')
+            plt.savefig(self.savefolder + '/results/plot/mapping_map_raw.pdf', format='pdf')
         else:
-            plt.savefig(self.savefolder + '/results_plot/mapping_map.pdf', format='pdf')
+            plt.savefig(self.savefolder + '/results/plot/mapping_map.pdf', format='pdf')
         plt.show()

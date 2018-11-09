@@ -1,5 +1,4 @@
 *.pdf
-ramanspectrum.pyc
 0*/
 __pycache__/
 methods/smallmap/*/
