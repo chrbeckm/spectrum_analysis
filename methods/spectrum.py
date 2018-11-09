@@ -358,7 +358,7 @@ class spectrum(object):
 
             #fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
+            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png', dpi=300)
 
             if show:
                 figManager = plt.get_current_fig_manager()  # get current figure
