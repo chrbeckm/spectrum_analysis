@@ -361,8 +361,8 @@ class spectrum(object):
                      color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
 
             fig.legend(loc = 'upper right')
-            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png', dpi=300)
+            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.pdf')
+            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.png', dpi=300)
 
             if show:
                 figManager = plt.get_current_fig_manager()  # get current figure
