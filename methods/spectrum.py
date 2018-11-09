@@ -317,6 +317,7 @@ class spectrum(object):
                      color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
 
             fig.legend(loc = 'upper right')
+            plt.title('Fit to ' + self.folder + ' spectrum ' + str(spectrum + 1))
             fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.png', dpi=300)
 

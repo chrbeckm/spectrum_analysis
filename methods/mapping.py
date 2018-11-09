@@ -66,23 +66,20 @@ class mapping(object):
         plot_matrix = np.reshape(plot_value, (self.ydim, self.xdim))
         plot_matrix = np.flipud(plot_matrix)
 
-        # create figure
-        fig = plt.figure(figsize=(18,6))
-        plt.suptitle('Mapping of ' + self.folder + ' ' + maptype)
-
         # set font and parameters
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
         matplotlib.rcParams.update({'font.size': 22})
         tick_locator = matplotlib.ticker.MaxNLocator(nbins=5)
 
         # create mapping
-        ax = fig.add_subplot(1,1,1)
+        fit, ax = plt.subplots(figsize=(18,6))
         ax.set_aspect('equal')
         plt.imshow(plot_matrix, cmap=colormap)
         plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
         plt.yticks(np.arange(self.ydim), y_ticks)
 
         # label everything
+        plt.title('Mapping of ' + self.folder + ' ' + maptype, fontsize='small')
         plt.ylabel('y-Position ($\mathrm{\mu}$m)')
         plt.xlabel('x-Position ($\mathrm{\mu}$m)')
         divider = make_axes_locatable(ax)
@@ -105,6 +102,7 @@ class mapping(object):
         else:
             plt.savefig(self.folder + '/results/plot/map.pdf', format='pdf')
             plt.savefig(self.folder + '/results/plot/map.png', dpi=300)
+        plt.clf()
 
     def PlotAllMappings(self):
         folder = self.folder + '/results/fitparameter/peakwise/'
