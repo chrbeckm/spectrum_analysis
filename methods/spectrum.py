@@ -355,14 +355,7 @@ class spectrum(object):
                             (self.comps[name] + self.baseline[spectrum]) * self.ymax[spectrum],
                             'k-', linewidth = 0.5, zorder = 0)
 
-
-            # check if errors exist and calculate confidence band
-            if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
-                # calculate confidence band
-                self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
-                                                        sigma=3)
-
-            #fig.legend(loc = 'upper right')
+            fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
 
