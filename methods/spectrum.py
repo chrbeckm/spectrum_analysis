@@ -319,40 +319,30 @@ class spectrum(object):
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
                                                     x = self.xreduced[spectrum])
+            # calculate all components
+            self.comps = self.fitresult_peaks[spectrum].eval_components(x = self.xreduced[spectrum])
 
             # show fit report in terminal
             if report:
                 print(self.fitresult_peaks[spectrum].fit_report(min_correl=0.5))
 
-
-            # check if errors exist and calculate confidence band
-            if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
-                # calculate confidence band
-                self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
-                                                        sigma=3)
-
             # Plot the raw sprectrum, the fitted data, the background, and the confidence interval
             fig, ax = plt.subplots()
-            ax.fill_between(self.xreduced[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
-                 (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                 color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
             ax.plot(self.xreduced[spectrum],
                     self.yreduced[spectrum] * self.ymax[spectrum],
                     'b.', alpha = 0.8, markersize = 1, zorder = 0, label = 'Data') # Measured data
             ax.plot(self.xreduced[spectrum],
-                    self.baseline[spectrum] * self.ymax[spectrum],
+                    (self.baseline[spectrum] + self.comps['constant']) * self.ymax[spectrum],
                     'k-', linewidth = 1, zorder = 0, label = 'Background') # Fitted background
             ax.plot(self.xreduced[spectrum],
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
                     'r-', linewidth = 0.5, zorder = 1, label = 'Fit') # Fitted spectrum
 
             # plot the single peaks
-            self.comps = self.fitresult_peaks[spectrum].eval_components(x = self.xreduced[spectrum])
             for name in self.comps.keys():
                 if (name != 'constant'):
                     ax.plot(self.xreduced[spectrum],
-                            (self.comps[name] + self.baseline[spectrum]) * self.ymax[spectrum],
+                            (self.comps[name] + self.baseline[spectrum] + self.comps['constant']) * self.ymax[spectrum],
                             'k-', linewidth = 0.5, zorder = 0)
 
 
@@ -361,6 +351,10 @@ class spectrum(object):
                 # calculate confidence band
                 self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
                                                         sigma=3)
+                ax.fill_between(self.xreduced[spectrum],
+                     (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
+                     (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
+                     color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
 
             #fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
