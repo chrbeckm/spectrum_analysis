@@ -346,17 +346,19 @@ class spectrum(object):
                             'k-', linewidth = 0.5, zorder = 0)
 
 
-            # check if errors exist and calculate confidence band
+            # check if errors exist.
+            # calculate and plot confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
                 # calculate confidence band
                 self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
                                                         sigma=3)
+                # plot confidence band
                 ax.fill_between(self.xreduced[spectrum],
                      (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
                      (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
                      color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
 
-            #fig.legend(loc = 'upper right')
+            fig.legend(loc = 'upper right')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png', dpi=300)
 
