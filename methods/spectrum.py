@@ -33,12 +33,14 @@ class spectrum(object):
         if not os.path.exists(self.folder + '/temp'):
             os.makedirs(self.folder + '/temp')
         # create results folders
-        if not os.path.exists(self.folder + '/results_plot'):
-            os.makedirs(self.folder + '/results_plot')
-        if not os.path.exists(self.folder + '/results_fitparameter'):
-            os.makedirs(self.folder + '/results_fitparameter')
-        if not os.path.exists(self.folder + '/results_fitlines'):
-            os.makedirs(self.folder + '/results_fitlines')
+        if not os.path.exists(self.folder + '/results/plot'):
+            os.makedirs(self.folder + '/results/plot')
+        if not os.path.exists(self.folder + '/results/fitparameter'):
+            os.makedirs(self.folder + '/results/fitparameter')
+            os.makedirs(self.folder + '/results/fitparameter/spectra')
+            os.makedirs(self.folder + '/results/fitparameter/peakwise')
+        if not os.path.exists(self.folder + '/results/fitlines'):
+            os.makedirs(self.folder + '/results/fitlines')
 
         # names of files created during the procedure
         self.fSpectrumBorders = None
@@ -348,8 +350,8 @@ class spectrum(object):
                      color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
 
             fig.legend(loc = 'upper right')
-            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png')
+            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.pdf')
+            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.png')
 
             if show:
                 figManager = plt.get_current_fig_manager()  # get current figure
@@ -371,7 +373,7 @@ class spectrum(object):
             fitparams_peaks = self.fitresult_peaks[spectrum].params # Fitparamter Peaks
 
             # save background parameters
-            f = open(self.folder + '/results_fitparameter/' + label + '_background.dat','a')
+            f = open(self.folder + '/results/fitparameter/spectra/' + label + '_background.dat','a')
             # iterate through all the background parameters
             for name in fitparams_back:
                 # get parameters for saving
@@ -396,7 +398,7 @@ class spectrum(object):
 
             # iterate through all peaks used in the current model
             for peak in modelpeaks:
-                peakfile = self.folder + '/results_fitparameter/' + label +\
+                peakfile = self.folder + '/results/fitparameter/spectra/' + label +\
                            '_' + peak + '.dat'
                 f = open(peakfile, 'a')
                 # iterate through all fit parameters
@@ -404,6 +406,10 @@ class spectrum(object):
                     # and find the current peak
                     peakparameter = re.findall(peak, name)
                     if peakparameter:
+                        # create file for each parameter
+                        allpeaks = self.folder + '/results/fitparameter/peakwise/' + name + '.dat'
+                        g = open(allpeaks, 'a')
+
                         # get parameters for saving
                         peakparameter = name.replace(peak, '')
                         parametervalue = fitparams_peaks[name].value
@@ -424,11 +430,13 @@ class spectrum(object):
                         f.write(peakparameter.ljust(12) + '{:>13.5f}'.format(parametervalue)
                                               + ' +/- ' + '{:>11.5f}'.format(parametererror)
                                               + '\n')
+                        g.write('{:>13.5f}'.format(parametervalue) + '\t' + '{:>11.5f}'.format(parametererror) + '\n')
+                        g.close()
                 f.close()
 
             # save the fitlines
             for line in self.fitline:
-                file = self.folder + '/results_fitlines/' + label + '_fitline.dat'
+                file = self.folder + '/results/fitlines/' + label + '_fitline.dat'
                 np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]))
 
             # print which spectrum is saved
