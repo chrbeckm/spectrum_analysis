@@ -33,14 +33,12 @@ class spectrum(object):
         if not os.path.exists(self.folder + '/temp'):
             os.makedirs(self.folder + '/temp')
         # create results folders
-        if not os.path.exists(self.folder + '/results/plot'):
-            os.makedirs(self.folder + '/results/plot')
-        if not os.path.exists(self.folder + '/results/fitparameter'):
-            os.makedirs(self.folder + '/results/fitparameter')
+        if not os.path.exists(self.folder + '/results'):
+            os.makedirs(self.folder + '/results/baselines')
+            os.makedirs(self.folder + '/results/fitlines')
             os.makedirs(self.folder + '/results/fitparameter/spectra')
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
-        if not os.path.exists(self.folder + '/results/fitlines'):
-            os.makedirs(self.folder + '/results/fitlines')
+            os.makedirs(self.folder + '/results/plot')
 
         # names of files created during the procedure
         self.fSpectrumBorders = None
@@ -361,8 +359,8 @@ class spectrum(object):
                      color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
 
             fig.legend(loc = 'upper right')
-            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.png', dpi=300)
+            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.pdf')
+            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.png', dpi=300)
 
             if show:
                 figManager = plt.get_current_fig_manager()  # get current figure
@@ -448,6 +446,11 @@ class spectrum(object):
             # save the fitlines
             for line in self.fitline:
                 file = self.folder + '/results/fitlines/' + label + '_fitline.dat'
+                np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]))
+
+            # save the fitlines
+            for line in self.baseline:
+                file = self.folder + '/results/baselines/' + label + '_baseline.dat'
                 np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]))
 
             # print which spectrum is saved
