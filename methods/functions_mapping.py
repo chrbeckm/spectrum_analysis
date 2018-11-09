@@ -3,47 +3,8 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
+from functions import *
 from functions_denoising import *
-
-# print some stuff
-def teller(number, kind, location):
-    if number != 1:
-        print('There are {} {}s in this {}.'.format(number, kind, location))
-        print()
-    else:
-        print('There is {} {} in this {}.'.format(number, kind, location))
-        print()
-
-# return a list of all files in a folder
-def GetFolderContent(foldername, filetype):
-    #generate list of txt-files in requested folder
-    foldername = foldername + '/*.' + filetype
-    listOfFiles = sorted(glob.glob(foldername))
-    numberOfFiles = len(listOfFiles)
-    # tell the number of files in the requested folder
-    teller(numberOfFiles, 'file', 'folder')
-
-    return listOfFiles
-
-# returns arrays containing the measured data
-def GetMonoData(listOfFiles):
-    # define arrays to hold data from the files
-    inversecm = np.array([])
-    intensity = np.array([])
-
-    # read all files
-    for fileName in listOfFiles:
-        # read one file
-        index = listOfFiles.index(fileName)
-        cm, inty = np.genfromtxt(listOfFiles[index], unpack=True)
-        if index != 0:
-            inversecm = np.vstack((inversecm, cm))
-            intensity = np.vstack((intensity, inty))
-        else:
-            inversecm = cm
-            intensity = inty
-
-    return inversecm, intensity
 
 # generate all denoised spectra
 def DenoiseMapping(x, ynormed, ymax, folder,
@@ -97,36 +58,6 @@ def DenoiseMapping(x, ynormed, ymax, folder,
         iterator += 1
     return ymuon_scaled, yden_scaled
 
-# remove the baseline
-def RemoveBaselineMapping(x, y, baselinefile, degree=3, display=False):
-    y_bgfree = np.empty_like(y) # save background free spectra
-
-    # loop through all spectra
-    iterator = 0
-    for spectrum in y:
-        # fit a baseline through the data
-        baseline_fit = FitBaseline(x[iterator], spectrum, baselinefile)
-        background = PolynomialModel(degree = degree)
-        background_line = background.eval(baseline_fit.params, x = x[iterator])
-
-        # remove background from data
-        y_bgfree[iterator] = y[iterator] - background_line
-
-        # plot background and original data
-        if display:
-            f, ax = plt.subplots()
-            # plot denoised data
-            ax.plot(x[iterator], y[iterator], 'b.')
-            # plot background
-            ax.plot(x[iterator], background_line, 'r-')
-            # plot denoised data - background
-            ax.plot(x[iterator], y_bgfree[iterator] + min(background_line), 'y--')
-            f.show()
-
-        iterator += 1
-
-    return y_bgfree
-
 # plot pca reduced data with cluster labels
 # returns the sum for each cluster
 def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
@@ -152,6 +83,3 @@ def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
     f_algorithm.show()
 
     return cluster_sum
-
-# plot a mapping of data
-#def PlotMapping():
