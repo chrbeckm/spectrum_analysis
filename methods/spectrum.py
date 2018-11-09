@@ -321,24 +321,35 @@ class spectrum(object):
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
                                                     x = self.xreduced[spectrum])
+            # calculate all components
+            self.comps = self.fitresult_peaks[spectrum].eval_components(x = self.xreduced[spectrum])
 
             # show fit report in terminal
             if report:
                 print(self.fitresult_peaks[spectrum].fit_report(min_correl=0.5))
 
-            # Plot the raw sprectrum, the fitted data, and the background
+            # Plot the raw sprectrum, the fitted data, the background, and the confidence interval
             fig, ax = plt.subplots()
             ax.plot(self.xreduced[spectrum],
                     self.yreduced[spectrum] * self.ymax[spectrum],
-                    'b.', alpha = 0.8, markersize = 1, label = 'Data') # Measured data
+                    'b.', alpha = 0.8, markersize = 1, zorder = 0, label = 'Data') # Measured data
             ax.plot(self.xreduced[spectrum],
-                    self.baseline[spectrum] * self.ymax[spectrum],
-                    'k-', linewidth = 1, label = 'Background') # Fitted background
+                    (self.baseline[spectrum] + self.comps['constant']) * self.ymax[spectrum],
+                    'k-', linewidth = 1, zorder = 0, label = 'Background') # Fitted background
             ax.plot(self.xreduced[spectrum],
                     (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
-                    'r-', linewidth = 0.5, label = 'Fit') # Fitted spectrum
+                    'r-', linewidth = 0.5, zorder = 1, label = 'Fit') # Fitted spectrum
 
-            # check if errors exist and calculate confidence band
+            # plot the single peaks
+            for name in self.comps.keys():
+                if (name != 'constant'):
+                    ax.plot(self.xreduced[spectrum],
+                            (self.comps[name] + self.baseline[spectrum] + self.comps['constant']) * self.ymax[spectrum],
+                            'k-', linewidth = 0.5, zorder = 0)
+
+
+            # check if errors exist.
+            # calculate and plot confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
                 # calculate confidence band
                 self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
@@ -347,11 +358,11 @@ class spectrum(object):
                 ax.fill_between(self.xreduced[spectrum],
                      (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
                      (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                     color = 'r', linewidth = 0.5, alpha = 0.5, label = '3$\sigma$')
+                     color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
 
             fig.legend(loc = 'upper right')
-            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results/plot/rawplot_' + label + '.png')
+            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.pdf')
+            fig.savefig(self.folder + '/results_plot/rawplot_' + label + '.png', dpi=300)
 
             if show:
                 figManager = plt.get_current_fig_manager()  # get current figure
@@ -415,7 +426,7 @@ class spectrum(object):
                         parametervalue = fitparams_peaks[name].value
                         parametererror = fitparams_peaks[name].stderr
 
-                        # if parameter is height or amplitude
+                        # if parameter is height or amplitude or intensity
                         # it has to be scaled properly as the fit was normalized
                         if (peakparameter == 'amplitude') or (peakparameter == 'height') or (peakparameter == 'intensity'):
                             parametervalue = parametervalue * self.ymax[spectrum]
