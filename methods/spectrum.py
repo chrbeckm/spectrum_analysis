@@ -309,9 +309,10 @@ class spectrum(object):
                 # plot corrected data
                 ax.plot(self.xreduced[spectrum],
                         self.yreduced[spectrum] - self.baseline[spectrum], 'b.')
-                ax.set_title('Background substracted, normalized spectrum\n\
-                              Select the maxima of the ' + peaktype +\
-                              '-PEAKS to fit.')
+                ax.set_title('Spectrum ' + label +
+                             '\nBackground substracted, normalized spectrum\n\
+                             Select the maxima of the ' + peaktype +\
+                             '-PEAKS to fit.')
                 # arrays of initial values for the fits
                 xpeak, ypeak = self.PlotPeaks(fig)
                 plt.show()
@@ -403,7 +404,6 @@ class spectrum(object):
                             (self.comps[name] + self.baseline[spectrum] + self.comps['constant']) * self.ymax[spectrum],
                             'k-', linewidth = 0.5, zorder = 0)
 
-
             # check if errors exist.
             # calculate and plot confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
@@ -418,6 +418,12 @@ class spectrum(object):
 
             fig.legend(loc = 'upper right')
             plt.title('Fit to ' + self.folder + ' spectrum ' + str(spectrum + 1))
+
+            # label the x and y axis
+            plt.ylabel('Scattered light intensity (arb. u.)')
+            plt.xlabel('Raman shift (cm$^{-1}$)')
+
+            # save figures
             fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.pdf')
             fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.png', dpi=300)
 
