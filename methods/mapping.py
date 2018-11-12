@@ -34,6 +34,7 @@ class mapping(object):
     # xmax:     the highest wavenumber to be used in the mapping
     def PlotMapping(self, xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
+                    top='', bot='',                 # define these if you want to calculate a ratio
                     xticker=2, colormap='RdYlGn'):
         # create x and y ticks accordingly to the parameters of the mapping
         x_ticks = np.arange(self.stepsize, self.stepsize * (self.xdim + 1), step=xticker*self.stepsize)
@@ -61,6 +62,13 @@ class mapping(object):
         if maptype != '':
             folder = self.folder + '/results/fitparameter/peakwise/' + maptype + '.dat'
             plot_value, error = GetMonoData([folder])
+        if (top != '') & (bot != ''):
+            file1 = self.folder + '/results/fitparameter/peakwise/' + top
+            file2 = self.folder + '/results/fitparameter/peakwise/' + bot
+            plot1, error1 = GetMonoData([file1])
+            plot2, error2 = GetMonoData([file2])
+
+            plot_value = plot1 / plot2
 
         # create matrix for plotting
         plot_matrix = np.reshape(plot_value, (self.ydim, self.xdim))
@@ -99,6 +107,11 @@ class mapping(object):
         if maptype != '':
             plt.savefig(self.folder + '/results/plot/map_' + maptype + '.pdf', format='pdf')
             plt.savefig(self.folder + '/results/plot/map_' + maptype + '.png', dpi=300)
+        if (top != '') & (bot != ''):
+            file1 = re.sub('.dat', '', top)
+            file2 = re.sub('.dat', '', bot)
+            plt.savefig(self.folder + '/results/plot/map_' + file1 + '_' + file2 + '.pdf', format='pdf')
+            plt.savefig(self.folder + '/results/plot/map_' + file1 + '_' + file2 + '.png', dpi=300)
         else:
             plt.savefig(self.folder + '/results/plot/map.pdf', format='pdf')
             plt.savefig(self.folder + '/results/plot/map.png', dpi=300)

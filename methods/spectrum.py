@@ -1,5 +1,9 @@
 import os
 
+import pywt                             # for wavelet operations
+from statsmodels.robust import mad      # median absolute deviation from array
+from scipy.optimize import curve_fit    # for interpolating muons
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -8,6 +12,7 @@ from lmfit.models import *
 
 from starting_params import *
 from functions import *
+
 
 # Class for spectra (under development)
 class spectrum(object):
@@ -23,9 +28,13 @@ class spectrum(object):
         # get maximum and norm from each spectrum
         self.ymax = np.max(self.y, axis=1)
         self.ynormed = self.y/self.ymax[:,None]
+
         # selected spectrum
         self.xreduced = None
         self.yreduced = None
+
+        # denoised values
+        self.muonsgrouped = [None] * self.numberOfFiles
 
         # create temporary folders
         if not os.path.exists(self.folder + '/temp'):
@@ -112,6 +121,97 @@ class spectrum(object):
             self.fSpectrumBorders = self.folder + '/temp/spectrumborders' +\
                                     label + '.dat'
             np.savetxt(self.fSpectrumBorders, np.array(xregion))
+
+    # function to split muons from each other
+    def SplitMuons(self, indices, prnt=False):
+        # create multidimensional list
+        grouped_array = [[]]
+
+        # muon counter
+        muons = 0
+
+        # loop through list and find gaps in the list to group the muons
+        for i in range(0, len(indices) - 1):
+            # as long as the index is increasing by one the indices belong to one muon
+            if indices[i] + 1 == indices[i + 1]:
+                grouped_array[muons].append(indices[i])
+            # as soon as there is a jump, a new muon was found and is added to the list
+            else:
+                grouped_array[muons].append(indices[i])
+                grouped_array.append([])
+                muons += 1
+        if len(indices) > 0:
+            # add the last element to the list and
+            grouped_array[muons].append(indices[-1])
+            # print the number of muons found
+            if prnt:
+                print(str(muons + 1) + ' muons have been found.')
+
+        return grouped_array
+
+    # detect muons for removal and returns non vanishing indices
+    def DetectMuonsWavelet(self, spectrum=0, thresh_mod=1, wavelet='sym8', level=1, prnt=False):
+        # calculate wavelet coefficients
+        coeff = pywt.wavedec(self.yreduced[spectrum], wavelet)    # symmetric signal extension mode
+
+        # calculate a threshold
+        sigma = mad(coeff[-level])
+        threshold = sigma * np.sqrt(2 * np.log(len(self.yreduced[spectrum]))) * thresh_mod
+
+        # detect spikes on D1 details (written in the last entry of coeff)
+        # calculate thresholded coefficients
+        for i in range(1, len(coeff)):
+            coeff[i] = pywt.threshold(coeff[i], value=threshold, mode='soft')
+        # set everything but D1 level to zero
+        for i in range(0, len(coeff)-1):
+            coeff[i] = np.zeros_like(coeff[i])
+
+        # reconstruct the signal using the thresholded coefficients
+        muonfree = pywt.waverec(coeff, wavelet)
+
+        if (len(self.yreduced[spectrum]) % 2) == 0:
+            # get non vanishing indices
+            indices = np.nonzero(muonfree)[0]
+            self.muonsgrouped[spectrum] = self.SplitMuons(indices, prnt=prnt)
+        else:
+            # get non vanishing indices
+            indices = np.nonzero(muonfree[:-1])[0]
+            self.muonsgrouped[spectrum] = self.SplitMuons(indices, prnt=prnt)
+
+    # detect all muons in all spectra
+    def DetectAllMuons(self, prnt=False):
+        for i in range(self.numberOfFiles):
+            self.DetectMuonsWavelet(spectrum=i, prnt=prnt)
+
+    # linear function for muon approximation
+    def linear(self, x, m, b):
+        return x * m + b
+
+    # approximate muon by linear function
+    def RemoveMuons(self, spectrum=0, prnt=False):
+        # check if there are any muons in the spectrum given
+        if len(self.muonsgrouped[spectrum][0]) > 0:
+            # remove each muon
+            for muon in self.muonsgrouped[spectrum]:
+                # calculate limits for indices to use for fitting
+                limit = int(len(muon)/4)
+                lower = muon[:limit]
+                upper = muon[-limit:]
+                fit_indices = np.append(lower, upper)
+
+                # fit to the data
+                popt, pcov = curve_fit(linear, self.xreduced[spectrum, fit_indices], self.yreduced[spectrum, fit_indices])
+
+                # calculate approximated y values and remove muon
+                for index in muon[limit:-limit]:
+                    self.yreduced[spectrum, index] = linear(self.xreduced[spectrum, index], *popt)
+        elif prnt:
+            print('No muons found.')
+
+    # remove all muons
+    def RemoveAllMuons(self, prnt=False):
+        for i in range(self.numberOfFiles):
+            self.RemoveMuons(spectrum=i, prnt=prnt)
 
     #function to select the data that is relevent for the background
     def SelectBaseline(self, spectrum=0, label='', color='b'):
