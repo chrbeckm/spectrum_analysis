@@ -3,7 +3,7 @@ from mapping import *
 # xdim:     the number of Spectra in x direction
 # ydim:     the number of Spectra in y direction
 # stepsize: the interval at which the mapping was collected in µm
-map = mapping('smallmap', 2, 4, 10, raw=False)
+map = mapping('smallmap', 2, 4, 10)
 
 # plot mapping in different ways
 # use PlotMapping(xmin, xmax) to integrate over fitted or raw data
