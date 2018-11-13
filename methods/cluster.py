@@ -23,11 +23,6 @@ sample_name = 'sample'
 cluster = 3            # need to add more colors if more than 10 clusters
 plotLabeledPCA = True
 
-# define if you want to display the denoised sum of all spectra and save it
-# with sample_name in folder
-display_sumwavelet = False
-save_sumwavelet = False
-
 # possible peaks (breit_wigner == fano)
 # implemented are: breit_wigner, lorentzian, gaussian, voigt
 peaks = ['breit_wigner', 'lorentzian']
@@ -43,21 +38,16 @@ colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
 # create list of all files and read data from mapping
 spec = spectrum(folder)
 
-# Denoise the whole mapping
-ymuon, yden = DenoiseMapping(spec.x, spec.ynormed, spec.ymax, folder, prnt=False)
-
-if display_sumwavelet:
-    WaveletPlot(spec.x[0], ymuon.sum(axis=0), yden.sum(axis=0),
-            save=save_sumwavelet, name=folder + sample_name + '_sum',
-            title='Sum of ' + folder + ' (' + sample_name + ' sample)')
-
 # select region for baseline and save points to file
 spec.SelectSpectrum()
 spec.SelectBaseline()
 
+# Denoise the whole mapping
+spec.WaveletSmoothAllSpectra()
+
 # fit and remove baseline from each denoised spectrum
 spec.FitAllBaselines()
-yden_bgfree = spec.y#normed - spec.baseline
+yden_bgfree = spec.y
 
 # reduce data to two main principal components
 pca = PCA(n_components=2)
@@ -72,7 +62,7 @@ kmeans.fit(yden_bgfree_pca)
 SpectraPerCluster = np.bincount(kmeans.labels_)
 
 # plot pca reduced data with kmeans labels
-cluster_sum = PlotClusteredPCA(spec.x, yden, folder, yden_bgfree_pca,
+cluster_sum = PlotClusteredPCA(spec.x, spec.ydenoised, folder, yden_bgfree_pca,
                                kmeans, 'KMeans',
                                cluster, colors)
 plt.show()

@@ -33,6 +33,9 @@ class spectrum(object):
         self.xreduced = None
         self.yreduced = None
 
+        # array to contain denoised data
+        self.ydenoised = [None] * self.numberOfFiles
+
         # denoised values
         self.muonsgrouped = [None] * self.numberOfFiles
 
@@ -212,6 +215,33 @@ class spectrum(object):
     def RemoveAllMuons(self, prnt=False):
         for i in range(self.numberOfFiles):
             self.RemoveMuons(spectrum=i, prnt=prnt)
+
+    # smooth spectrum by using wavelet transform and soft threshold
+    def WaveletSmoothSpectrum(self, spectrum=0, wavelet='sym8', level=2):
+        # calculate wavelet coefficients
+        coeff = pywt.wavedec(self.yreduced[spectrum], wavelet)
+
+        # calculate a threshold
+        sigma = mad(coeff[-level])
+        threshold = sigma * np.sqrt(2 * np.log(len(self.yreduced[spectrum])))
+
+        # calculate thresholded coefficients
+        for i in range(1,len(coeff)):
+            coeff[i] = pywt.threshold(coeff[i], value=threshold, mode='soft')
+
+        # reconstruct the signal using the thresholded coefficients
+        denoised = pywt.waverec(coeff, wavelet)
+
+        # return the value of denoised except for the last value
+        if (len(self.yreduced) % 2) == 0:
+            self.ydenoised[spectrum] = denoised
+        else:
+            self.ydenoised[spectrum] = denoised[:-1]
+
+    # smooth all spectra
+    def WaveletSmoothAllSpectra(self):
+        for i in range(self.numberOfFiles):
+            self.WaveletSmoothSpectrum(spectrum=i)
 
     #function to select the data that is relevent for the background
     def SelectBaseline(self, spectrum=0, label='', color='b'):

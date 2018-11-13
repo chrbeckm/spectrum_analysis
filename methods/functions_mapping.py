@@ -62,7 +62,7 @@ def DenoiseMapping(x, ynormed, ymax, folder,
 # returns the sum for each cluster
 def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
                      n_clusters, colors):
-    cluster_sum = np.empty([n_clusters, yden.shape[1]])
+    cluster_sum = np.empty([n_clusters, len(yden)])
 
     f_algorithm, ax_algorithm = plt.subplots()
     # plot algorithm labeled pca analysis
@@ -71,7 +71,7 @@ def PlotClusteredPCA(x, yden, folder, pca, algorithm, cluster_algorithm,
         clust = algorithm.labels_[point]
 
         # calculate sum spectra for each cluster
-        cluster_sum[clust] = cluster_sum[clust] + yden[point, :]
+        cluster_sum[clust] = cluster_sum[clust] + sum(yden[point][:])
 
         # plot each pca point
         ax_algorithm.scatter(pca[point, 0], pca[point, 1],
