@@ -25,6 +25,9 @@ class spectrum(object):
             self.x = np.array([self.x])
             self.y = np.array([self.y])
 
+        # set value of missing values
+        self.missingvalue = 1.11111
+
         # get maximum and norm from each spectrum
         self.ymax = np.max(self.y, axis=1)
         self.ynormed = self.y/self.ymax[:,None]
@@ -396,9 +399,8 @@ class spectrum(object):
                     #define starting values for the fit
                     for i in range(0, len(xpeak)):
                         # prefix for the different peaks from one model
-                        prefix = peaktype + '_p'+ str(i + 1) + '_'
-                        temp = ChoosePeakType(peaktype, prefix)
-                        temp = StartingParameters(xpeak, ypeak, i, temp, peaks)
+                        temp = ChoosePeakType(peaktype, i)
+                        temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
 
                         ramanmodel += temp # add the models to 'ramanmodel'
 
@@ -482,7 +484,7 @@ class spectrum(object):
             self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show, report=report)
 
     # Save the Results of the fit in a file using
-    def SaveFitParams(self, peaks, label='', spectrum=0):
+    def SaveFitParams(self, peaks, usedpeaks=[], label='', spectrum=0):
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -552,6 +554,30 @@ class spectrum(object):
                         g.close()
                 f.close()
 
+            # enter value for non used peaks
+            if usedpeaks != []:
+                # calculate the peaks that have not been used
+                unusedpeaks = list(set(usedpeaks)-set(modelpeaks))
+
+                # save default value for each parameter of unused peaks
+                for peak in unusedpeaks:
+                    # get the peaktype and number of the peak
+                    number = int(re.findall('\d', peak)[0]) - 1
+                    peaktype = re.sub('_p.*_', '', peak)
+
+                    # create model with parameters as before
+                    model = ChoosePeakType(peaktype, number)
+                    model = StartingParameters(model, peaks)
+                    model.make_params()
+
+                    # go through all parameters and write missing values
+                    for parameter in model.param_names:
+                        peakfile = self.folder + '/results/fitparameter/peakwise/' + parameter + '.dat'
+                        # open file and write missing values
+                        f = open(peakfile, 'a')
+                        f.write('{:>13.5f}'.format(self.missingvalue) + '\t' + '{:>11.5f}'.format(self.missingvalue) + '\n')
+                        f.close()
+
             # save the fitlines
             for line in self.fitline:
                 file = self.folder + '/results/fitlines/' + label + '_fitline.dat'
@@ -567,5 +593,12 @@ class spectrum(object):
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
+        # find all peaks that were fitted and generate a list
+        allpeaks = []
         for i in range(self.numberOfFiles):
-            self.SaveFitParams(peaks, spectrum=i, label=str(i+1).zfill(4))
+            allpeaks.extend(re.findall('prefix=\'(.*?)\'',
+                                    self.fitresult_peaks[i].model.name))
+        allusedpeaks = list(set(allpeaks))
+
+        for i in range(self.numberOfFiles):
+            self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i, label=str(i+1).zfill(4))
