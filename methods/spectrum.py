@@ -49,6 +49,7 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/spectra')
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
+            os.makedirs(self.folder + '/results/denoised/')
 
         # names of files created during the procedure
         self.fSpectrumBorders = None
@@ -217,7 +218,7 @@ class spectrum(object):
             self.RemoveMuons(spectrum=i, prnt=prnt)
 
     # smooth spectrum by using wavelet transform and soft threshold
-    def WaveletSmoothSpectrum(self, spectrum=0, wavelet='sym8', level=2):
+    def WaveletSmoothSpectrum(self, spectrum=0, wavelet='sym8', level=2, sav=False):
         # calculate wavelet coefficients
         coeff = pywt.wavedec(self.yreduced[spectrum], wavelet)
 
@@ -238,10 +239,15 @@ class spectrum(object):
         else:
             self.ydenoised[spectrum] = denoised[:-1]
 
+        # save denoised data
+        if sav:
+            savefile = self.folder + '/results/denoised/' + str(spectrum + 1).zfill(4) + '.dat'
+            np.savetxt(savefile, np.column_stack([self.xreduced[spectrum], self.ydenoised[spectrum]]))
+
     # smooth all spectra
-    def WaveletSmoothAllSpectra(self):
+    def WaveletSmoothAllSpectra(self, level=2, sav=False, wavelet='sym8'):
         for i in range(self.numberOfFiles):
-            self.WaveletSmoothSpectrum(spectrum=i)
+            self.WaveletSmoothSpectrum(spectrum=i, level=level, sav=sav, wavelet=wavelet)
 
     #function to select the data that is relevent for the background
     def SelectBaseline(self, spectrum=0, label='', color='b'):
