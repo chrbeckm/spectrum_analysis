@@ -382,6 +382,7 @@ class spectrum(object):
             for peaktype in peaks:
                 peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
                            label + '.dat'
+
                 # check, if the current peaktype has been selected
                 if(os.stat(peakfile).st_size > 0):
                     # get the selected peak positions
@@ -405,17 +406,24 @@ class spectrum(object):
             pars = ramanmodel.make_params()
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
-                                                  x = self.xreduced[spectrum],
-                                                  method = 'leastsq',
-                                                  scale_covar = True)
-            # print which fit is conducted
-            print('Spectrum ' + label + ' fitted')
-
+                                                            x = self.xreduced[spectrum],
+                                                            method = 'leastsq',
+                                                            scale_covar = True)
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
-                                                    x = self.xreduced[spectrum])
+                                                     x = self.xreduced[spectrum])
+
             # calculate all components
             self.comps = self.fitresult_peaks[spectrum].eval_components(x = self.xreduced[spectrum])
+
+            # check if ramanmodel was only a constant
+            if ramanmodel.name == ConstantModel().name:
+                # set fitline and constant to zero
+                self.fitline[spectrum] = np.zeros_like(self.baseline[spectrum])
+                self.comps['constant'] = 0
+
+            # print which fit is conducted
+            print('Spectrum ' + label + ' fitted')
 
             # show fit report in terminal
             if report:
