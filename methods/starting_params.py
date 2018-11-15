@@ -1,7 +1,7 @@
 import re
 import lmfit
 
-def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
+def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     # starting position for the peak position is not allowed to vary much
     fitmodel.set_param_hint('center',
                              value = xpeak[i],
@@ -84,7 +84,8 @@ def StartingParameters(xpeak, ypeak, i, fitmodel, peaks):
 
     return fitmodel
 
-def ChoosePeakType(peaktype, prefix):
+def ChoosePeakType(peaktype, i):
+    prefix = peaktype + '_p'+ str(i + 1) + '_'
     if peaktype == 'voigt':
         return lmfit.models.VoigtModel(prefix = prefix, nan_policy = 'omit')
     elif peaktype == 'breit_wigner':

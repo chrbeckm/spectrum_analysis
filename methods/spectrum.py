@@ -13,6 +13,7 @@ from lmfit.models import *
 from starting_params import *
 from functions import *
 
+import decimal                          # to get exponent of missingvalue
 
 # Class for spectra (under development)
 class spectrum(object):
@@ -24,6 +25,9 @@ class spectrum(object):
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
             self.y = np.array([self.y])
+
+        # set value of missing values
+        self.missingvalue = 1.11111
 
         # get maximum and norm from each spectrum
         self.ymax = np.max(self.y, axis=1)
@@ -50,6 +54,11 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
             os.makedirs(self.folder + '/results/denoised/')
+
+        # save missing value
+        self.missingvalueexponent = decimal.Decimal(str(self.missingvalue)).as_tuple().exponent * (-1)
+        np.savetxt(self.folder + '/temp/missingvalue.dat', [self.missingvalue],
+                   fmt='%.{}f'.format(self.missingvalueexponent))
 
         # names of files created during the procedure
         self.fSpectrumBorders = None
@@ -382,6 +391,7 @@ class spectrum(object):
             for peaktype in peaks:
                 peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
                            label + '.dat'
+
                 # check, if the current peaktype has been selected
                 if(os.stat(peakfile).st_size > 0):
                     # get the selected peak positions
@@ -395,9 +405,8 @@ class spectrum(object):
                     #define starting values for the fit
                     for i in range(0, len(xpeak)):
                         # prefix for the different peaks from one model
-                        prefix = peaktype + '_p'+ str(i + 1) + '_'
-                        temp = ChoosePeakType(peaktype, prefix)
-                        temp = StartingParameters(xpeak, ypeak, i, temp, peaks)
+                        temp = ChoosePeakType(peaktype, i)
+                        temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
 
                         ramanmodel += temp # add the models to 'ramanmodel'
 
@@ -405,17 +414,24 @@ class spectrum(object):
             pars = ramanmodel.make_params()
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
-                                                  x = self.xreduced[spectrum],
-                                                  method = 'leastsq',
-                                                  scale_covar = True)
-            # print which fit is conducted
-            print('Spectrum ' + label + ' fitted')
-
+                                                            x = self.xreduced[spectrum],
+                                                            method = 'leastsq',
+                                                            scale_covar = True)
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
-                                                    x = self.xreduced[spectrum])
+                                                     x = self.xreduced[spectrum])
+
             # calculate all components
             self.comps = self.fitresult_peaks[spectrum].eval_components(x = self.xreduced[spectrum])
+
+            # check if ramanmodel was only a constant
+            if ramanmodel.name == ConstantModel().name:
+                # set fitline and constant to zero
+                self.fitline[spectrum] = np.zeros_like(self.baseline[spectrum])
+                self.comps['constant'] = 0
+
+            # print which fit is conducted
+            print('Spectrum ' + label + ' fitted')
 
             # show fit report in terminal
             if report:
@@ -474,7 +490,7 @@ class spectrum(object):
             self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show, report=report)
 
     # Save the Results of the fit in a file using
-    def SaveFitParams(self, peaks, label='', spectrum=0):
+    def SaveFitParams(self, peaks, usedpeaks=[], label='', spectrum=0):
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -544,6 +560,30 @@ class spectrum(object):
                         g.close()
                 f.close()
 
+            # enter value for non used peaks
+            if usedpeaks != []:
+                # calculate the peaks that have not been used
+                unusedpeaks = list(set(usedpeaks)-set(modelpeaks))
+
+                # save default value for each parameter of unused peaks
+                for peak in unusedpeaks:
+                    # get the peaktype and number of the peak
+                    number = int(re.findall('\d', peak)[0]) - 1
+                    peaktype = re.sub('_p.*_', '', peak)
+
+                    # create model with parameters as before
+                    model = ChoosePeakType(peaktype, number)
+                    model = StartingParameters(model, peaks)
+                    model.make_params()
+
+                    # go through all parameters and write missing values
+                    for parameter in model.param_names:
+                        peakfile = self.folder + '/results/fitparameter/peakwise/' + parameter + '.dat'
+                        # open file and write missing values
+                        f = open(peakfile, 'a')
+                        f.write('{:>13.5f}'.format(self.missingvalue) + '\t' + '{:>11.5f}'.format(self.missingvalue) + '\n')
+                        f.close()
+
             # save the fitlines
             for line in self.fitline:
                 file = self.folder + '/results/fitlines/' + label + '_fitline.dat'
@@ -559,5 +599,12 @@ class spectrum(object):
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
+        # find all peaks that were fitted and generate a list
+        allpeaks = []
         for i in range(self.numberOfFiles):
-            self.SaveFitParams(peaks, spectrum=i, label=str(i+1).zfill(4))
+            allpeaks.extend(re.findall('prefix=\'(.*?)\'',
+                                    self.fitresult_peaks[i].model.name))
+        allusedpeaks = list(set(allpeaks))
+
+        for i in range(self.numberOfFiles):
+            self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i, label=str(i+1).zfill(4))
