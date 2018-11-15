@@ -23,6 +23,7 @@ class mapping(object):
         self.stepsize = stepsize
         self.raw = raw
         self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'txt')
+        self.missingvalue = np.genfromtxt(self.folder + '/temp/missingvalue.dat', unpack = True)
 
         # create results folders
         if not os.path.exists(self.folder + '/results/plot'):
@@ -56,7 +57,7 @@ class mapping(object):
         savefile = ''
 
         # create figure for mapping
-        fit, ax = plt.subplots(figsize=(18,6))
+        fig, ax = plt.subplots()
         ax.set_aspect('equal')
 
         # if fitlines should be integrated
@@ -105,9 +106,26 @@ class mapping(object):
             file2 = re.sub('.dat', '', bot)
             savefile = self.folder + '/results/plot/map_' + file1 + '_' + file2
 
+        # check if any value in plot_value is a missing value or 1
+        missingindices = [i for i, x in enumerate(plot_value) if (x == self.missingvalue) or (x == 1.0)]
+        existingindices = [i for i, x in enumerate(plot_value) if (x != self.missingvalue) and (x != 1.0)]
+
+        # calculate the mean of the existing values
+        fitmean = 0
+        for index in existingindices:
+            fitmean += plot_value[index]
+        fitmean = fitmean / len(existingindices)
+
+        # set the missing values as mean
+        for index in missingindices:
+            plot_value[index] = fitmean
+
         # create matrix for plotting
         plot_matrix = np.reshape(plot_value, (self.ydim, self.xdim))
         plot_matrix = np.flipud(plot_matrix)
+
+        # create matrix with missing values
+        missing_matrix = (plot_matrix == fitmean)
 
         # set font and parameters
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
@@ -117,6 +135,28 @@ class mapping(object):
         plt.imshow(plot_matrix, cmap=colormap)
         plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
         plt.yticks(np.arange(self.ydim), y_ticks)
+
+        # Create list for all the missing values as missing patches
+        missingboxes = []
+
+        # find all fields not containing signals and append to
+        for iy in range(0,self.ydim):
+            for ix in range(0,self.xdim):
+                if missing_matrix[iy][ix]:
+                    # calculate position correction for the patches
+                    corr = 0.5
+                    linecorr = matplotlib.rcParams['axes.linewidth']/fig.dpi/4
+                    # create the missing patch and add to list
+                    rect = matplotlib.patches.Rectangle((ix - corr + linecorr,
+                                              iy - corr - linecorr), 1, 1)
+                    missingboxes.append(rect)
+
+        # Create patch collection with specified colour/alpha
+        pc = matplotlib.collections.PatchCollection(missingboxes,
+                                                    facecolor='black')
+
+        # Add collection to axes
+        ax.add_collection(pc)
 
         # label the x and y axis
         plt.ylabel('y-Position ($\mathrm{\mu}$m)')

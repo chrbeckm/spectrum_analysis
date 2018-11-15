@@ -13,6 +13,7 @@ from lmfit.models import *
 from starting_params import *
 from functions import *
 
+import decimal                          # to get exponent of missingvalue
 
 # Class for spectra (under development)
 class spectrum(object):
@@ -53,6 +54,11 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
             os.makedirs(self.folder + '/results/denoised/')
+
+        # save missing value
+        self.missingvalueexponent = decimal.Decimal(str(self.missingvalue)).as_tuple().exponent * (-1)
+        np.savetxt(self.folder + '/temp/missingvalue.dat', [self.missingvalue],
+                   fmt='%.{}f'.format(self.missingvalueexponent))
 
         # names of files created during the procedure
         self.fSpectrumBorders = None
