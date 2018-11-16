@@ -57,7 +57,7 @@ class mapping(object):
         savefile = ''
 
         # create figure for mapping
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(self.xdim,self.ydim))
         ax.set_aspect('equal')
 
         # if fitlines should be integrated
@@ -97,6 +97,16 @@ class mapping(object):
             file2 = self.folder + '/results/fitparameter/peakwise/' + bot
             plot1, error1 = GetMonoData([file1])
             plot2, error2 = GetMonoData([file2])
+
+            # check for missing indices
+            missingindices_p1 = [i for i, x in enumerate(plot1) if (x == self.missingvalue)]
+            missingindices_p2 = [i for i, x in enumerate(plot2) if (x == self.missingvalue)]
+
+            # set the missing values vice versa
+            for index in missingindices_p1:
+                plot2[index] = self.missingvalue
+            for index in missingindices_p2:
+                plot1[index] = self.missingvalue
 
             # calculate the ratio
             plot_value = plot1 / plot2
@@ -185,16 +195,16 @@ class mapping(object):
         # save everything and show the plot
         if self.raw:
             plt.savefig(savefile + '.pdf', format='pdf')
-            plt.savefig(savefile + '.png', dpi=300)
+            plt.savefig(savefile + '.png')
         if maptype != '':
             plt.savefig(savefile + '.pdf', format='pdf')
-            plt.savefig(savefile + '.png', dpi=300)
+            plt.savefig(savefile + '.png')
         if (top != '') & (bot != ''):
             plt.savefig(savefile + '.pdf', format='pdf')
-            plt.savefig(savefile + '.png', dpi=300)
+            plt.savefig(savefile + '.png')
         else:
             plt.savefig(self.folder + '/results/plot/map.pdf', format='pdf')
-            plt.savefig(self.folder + '/results/plot/map.png', dpi=300)
+            plt.savefig(self.folder + '/results/plot/map.png')
         plt.clf()
 
     def PlotAllMappings(self):
