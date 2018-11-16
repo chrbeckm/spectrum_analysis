@@ -280,7 +280,7 @@ class spectrum(object):
             np.savetxt(self.fBaseline, np.array(xregion))
 
     # actual fit of the baseline
-    def FitBaseline(self, spectrum=0, show=False):
+    def FitBaseline(self, spectrum=0, show=False, degree=3):
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -300,7 +300,7 @@ class spectrum(object):
             relevant = relevant | (self.xreduced[spectrum] >= bed[-1])
 
             # Third-degree polynomial to model the background
-            background = PolynomialModel(degree = 3)
+            background = PolynomialModel(degree=degree)
             pars = background.guess(self.yreduced[spectrum, relevant],
                                 x = self.xreduced[spectrum, relevant])
             self.fitresult_bg[spectrum] = background.fit(self.yreduced[spectrum, relevant],
@@ -318,9 +318,9 @@ class spectrum(object):
                 plt.show()
 
     # fit all baselines
-    def FitAllBaselines(self, show=False):
+    def FitAllBaselines(self, show=False, degree=3):
         for i in range(self.numberOfFiles):
-            self.FitBaseline(spectrum=i, show=show)
+            self.FitBaseline(spectrum=i, show=show, degree=degree)
 
     # function that plots the dots at the peaks you wish to fit
     def PlotPeaks(self, fig):
