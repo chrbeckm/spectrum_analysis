@@ -207,12 +207,12 @@ class mapping(object):
             plt.savefig(self.folder + '/results/plot/map.png')
         plt.clf()
 
-    def PlotAllMappings(self):
+    def PlotAllMappings(self, colormap='RdYlGn'):
         folder = self.folder + '/results/fitparameter/peakwise/'
         listOfFiles, numberOfFiles = GetFolderContent(folder, 'dat', object='parameter', where='fit')
         print('The following maps have been plotted:')
         for map in listOfFiles:
             map = re.sub(folder, '', map)
             map = re.sub('.dat', '', map)
-            self.PlotMapping(maptype=map)
+            self.PlotMapping(maptype=map, colormap=colormap)
             print(map)
