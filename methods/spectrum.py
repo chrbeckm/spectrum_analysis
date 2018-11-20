@@ -17,6 +17,24 @@ import decimal                          # to get exponent of missingvalue
 
 # Class for spectra (under development)
 class spectrum(object):
+    """
+    Class for working with spectral data.
+
+    Parameters
+    ----------
+    foldername : The folder of interest has to be in the current directory.
+        The data will be prepared to analyze spectral data.
+
+    Returns
+    -------
+
+
+    Other Parameters
+    ----------------
+
+    See also
+    --------
+    """
 
     def __init__(self, foldername):
         self.folder = foldername

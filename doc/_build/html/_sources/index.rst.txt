@@ -10,7 +10,7 @@ Welcome to Spectrum Analysis's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+Here you will find a documentation of the spectrum analysis package.
 
 Indices and tables
 ==================
