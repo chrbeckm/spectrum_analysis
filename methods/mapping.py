@@ -46,6 +46,7 @@ class mapping(object):
     def PlotMapping(self, xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     top='', bot='',                 # define these if you want to calculate a ratio
+                    label='',
                     xticker=2, colormap='RdYlGn'):
         # create x and y ticks accordingly to the parameters of the mapping
         x_ticks = np.arange(self.stepsize, self.stepsize * (self.xdim + 1), step=xticker*self.stepsize)
@@ -89,7 +90,7 @@ class mapping(object):
             plot_value, error = GetMonoData([folder])
 
             # define save file
-            savefile = self.folder + '/results/plot/map_' + maptype
+            savefile = self.folder + '/results/plot/map_' + maptype + label
 
         elif (top != '') & (bot != ''):
             # get files that should be divided
@@ -186,7 +187,7 @@ class mapping(object):
             else:
                 self.LabelZ(plt, ax, label=type + ' (arb. u.)')
         elif (top != '') & (bot != ''):
-            plt.title('Mapping of ' + self.folder + ' ' + maptype, fontsize='small')
+            plt.title('Mapping of ' + self.folder + ' ' + top + '/' + bot, fontsize='small')
             self.LabelZ(plt, ax, label='Ratio (arb. u.)')
 
         # have a tight layout
@@ -216,3 +217,31 @@ class mapping(object):
             map = re.sub('.dat', '', map)
             self.PlotMapping(maptype=map, colormap=colormap)
             print(map)
+
+    def PlotAllColormaps(self, map):
+        map = re.sub('.dat', '', map)
+        cmaps = [('Perceptually Uniform Sequential', [
+            'viridis', 'plasma', 'inferno', 'magma']),
+         ('Sequential', [
+            'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']),
+         ('Sequential (2)', [
+            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
+            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
+            'hot', 'afmhot', 'gist_heat', 'copper']),
+         ('Diverging', [
+            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']),
+         ('Qualitative', [
+            'Pastel1', 'Pastel2', 'Paired', 'Accent',
+            'Dark2', 'Set1', 'Set2', 'Set3',
+            'tab10', 'tab20', 'tab20b', 'tab20c']),
+         ('Miscellaneous', [
+            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
+            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg', 'hsv',
+            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar'])]
+        for category in cmaps:
+            print(category[0])
+            for colormap in category[1]:
+                self.PlotMapping(maptype=map, label=category[0] + colormap, colormap=colormap)
