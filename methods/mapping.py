@@ -83,7 +83,7 @@ class mapping(object):
                 plot_value[iterator] = sum(selectedvalues)
                 iterator += 1
 
-        if maptype != '':
+        elif maptype != '':
             # get the selected file and the corresponding values
             folder = self.folder + '/results/fitparameter/peakwise/' + maptype + '.dat'
             plot_value, error = GetMonoData([folder])
@@ -91,7 +91,7 @@ class mapping(object):
             # define save file
             savefile = self.folder + '/results/plot/map_' + maptype
 
-        if (top != '') & (bot != ''):
+        elif (top != '') & (bot != ''):
             # get files that should be divided
             file1 = self.folder + '/results/fitparameter/peakwise/' + top
             file2 = self.folder + '/results/fitparameter/peakwise/' + bot
@@ -176,7 +176,7 @@ class mapping(object):
         if (xmin != None) & (xmax != None):
             plt.title('Mapping of ' + self.folder, fontsize='small')
             self.LabelZ(plt, ax)
-        if maptype != '':
+        elif maptype != '':
             plt.title('Mapping of ' + self.folder + ' ' + maptype, fontsize='small')
             unwanted = re.findall('(?s:.*)_', maptype)[0]
             type = re.sub(unwanted, '', maptype)
@@ -185,7 +185,7 @@ class mapping(object):
                 self.LabelZ(plt, ax, label=type + ' (cm$^{-1}$)')
             else:
                 self.LabelZ(plt, ax, label=type + ' (arb. u.)')
-        if (top != '') & (bot != ''):
+        elif (top != '') & (bot != ''):
             plt.title('Mapping of ' + self.folder + ' ' + maptype, fontsize='small')
             self.LabelZ(plt, ax, label='Ratio (arb. u.)')
 
@@ -196,10 +196,10 @@ class mapping(object):
         if self.raw:
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
-        if maptype != '':
+        elif maptype != '':
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
-        if (top != '') & (bot != ''):
+        elif (top != '') & (bot != ''):
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
         else:
