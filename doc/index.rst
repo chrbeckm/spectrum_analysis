@@ -18,8 +18,10 @@ Modules
 
 The following modules are supplied by this package:
 
-modules/modules.rst
+.. toctree::
+   :maxdepth: 2
 
+   modules/modules.rst
 
 Indices and tables
 ==================
