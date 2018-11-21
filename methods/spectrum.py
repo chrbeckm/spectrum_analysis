@@ -1,3 +1,7 @@
+"""
+This module contains the spectrum class to work with spectral data.
+"""
+
 import os
 
 import pywt                             # for wavelet operations
@@ -22,18 +26,9 @@ class spectrum(object):
 
     Parameters
     ----------
-    foldername : The folder of interest has to be in the current directory.
+    foldername : string
+        The folder of interest has to be in the current directory.
         The data will be prepared to analyze spectral data.
-
-    Returns
-    -------
-
-
-    Other Parameters
-    ----------------
-
-    See also
-    --------
     """
 
     def __init__(self, foldername):
@@ -91,6 +86,21 @@ class spectrum(object):
 
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):
+        """
+        Function that plots regions chosen by clicking into the plot
+
+        Parameters
+        ----------
+        color : string
+            Defines color of the vertical lines and the region.
+        fig : matplotlib.figure.Figure
+            Figure to choose the region from.
+
+        Returns
+        -------
+        xregion : array
+            Points selected from the user.
+        """
         xregion = []                            # variable to save chosen region
         ax = plt.gca()                          # get current axis
         plt_ymin, plt_ymax = ax.get_ylim()      # get plot min and max
@@ -129,6 +139,19 @@ class spectrum(object):
 
     # Select the interesting region in the spectrum, by clicking on the plot
     def SelectSpectrum(self, spectrum=0, label=''):
+        """
+        Function that lets the user select a region of interest. It saves the
+        selected region to '/temp/spectrumborders' + label + '.dat'
+
+        Parameters
+        ----------
+        spectrum : int, default: 0
+            Defines which spectrum in the analysis folder is chosen.
+        label : string, default: ''
+            Label for the spectrumborders file in case you want to have
+            different borders for different files.
+
+        """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -155,6 +178,9 @@ class spectrum(object):
 
     # function to split muons from each other
     def SplitMuons(self, indices, prnt=False):
+        """
+
+        """
         # create multidimensional list
         grouped_array = [[]]
 
@@ -182,6 +208,9 @@ class spectrum(object):
 
     # detect muons for removal and returns non vanishing indices
     def DetectMuonsWavelet(self, spectrum=0, thresh_mod=1, wavelet='sym8', level=1, prnt=False):
+        """
+
+        """
         # calculate wavelet coefficients
         coeff = pywt.wavedec(self.yreduced[spectrum], wavelet)    # symmetric signal extension mode
 
@@ -211,15 +240,25 @@ class spectrum(object):
 
     # detect all muons in all spectra
     def DetectAllMuons(self, prnt=False):
+        """
+        Wrapper around :func:`~spectrum.DetectMuonsWavelet` that iterates over all spectra
+        given.
+        """
         for i in range(self.numberOfFiles):
             self.DetectMuonsWavelet(spectrum=i, prnt=prnt)
 
     # linear function for muon approximation
     def linear(self, x, m, b):
+        """
+
+        """
         return x * m + b
 
     # approximate muon by linear function
     def RemoveMuons(self, spectrum=0, prnt=False):
+        """
+
+        """
         # check if there are any muons in the spectrum given
         if len(self.muonsgrouped[spectrum][0]) > 0:
             # remove each muon
@@ -241,11 +280,18 @@ class spectrum(object):
 
     # remove all muons
     def RemoveAllMuons(self, prnt=False):
+        """
+        Wrapper around :func:`~spectrum.RemoveMuons` that iterates over all spectra
+        given.
+        """
         for i in range(self.numberOfFiles):
             self.RemoveMuons(spectrum=i, prnt=prnt)
 
     # smooth spectrum by using wavelet transform and soft threshold
     def WaveletSmoothSpectrum(self, spectrum=0, wavelet='sym8', level=2, sav=False):
+        """
+
+        """
         # calculate wavelet coefficients
         coeff = pywt.wavedec(self.yreduced[spectrum], wavelet)
 
@@ -273,11 +319,18 @@ class spectrum(object):
 
     # smooth all spectra
     def WaveletSmoothAllSpectra(self, level=2, sav=False, wavelet='sym8'):
+        """
+        Wrapper around :func:`~spectrum.WaveletSmoothSpectrum` that iterates
+        over all spectra given.
+        """
         for i in range(self.numberOfFiles):
             self.WaveletSmoothSpectrum(spectrum=i, level=level, sav=sav, wavelet=wavelet)
 
     #function to select the data that is relevent for the background
     def SelectBaseline(self, spectrum=0, label='', color='b'):
+        """
+
+        """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -299,6 +352,9 @@ class spectrum(object):
 
     # actual fit of the baseline
     def FitBaseline(self, spectrum=0, show=False, degree=3):
+        """
+
+        """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -337,11 +393,18 @@ class spectrum(object):
 
     # fit all baselines
     def FitAllBaselines(self, show=False, degree=3):
+        """
+        Wrapper around :func:`~spectrum.FitBaseline` that iterates over all spectra
+        given.
+        """
         for i in range(self.numberOfFiles):
             self.FitBaseline(spectrum=i, show=show, degree=degree)
 
     # function that plots the dots at the peaks you wish to fit
     def PlotPeaks(self, fig):
+        """
+
+        """
         xpeak = []  # x and
         ypeak = []  # y arrays for peak coordinates
 
@@ -363,6 +426,9 @@ class spectrum(object):
     # function that allows you to select Voigt-, Fano-, Lorentzian-,
     # and Gaussian-peaks for fitting
     def SelectPeaks(self, peaks, spectrum=0, label=''):
+        """
+
+        """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -388,6 +454,10 @@ class spectrum(object):
 
     # select all peaks
     def SelectAllPeaks(self, peaks):
+        """
+        Wrapper around :func:`~spectrum.SelectPeaks` that iterates over all spectra
+        given.
+        """
         for i in range(self.numberOfFiles):
             self.SelectPeaks(peaks, spectrum=i, label=str(i+1).zfill(4))
 
@@ -395,6 +465,9 @@ class spectrum(object):
     # for detailed describtions see:
     # https://lmfit.github.io/lmfit-py/builtin_models.html
     def FitSpectrum(self, peaks, spectrum=0, label='', show=True, report=False):
+        """
+
+        """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -505,11 +578,18 @@ class spectrum(object):
 
     # fit all spectra
     def FitAllSpectra(self, peaks, show=False, report=False):
+        """
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over all spectra
+        given.
+        """
         for i in range(self.numberOfFiles):
             self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show, report=report)
 
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, usedpeaks=[], label='', spectrum=0):
+        """
+
+        """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -618,6 +698,10 @@ class spectrum(object):
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
+        """
+        Wrapper around :func:`~spectrum.SaveFitParams` that iterates over all spectra
+        given.
+        """
         # find all peaks that were fitted and generate a list
         allpeaks = []
         for i in range(self.numberOfFiles):

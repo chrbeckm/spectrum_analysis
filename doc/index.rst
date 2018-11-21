@@ -12,6 +12,15 @@ Welcome to Spectrum Analysis's documentation!
 
 Here you will find a documentation of the spectrum analysis package.
 
+
+Modules
+=======
+
+The following modules are supplied by this package:
+
+modules/modules.rst
+
+
 Indices and tables
 ==================
 

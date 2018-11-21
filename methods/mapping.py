@@ -13,8 +13,11 @@ from sklearn.cluster import KMeans
 
 from functions import *
 
-# Class for spectra (under development)
+# Class for mappings (under development)
 class mapping(object):
+    """
+
+    """
 
     # xdim:     the number of Spectra in x direction
     # ydim:     the number of Spectra in y direction
@@ -56,6 +59,9 @@ class mapping(object):
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
                     label='',
                     xticker=2, colormap='RdYlGn'):
+        """
+
+        """
         # create x and y ticks accordingly to the parameters of the mapping
         x_ticks = np.arange(self.stepsize, self.stepsize * (self.xdim + 1), step=xticker*self.stepsize)
         y_ticks = np.arange(self.stepsize, self.stepsize * (self.ydim + 1), step=self.stepsize)
@@ -234,6 +240,9 @@ class mapping(object):
         plt.clf()
 
     def PlotAllMappings(self, colormap='RdYlGn'):
+        """
+
+        """
         folder = self.folder + '/results/fitparameter/peakwise/'
         listOfFiles, numberOfFiles = GetFolderContent(folder, 'dat', object='parameter', where='fit')
         print('The following maps have been plotted:')
@@ -244,6 +253,9 @@ class mapping(object):
             print(map)
 
     def PlotAllColormaps(self, map):
+        """
+
+        """
         map = re.sub('.dat', '', map)
         cmaps = [('Perceptually Uniform Sequential', [
             'viridis', 'plasma', 'inferno', 'magma']),

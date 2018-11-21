@@ -3,3 +3,5 @@
 __pycache__/
 methods/smallmap/*/
 methods/smallmap2/*/
+doc/_build/*
+doc/modules/*
