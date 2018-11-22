@@ -23,7 +23,14 @@ map.PlotAllMappings()
 
 # use PlotMapping(top='file1', bot='file2') to plot a mapping of
 # top/bot
-map.PlotMapping(top='lorentzian_p1_height.dat', bot='breit_wigner_p1_height.dat')
+map.PlotMapping(top='lorentzian_p1_height.dat',
+                bot='breit_wigner_p1_height.dat')
+
+# use PlotMapping(top='file1', bot='file2', distance=True) to plot a mapping of
+# top - bot
+map.PlotMapping(top='breit_wigner_p1_center.dat',
+                bot='lorentzian_p1_center.dat',
+                distance=True)
 
 # Use cluster algorithms to identify something in the mapping
 map.PlotClusteredPCAMapping(colorlist=colorlist)

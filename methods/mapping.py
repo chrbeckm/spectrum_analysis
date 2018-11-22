@@ -83,6 +83,7 @@ class mapping(object):
         clb.locator = tick_locator
         clb.update_ticks()
 
+<<<<<<< HEAD
     # plot mapping
     # input values are
     # xmin:     the lowest wavenumber to be used in the mapping
@@ -91,6 +92,12 @@ class mapping(object):
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     top='', bot='',                 # define these if you want to calculate a ratio
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
+=======
+    def PlotMapping(self, xmin=None, xmax=None,
+                    maptype='',
+                    top='', bot='',
+                    distance=False,
+>>>>>>> added distance mappings
                     label='',
                     xticker=2, colormap='Reds'):
         """
@@ -118,6 +125,9 @@ class mapping(object):
             If you want to plot a ratio this will be the file name of the
             divisor located in fitparameter/peakwise/.
 
+        distance : boolean
+            If you want to plot a mapping of the distance of two peaks set True.
+
         label : string
 
         xticker : int
@@ -136,11 +146,11 @@ class mapping(object):
         savefile = ''
 
         # create figure for mapping
-        fig, ax = plt.subplots(figsize=(self.xdim,self.ydim))
+        fig, ax = plt.subplots(figsize=(self.xdim*5,self.ydim*5))
         ax.set_aspect('equal')
 
         # if fitlines should be integrated
-        if (xmin != None) & (xmax != None):
+        if (xmin != None) and (xmax != None):
             # get data from rawfiles or fitlines
             if self.raw:
                 x, y = GetMonoData(self.listOfFiles)
@@ -158,19 +168,24 @@ class mapping(object):
             # sum up each spectrum
             iterator = 0
             for spectrum in y:
-                selectedvalues = spectrum[(x[0] > xmin) & (x[0] < xmax)]
+                selectedvalues = spectrum[(x[0] > xmin) and (x[0] < xmax)]
                 plot_value[iterator] = sum(selectedvalues)
                 iterator += 1
-
         elif maptype != '':
             # get the selected file and the corresponding values
+<<<<<<< HEAD
             folder = self.folder + '/results/fitparameter/peakwise/' + maptype + '.dat'
             plot_value, error = GetMonoData([folder])
+=======
+            file = (self.folder + '/results/fitparameter/peakwise/'
+                     + maptype
+                     + '.dat')
+            plot_value, error = GetMonoData([file])
+>>>>>>> added distance mappings
 
             # define save file
             savefile = self.folder + '/results/plot/map_' + maptype + label
-
-        elif (top != '') & (bot != ''):
+        elif (top != '') and (bot != ''):
             # get files that should be divided
             file1 = self.folder + '/results/fitparameter/peakwise/' + top
             file2 = self.folder + '/results/fitparameter/peakwise/' + bot
@@ -187,13 +202,22 @@ class mapping(object):
             for index in missingindices_p2:
                 plot1[index] = self.missingvalue
 
-            # calculate the ratio
-            plot_value = plot1 / plot2
-
-            # define save file
+            # used to define the save file
             file1 = re.sub('.dat', '', top)
             file2 = re.sub('.dat', '', bot)
-            savefile = self.folder + '/results/plot/map_' + file1 + '_' + file2
+
+            # decide if the distance or the ratio should be plotted
+            if distance:
+                # calculate the difference
+                plot_value = plot1 - plot2
+                savefile = (self.folder + '/results/plot/map_'
+                            + file1 + '_-_' + file2)
+            else:
+                # calculate the ratio
+                plot_value = plot1 / plot2
+                savefile = (self.folder + '/results/plot/map_'
+                           + file1 + '_div_' + file2)
+
 
         elif clustered:
             plot_value = self.clustered.labels_
@@ -263,7 +287,7 @@ class mapping(object):
         plt.xlabel('x-Position ($\mathrm{\mu}$m)')
 
         # set title and z-axis properly
-        if (xmin != None) & (xmax != None):
+        if (xmin != None) and (xmax != None):
             plt.title('Mapping of ' + self.folder, fontsize='small')
             self.LabelZ(plt, ax)
         elif maptype != '':
@@ -275,9 +299,15 @@ class mapping(object):
                 self.LabelZ(plt, ax, label=type + ' (cm$^{-1}$)')
             else:
                 self.LabelZ(plt, ax, label=type + ' (arb. u.)')
-        elif (top != '') & (bot != ''):
-            plt.title('Mapping of ' + self.folder + ' ' + top + '/' + bot, fontsize='small')
-            self.LabelZ(plt, ax, label='Ratio (arb. u.)')
+        elif (top != '') and (bot != ''):
+            if distance:
+                plt.title('Mapping of ' + self.folder + ' ' + top + '-' + bot,
+                        fontsize='small')
+                self.LabelZ(plt, ax, label='Distance  (cm$^{-1}$)')
+            else:
+                plt.title('Mapping of ' + self.folder + ' ' + top + '/' + bot,
+                        fontsize='small')
+                self.LabelZ(plt, ax, label='Ratio (arb. u.)')
         elif clustered:
             plt.title('Mapping of the clustered ' + self.decompose + ' data.')
             self.LabelZ(plt, ax, label='Cluster (arb. u.)', linear=True, nbins=3)
@@ -292,7 +322,7 @@ class mapping(object):
         elif maptype != '':
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
-        elif (top != '') & (bot != ''):
+        elif (top != '') and (bot != ''):
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
         elif clustered:
@@ -302,6 +332,9 @@ class mapping(object):
             plt.savefig(self.folder + '/results/plot/map.pdf', format='pdf')
             plt.savefig(self.folder + '/results/plot/map.png')
         plt.clf()
+
+        savefile = re.sub(self.folder + '/results/plot/map_', '', savefile)
+        print(savefile)
 
     def PlotAllMappings(self, colormap='Reds'):
         """
@@ -314,7 +347,6 @@ class mapping(object):
             map = re.sub(folder, '', map)
             map = re.sub('.dat', '', map)
             self.PlotMapping(maptype=map, colormap=colormap)
-            print(map)
 
     def PlotAllColormaps(self, map):
         """
