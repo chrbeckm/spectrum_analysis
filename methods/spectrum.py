@@ -329,6 +329,18 @@ class spectrum(object):
     #function to select the data that is relevent for the background
     def SelectBaseline(self, spectrum=0, label='', color='b'):
         """
+        Function that lets the user distinguish between the background and the signal. It saves the
+        selected regions to '/temp/baseline' + label + '.dat'.
+
+        Parameters
+        ----------
+        spectrum : int, default: 0
+            Defines which spectrum in the analysis folder is chosen.
+        label : string, default: ''
+            Label for the spectrumborders file in case you want to have
+            different borders for different files.
+        color : string, default 'b'
+            Color of the plotted spectrum.
 
         """
         if spectrum >= self.numberOfFiles:
@@ -353,8 +365,21 @@ class spectrum(object):
     # actual fit of the baseline
     def FitBaseline(self, spectrum=0, show=False, degree=3):
         """
+        Fit of the baseline by using the 
+        `PolynomalModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.PolynomialModel>`_ 
+        from lmfit.
+
+        Parameters
+        ----------
+        spectrum : int, default: 0
+            Defines which spectrum in the analysis folder is chosen.
+        show : boolean, default: False
+            Decides whether the a window with the fitted baseline is opened or not.
+        degree : int, default: 3
+            Degree of the polynomial that describes the background.
 
         """
+
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
@@ -403,6 +428,12 @@ class spectrum(object):
     # function that plots the dots at the peaks you wish to fit
     def PlotPeaks(self, fig):
         """
+        Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running.
+
+        Parameters
+        ----------
+        fig : string
+            Currently displayed window that shows the spectrum as well as the selected peaks.
 
         """
         xpeak = []  # x and
@@ -427,6 +458,22 @@ class spectrum(object):
     # and Gaussian-peaks for fitting
     def SelectPeaks(self, peaks, spectrum=0, label=''):
         """
+        Function that lets the user select the maxima of the peaks to fit 
+        according to their line shape (Voigt, Fano, Lorentzian, Gaussian). 
+        The positions (x- and y-value) are taken as initial values in the function
+        :func:`~spectrum.FitSpectrum`.
+        It saves the selected positions to '/temp/locpeak_' + peaktype + '_' +\label + '.dat'.
+
+        Parameters
+        ----------
+        peaks : list, default: ['breit_wigner', 'lorentzian']
+            Possible line shapes of the peaks to fit are 
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+        spectrum : int, default: 0
+            Defines which spectrum in the analysis folder is chosen.
+        label : string, default: ''
+            Label for the spectrumborders file in case you want to have
+            different borders for different files.
 
         """
         if spectrum >= self.numberOfFiles:
@@ -461,11 +508,35 @@ class spectrum(object):
         for i in range(self.numberOfFiles):
             self.SelectPeaks(peaks, spectrum=i, label=str(i+1).zfill(4))
 
-    # Fit the peaks selected before
-    # for detailed describtions see:
-    # https://lmfit.github.io/lmfit-py/builtin_models.html
+
     def FitSpectrum(self, peaks, spectrum=0, label='', show=True, report=False):
         """
+        Conducts the actual fit of the spectrum. A `CompositeModel() <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_ 
+        consisting of an offset (`ConstantModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.ConstantModel>`_) 
+        and the line shape of the selected peaks is used.
+        The fit functions of the selectable peaks are described in detail in :func:`~starting_params.ChoosePeakType`
+        and the choice of the initial values in :func:`~starting_params.StartingParameters`.
+        In addition a plot of the fitted spectrum is created including the :math:`3\sigma`-confidence-band.  
+
+        
+
+        It saves the figures to '/results/plot/fitplot_' + label + '.pdf' and '/results/plot/fitplot_' + label + '.png'.
+        The fit parameters are saved in the function :func:`~spectrum.SaveFitParams`.
+
+        Parameters
+        ----------
+        peaks : list, default: ['breit_wigner', 'lorentzian']
+            Possible line shapes of the peaks to fit are 
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+        spectrum : int, default: 0
+            Defines which spectrum in the analysis folder is chosen.
+        label : string, default: ''
+            Label for the spectrumborders file in case you want to have
+            different borders for different files.
+        show : boolean, default=True
+            If True the plot of the fitted spectrum is shown.
+        report : boolean, default = False
+            If True the `fit_report <https://lmfit.github.io/lmfit-py/fitting.html#getting-and-printing-fit-reports>`_ is shown in the terminal including the correlations of the fit parameters.
 
         """
         if spectrum >= self.numberOfFiles:
@@ -588,6 +659,24 @@ class spectrum(object):
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, usedpeaks=[], label='', spectrum=0):
         """
+        The optimized line shapes as well as the corresponding fit parameters with uncertainties are saved in several folders, all contained in the folder 'results/'.
+        The optimized baseline from each spectrum can be found in '/results/baselines/' + label + '_baseline.dat' and the 
+        line shape of the background subtracted spectrum in '/results/fitlines/' + label + '_fitline.dat'. 
+        The folder '/results/fitparameter/spectra/' + label + '_' + peak + '.dat' contains files each of which with one parameter including its uncertainty.
+        The parameters are also sorted by peak for different spectra. This is stored in '/results/fitparameter/peakwise/' + name + '.dat'.
+
+        Parameters
+        ----------
+        peaks : list, default: ['breit_wigner', 'lorentzian']
+            Possible line shapes of the peaks to fit are 
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+        usedpeaks : 
+            ?
+        label : string, default: ''
+            Label for the spectrumborders file in case you want to have
+            different borders for different files.
+        spectrum : int, default: 0
+            Defines which spectrum in the analysis folder is chosen. including the correlations of the fit parameters.
 
         """
         if spectrum >= self.numberOfFiles:

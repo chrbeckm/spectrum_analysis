@@ -2,6 +2,29 @@ import re
 import lmfit
 
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
+    """
+    The initial values of the fit depend on the maxima of the peaks but also on their line shapes.
+    They have to be chosen carefully.
+    In addition the borders of the fit parameters are set in this function.
+    Supplementary to the fit parameters and parameters calculated from them provided by
+    `lmfit <https://lmfit.github.io/lmfit-py/builtin_models.html#>`_
+    the FWHM of the voigt-profile as well as the height and intensity of the breit-wigner-fano-profile are given.
+
+
+    Parameters
+    ----------
+    fitmodel : CLASS from lmfit ?
+    peaks : list, default: ['breit_wigner', 'lorentzian']
+        Possible line shapes of the peaks to fit are 
+        'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+    xpeak array (float), default = 0
+        Position of the peaks maxima (x-value).
+    ypeak array (float), default = 0
+        Position of the peaks maxima (y-value).
+    i : int 
+        Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
+
+    """
     # starting position for the peak position is not allowed to vary much
     fitmodel.set_param_hint('center',
                              value = xpeak[i],
@@ -85,6 +108,23 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     return fitmodel
 
 def ChoosePeakType(peaktype, i):
+    """
+    This function helps to create the `CompositeModel() <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_ .
+    Implemented models are:
+    `GaussianModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.GaussianModel>`_  ,
+    `LorentzianModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.LorentzianModel>`_  ,
+    `VoigtModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.VoigtModel>`_  ,
+    `BreitWignerModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.BreitWignerModel>`_  .
+
+    Parameters
+    ----------
+    peaktype : string 
+        Possible line shapes of the peaks to fit are 
+        'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+    i : int 
+        Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
+
+    """
     prefix = peaktype + '_p'+ str(i + 1) + '_'
     if peaktype == 'voigt':
         return lmfit.models.VoigtModel(prefix = prefix, nan_policy = 'omit')
