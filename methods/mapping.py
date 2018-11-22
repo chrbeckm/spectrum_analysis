@@ -146,7 +146,7 @@ class mapping(object):
         savefile = ''
 
         # create figure for mapping
-        fig, ax = plt.subplots(figsize=(self.xdim*5,self.ydim*5))
+        fig, ax = plt.subplots(figsize=(self.xdim,self.ydim))
         ax.set_aspect('equal')
 
         # if fitlines should be integrated
