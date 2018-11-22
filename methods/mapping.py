@@ -16,21 +16,44 @@ from functions import *
 # Class for mappings (under development)
 class mapping(object):
     """
+    This class provides methods to plot spectral xy-mappings.
 
+    Before you can execute most of the code you need to analyze the spectra with
+    the methods given by the spectrum class.
+
+    Parameters
+    ----------
+
+    foldername : string
+        A folder containing the data for the mapping.
+
+    xdim : int
+        Number of steps in x direction.
+
+    ydim : int
+        Number of steps in y direction.
+
+    stepsize : int
+        Size of one step in µm.
+
+    raw : boolean
+        Set to true if you want to plot the raw data. Otherwise the processed
+        data will be analyzed.
     """
-
     # xdim:     the number of Spectra in x direction
     # ydim:     the number of Spectra in y direction
     # stepsize: the interval at which the mapping was collected in µm
     def __init__(self, foldername, xdim, ydim, stepsize, raw=False):
-
         self.folder = foldername
         self.xdim = xdim
         self.ydim = ydim
         self.stepsize = stepsize
         self.raw = raw
-        self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'txt')
-        self.missingvalue = np.genfromtxt(self.folder + '/temp/missingvalue.dat', unpack = True)
+        self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
+                                                                'txt')
+        self.missingvalue = np.genfromtxt(self.folder +
+                                          '/temp/missingvalue.dat',
+                                          unpack = True)
 
         # create results folders
         if not os.path.exists(self.folder + '/results/plot'):
@@ -50,6 +73,7 @@ class mapping(object):
         clb.update_ticks()
 
     # plot mapping
+<<<<<<< HEAD
     # input values are
     # xmin:     the lowest wavenumber to be used in the mapping
     # xmax:     the highest wavenumber to be used in the mapping
@@ -57,10 +81,45 @@ class mapping(object):
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     top='', bot='',                 # define these if you want to calculate a ratio
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
+=======
+    def PlotMapping(self, xmin=None, xmax=None,
+                    maptype='',
+                    top='', bot='',
+>>>>>>> PlotMapping documented
                     label='',
                     xticker=2, colormap='RdYlGn'):
         """
+        Method to plot different mappings.
 
+        Parameters
+        ----------
+
+        xmin : int
+            Lowest wavenumber that should be used for integrating a spectral
+            region.
+
+        xmax : int
+            Highest wavenumber that should be used for integrating a spectral
+            region.
+
+        maptype : string
+            Plot any of the parameters in fitparameter/peakwise/
+
+        top : string
+            If you want to plot a ratio this will be the file name of the
+            numerator located in fitparameter/peakwise/.
+
+        bot : string
+            If you want to plot a ratio this will be the file name of the
+            divisor located in fitparameter/peakwise/.
+
+        label : string
+
+        xticker : int
+
+        colormap : string
+            Defines the coloring of the mapping according to the `matplotlib
+            colormaps <https://matplotlib.org/users/colormaps.html>`_
         """
         # create x and y ticks accordingly to the parameters of the mapping
         x_ticks = np.arange(self.stepsize, self.stepsize * (self.xdim + 1), step=xticker*self.stepsize)
