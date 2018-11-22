@@ -73,7 +73,6 @@ class mapping(object):
         clb.update_ticks()
 
     # plot mapping
-<<<<<<< HEAD
     # input values are
     # xmin:     the lowest wavenumber to be used in the mapping
     # xmax:     the highest wavenumber to be used in the mapping
@@ -81,11 +80,6 @@ class mapping(object):
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     top='', bot='',                 # define these if you want to calculate a ratio
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
-=======
-    def PlotMapping(self, xmin=None, xmax=None,
-                    maptype='',
-                    top='', bot='',
->>>>>>> PlotMapping documented
                     label='',
                     xticker=2, colormap='RdYlGn'):
         """
