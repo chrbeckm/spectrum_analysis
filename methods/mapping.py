@@ -40,9 +40,6 @@ class mapping(object):
         Set to true if you want to plot the raw data. Otherwise the processed
         data will be analyzed.
     """
-    # xdim:     the number of Spectra in x direction
-    # ydim:     the number of Spectra in y direction
-    # stepsize: the interval at which the mapping was collected in µm
     def __init__(self, foldername, xdim, ydim, stepsize, raw=False):
         self.folder = foldername
         self.xdim = xdim
@@ -62,6 +59,20 @@ class mapping(object):
     # function to label the z-axis with label
     def LabelZ(self, plt, ax, label='Integrated Intensity\n(arb. u.)', nbins=5,
                linear=False):
+        """
+        Function to label the z-axis of the Plot.
+
+        Parameters
+        ----------
+        plt : matplotlib.figure.Figure
+        Plot that should be labeled.
+
+        ax : matplotlib.axes.Axes
+        Axis of interest.
+
+        label : string
+        Label that should be used for the z-axis.
+        """
         tick_locator = matplotlib.ticker.MaxNLocator(nbins=nbins)
         if linear:
             tick_locator = matplotlib.ticker.LinearLocator(numticks=nbins)
@@ -81,7 +92,7 @@ class mapping(object):
                     top='', bot='',                 # define these if you want to calculate a ratio
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
                     label='',
-                    xticker=2, colormap='RdYlGn'):
+                    xticker=2, colormap='Reds'):
         """
         Method to plot different mappings.
 
@@ -292,7 +303,7 @@ class mapping(object):
             plt.savefig(self.folder + '/results/plot/map.png')
         plt.clf()
 
-    def PlotAllMappings(self, colormap='RdYlGn'):
+    def PlotAllMappings(self, colormap='Reds'):
         """
 
         """
