@@ -33,7 +33,8 @@ class spectrum(object):
 
     def __init__(self, foldername):
         self.folder = foldername
-        self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder, 'txt')
+        self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
+                                                                'txt')
         self.x, self.y = GetMonoData(self.listOfFiles)
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
@@ -69,7 +70,8 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/denoised/')
 
         # save missing value
-        self.missingvalueexponent = decimal.Decimal(str(self.missingvalue)).as_tuple().exponent * (-1)
+        missingvaluedecimal = decimal.Decimal(str(self.missingvalue))
+        self.missingvalueexponent = missingvaluedecimal.as_tuple().exponent*(-1)
         np.savetxt(self.folder + '/temp/missingvalue.dat', [self.missingvalue],
                    fmt='%.{}f'.format(self.missingvalueexponent))
 
@@ -93,6 +95,7 @@ class spectrum(object):
         ----------
         color : string
             Defines color of the vertical lines and the region.
+
         fig : matplotlib.figure.Figure
             Figure to choose the region from.
 
@@ -147,6 +150,7 @@ class spectrum(object):
         ----------
         spectrum : int, default: 0
             Defines which spectrum in the analysis folder is chosen.
+
         label : string, default: ''
             Label for the spectrumborders file in case you want to have
             different borders for different files.
@@ -160,7 +164,7 @@ class spectrum(object):
             ax.plot(self.x[spectrum], self.ynormed[spectrum],
                     'b.', label = 'Data')
             ax.set_title('Select the part of the spectrum you wish to consider\
-            by clicking into the plot.')
+                          by clicking into the plot.')
 
             # select region of interest
             xregion = self.PlotVerticalLines('green', fig)
@@ -172,8 +176,8 @@ class spectrum(object):
             self.xreduced = self.x[:, (self.x[spectrum] > xregion[0]) &
                                       (self.x[spectrum] < xregion[-1])]
             # save spectrum borders
-            self.fSpectrumBorders = self.folder + '/temp/spectrumborders' +\
-                                    label + '.dat'
+            self.fSpectrumBorders = (self.folder + '/temp/spectrumborders'
+                                     + label + '.dat')
             np.savetxt(self.fSpectrumBorders, np.array(xregion))
 
     # function to split muons from each other
@@ -189,10 +193,11 @@ class spectrum(object):
 
         # loop through list and find gaps in the list to group the muons
         for i in range(0, len(indices) - 1):
-            # as long as the index is increasing by one the indices belong to one muon
+            # as the indices are incrementing they belong to the same muon
             if indices[i] + 1 == indices[i + 1]:
                 grouped_array[muons].append(indices[i])
-            # as soon as there is a jump, a new muon was found and is added to the list
+            # as soon as there is a jump, a new muon was found
+            # and is added to the list
             else:
                 grouped_array[muons].append(indices[i])
                 grouped_array.append([])
@@ -207,16 +212,19 @@ class spectrum(object):
         return grouped_array
 
     # detect muons for removal and returns non vanishing indices
-    def DetectMuonsWavelet(self, spectrum=0, thresh_mod=1, wavelet='sym8', level=1, prnt=False):
+    def DetectMuonsWavelet(self, spectrum=0, thresh_mod=1, wavelet='sym8',
+                                 level=1, prnt=False):
         """
 
         """
         # calculate wavelet coefficients
-        coeff = pywt.wavedec(self.yreduced[spectrum], wavelet)    # symmetric signal extension mode
+        # with symmetric signal extension mode
+        coeff = pywt.wavedec(self.yreduced[spectrum], wavelet)
 
         # calculate a threshold
         sigma = mad(coeff[-level])
-        threshold = sigma * np.sqrt(2 * np.log(len(self.yreduced[spectrum]))) * thresh_mod
+        threshold = (sigma * np.sqrt(2 * np.log(len(self.yreduced[spectrum])))
+                     * thresh_mod)
 
         # detect spikes on D1 details (written in the last entry of coeff)
         # calculate thresholded coefficients
@@ -241,8 +249,8 @@ class spectrum(object):
     # detect all muons in all spectra
     def DetectAllMuons(self, prnt=False):
         """
-        Wrapper around :func:`~spectrum.DetectMuonsWavelet` that iterates over all spectra
-        given.
+        Wrapper around :func:`~spectrum.DetectMuonsWavelet` that iterates
+        over all spectra given.
         """
         for i in range(self.numberOfFiles):
             self.DetectMuonsWavelet(spectrum=i, prnt=prnt)
@@ -270,25 +278,30 @@ class spectrum(object):
                 fit_indices = np.append(lower, upper)
 
                 # fit to the data
-                popt, pcov = curve_fit(linear, self.xreduced[spectrum, fit_indices], self.yreduced[spectrum, fit_indices])
+                popt, pcov = curve_fit(linear,
+                                       self.xreduced[spectrum, fit_indices],
+                                       self.yreduced[spectrum, fit_indices])
 
                 # calculate approximated y values and remove muon
                 for index in muon[limit:-limit]:
-                    self.yreduced[spectrum, index] = linear(self.xreduced[spectrum, index], *popt)
+                    self.yreduced[spectrum, index] = linear(
+                                                self.xreduced[spectrum, index],
+                                                *popt)
         elif prnt:
             print('No muons found.')
 
     # remove all muons
     def RemoveAllMuons(self, prnt=False):
         """
-        Wrapper around :func:`~spectrum.RemoveMuons` that iterates over all spectra
-        given.
+        Wrapper around :func:`~spectrum.RemoveMuons` that iterates over
+        all spectra given.
         """
         for i in range(self.numberOfFiles):
             self.RemoveMuons(spectrum=i, prnt=prnt)
 
     # smooth spectrum by using wavelet transform and soft threshold
-    def WaveletSmoothSpectrum(self, spectrum=0, wavelet='sym8', level=2, sav=False):
+    def WaveletSmoothSpectrum(self, spectrum=0, wavelet='sym8', level=2,
+                              sav=False):
         """
 
         """
@@ -314,8 +327,10 @@ class spectrum(object):
 
         # save denoised data
         if sav:
-            savefile = self.folder + '/results/denoised/' + str(spectrum + 1).zfill(4) + '.dat'
-            np.savetxt(savefile, np.column_stack([self.xreduced[spectrum], self.ydenoised[spectrum]]))
+            savefile = (self.folder + '/results/denoised/'
+                        + str(spectrum + 1).zfill(4) + '.dat')
+            np.savetxt(savefile, np.column_stack([self.xreduced[spectrum],
+                                                  self.ydenoised[spectrum]]))
 
     # smooth all spectra
     def WaveletSmoothAllSpectra(self, level=2, sav=False, wavelet='sym8'):
@@ -324,21 +339,25 @@ class spectrum(object):
         over all spectra given.
         """
         for i in range(self.numberOfFiles):
-            self.WaveletSmoothSpectrum(spectrum=i, level=level, sav=sav, wavelet=wavelet)
+            self.WaveletSmoothSpectrum(spectrum=i, level=level, sav=sav,
+                                       wavelet=wavelet)
 
     #function to select the data that is relevent for the background
     def SelectBaseline(self, spectrum=0, label='', color='b'):
         """
-        Function that lets the user distinguish between the background and the signal. It saves the
-        selected regions to '/temp/baseline' + label + '.dat'.
+        Function that lets the user distinguish between the background and
+        the signal. It saves the selected regions to '/temp/baseline' + label
+        + '.dat'.
 
         Parameters
         ----------
         spectrum : int, default: 0
             Defines which spectrum in the analysis folder is chosen.
+
         label : string, default: ''
             Label for the spectrumborders file in case you want to have
             different borders for different files.
+
         color : string, default 'b'
             Color of the plotted spectrum.
 
@@ -365,16 +384,20 @@ class spectrum(object):
     # actual fit of the baseline
     def FitBaseline(self, spectrum=0, show=False, degree=3):
         """
-        Fit of the baseline by using the 
-        `PolynomalModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.PolynomialModel>`_ 
+        Fit of the baseline by using the
+        `PolynomalModel()
+        <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.PolynomialModel>`_
         from lmfit.
 
         Parameters
         ----------
         spectrum : int, default: 0
             Defines which spectrum in the analysis folder is chosen.
+
         show : boolean, default: False
-            Decides whether the a window with the fitted baseline is opened or not.
+            Decides whether the a window with the fitted baseline is opened
+            or not.
+
         degree : int, default: 3
             Degree of the polynomial that describes the background.
 
@@ -402,25 +425,29 @@ class spectrum(object):
             background = PolynomialModel(degree=degree)
             pars = background.guess(self.yreduced[spectrum, relevant],
                                 x = self.xreduced[spectrum, relevant])
-            self.fitresult_bg[spectrum] = background.fit(self.yreduced[spectrum, relevant],
-                                               pars, x = self.xreduced[spectrum, relevant])
+            self.fitresult_bg[spectrum] = background.fit(
+                                        self.yreduced[spectrum, relevant],
+                                        pars,
+                                        x = self.xreduced[spectrum, relevant])
 
             # create baseline
-            self.baseline[spectrum] = background.eval(self.fitresult_bg[spectrum].params,
-                                                  x = self.xreduced[spectrum])
+            self.baseline[spectrum] = background.eval(
+                                            self.fitresult_bg[spectrum].params,
+                                            x = self.xreduced[spectrum])
 
             # plot the fitted function in the selected range
             if show:
                 plt.plot(self.xreduced[spectrum], self.yreduced[spectrum],
                          'b.', label = 'Data')
-                plt.plot(self.xreduced[spectrum], self.baseline[spectrum], 'r-', label = 'Baseline')
+                plt.plot(self.xreduced[spectrum], self.baseline[spectrum],
+                         'r-', label = 'Baseline')
                 plt.show()
 
     # fit all baselines
     def FitAllBaselines(self, show=False, degree=3):
         """
-        Wrapper around :func:`~spectrum.FitBaseline` that iterates over all spectra
-        given.
+        Wrapper around :func:`~spectrum.FitBaseline` that iterates over
+        all spectra given.
         """
         for i in range(self.numberOfFiles):
             self.FitBaseline(spectrum=i, show=show, degree=degree)
@@ -433,7 +460,8 @@ class spectrum(object):
         Parameters
         ----------
         fig : string
-            Currently displayed window that shows the spectrum as well as the selected peaks.
+            Currently displayed window that shows the spectrum as well as
+            the selected peaks.
 
         """
         xpeak = []  # x and
@@ -458,19 +486,22 @@ class spectrum(object):
     # and Gaussian-peaks for fitting
     def SelectPeaks(self, peaks, spectrum=0, label=''):
         """
-        Function that lets the user select the maxima of the peaks to fit 
-        according to their line shape (Voigt, Fano, Lorentzian, Gaussian). 
-        The positions (x- and y-value) are taken as initial values in the function
-        :func:`~spectrum.FitSpectrum`.
-        It saves the selected positions to '/temp/locpeak_' + peaktype + '_' +\label + '.dat'.
+        Function that lets the user select the maxima of the peaks to fit
+        according to their line shape (Voigt, Fano, Lorentzian, Gaussian).
+        The positions (x- and y-value) are taken as initial values in the
+        function :func:`~spectrum.FitSpectrum`.
+        It saves the selected positions to
+        '/temp/locpeak_' + peaktype + '_' +\label + '.dat'.
 
         Parameters
         ----------
         peaks : list, default: ['breit_wigner', 'lorentzian']
-            Possible line shapes of the peaks to fit are 
+            Possible line shapes of the peaks to fit are
             'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+
         spectrum : int, default: 0
             Defines which spectrum in the analysis folder is chosen.
+
         label : string, default: ''
             Label for the spectrumborders file in case you want to have
             different borders for different files.
@@ -502,8 +533,8 @@ class spectrum(object):
     # select all peaks
     def SelectAllPeaks(self, peaks):
         """
-        Wrapper around :func:`~spectrum.SelectPeaks` that iterates over all spectra
-        given.
+        Wrapper around :func:`~spectrum.SelectPeaks` that iterates over
+        all spectra given.
         """
         for i in range(self.numberOfFiles):
             self.SelectPeaks(peaks, spectrum=i, label=str(i+1).zfill(4))
@@ -511,22 +542,28 @@ class spectrum(object):
 
     def FitSpectrum(self, peaks, spectrum=0, label='', show=True, report=False):
         """
-        Conducts the actual fit of the spectrum. A `CompositeModel() <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_ 
-        consisting of an offset (`ConstantModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.ConstantModel>`_) 
+        Conducts the actual fit of the spectrum. A `CompositeModel()
+        <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_
+        consisting of an offset (`ConstantModel()
+        <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.ConstantModel>`_)
         and the line shape of the selected peaks is used.
-        The fit functions of the selectable peaks are described in detail in :func:`~starting_params.ChoosePeakType`
-        and the choice of the initial values in :func:`~starting_params.StartingParameters`.
-        In addition a plot of the fitted spectrum is created including the :math:`3\sigma`-confidence-band.  
+        The fit functions of the selectable peaks are described in detail in
+        :func:`~starting_params.ChoosePeakType` and the choice of the initial
+        values in :func:`~starting_params.StartingParameters`.
+        In addition a plot of the fitted spectrum is created including the
+        :math:`3\sigma`-confidence-band.
 
-        
 
-        It saves the figures to '/results/plot/fitplot_' + label + '.pdf' and '/results/plot/fitplot_' + label + '.png'.
-        The fit parameters are saved in the function :func:`~spectrum.SaveFitParams`.
+
+        It saves the figures to '/results/plot/fitplot_' + label + '.pdf' and
+        '/results/plot/fitplot_' + label + '.png'.
+        The fit parameters are saved in the function
+        :func:`~spectrum.SaveFitParams`.
 
         Parameters
         ----------
         peaks : list, default: ['breit_wigner', 'lorentzian']
-            Possible line shapes of the peaks to fit are 
+            Possible line shapes of the peaks to fit are
             'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
         spectrum : int, default: 0
             Defines which spectrum in the analysis folder is chosen.
@@ -536,7 +573,10 @@ class spectrum(object):
         show : boolean, default=True
             If True the plot of the fitted spectrum is shown.
         report : boolean, default = False
-            If True the `fit_report <https://lmfit.github.io/lmfit-py/fitting.html#getting-and-printing-fit-reports>`_ is shown in the terminal including the correlations of the fit parameters.
+            If True the `fit_report
+            <https://lmfit.github.io/lmfit-py/fitting.html#getting-and-printing-fit-reports>`_
+            is shown in the terminal including the correlations of
+            the fit parameters.
 
         """
         if spectrum >= self.numberOfFiles:
@@ -577,15 +617,17 @@ class spectrum(object):
             pars = ramanmodel.make_params()
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
-                                                            x = self.xreduced[spectrum],
-                                                            method = 'leastsq',
-                                                            scale_covar = True)
+                                                    x = self.xreduced[spectrum],
+                                                    method = 'leastsq',
+                                                    scale_covar = True)
             # calculate the fit line
-            self.fitline[spectrum] = ramanmodel.eval(self.fitresult_peaks[spectrum].params,
-                                                     x = self.xreduced[spectrum])
+            self.fitline[spectrum] = ramanmodel.eval(
+                                        self.fitresult_peaks[spectrum].params,
+                                        x = self.xreduced[spectrum])
 
             # calculate all components
-            self.comps = self.fitresult_peaks[spectrum].eval_components(x = self.xreduced[spectrum])
+            self.comps = self.fitresult_peaks[spectrum].eval_components(
+                            x = self.xreduced[spectrum])
 
             # check if ramanmodel was only a constant
             if ramanmodel.name == ConstantModel().name:
@@ -600,39 +642,52 @@ class spectrum(object):
             if report:
                 print(self.fitresult_peaks[spectrum].fit_report(min_correl=0.5))
 
-            # Plot the raw sprectrum, the fitted data, the background, and the confidence interval
+            # Plot the raw sprectrum, the fitted data, the background,
+            #and the confidence interval
             fig, ax = plt.subplots()
+            # Measured data
             ax.plot(self.xreduced[spectrum],
                     self.yreduced[spectrum] * self.ymax[spectrum],
-                    'b.', alpha = 0.8, markersize = 1, zorder = 0, label = 'Data') # Measured data
+                    'b.', alpha = 0.8, markersize = 1, zorder = 0,
+                    label = 'Data')
+            # Fitted background
             ax.plot(self.xreduced[spectrum],
-                    (self.baseline[spectrum] + self.comps['constant']) * self.ymax[spectrum],
-                    'k-', linewidth = 1, zorder = 0, label = 'Background') # Fitted background
+                    (self.baseline[spectrum]
+                     + self.comps['constant']) * self.ymax[spectrum],
+                    'k-', linewidth = 1, zorder = 0, label = 'Background')
+            # Fitted spectrum
             ax.plot(self.xreduced[spectrum],
-                    (self.fitline[spectrum] + self.baseline[spectrum]) * self.ymax[spectrum],
-                    'r-', linewidth = 0.5, zorder = 1, label = 'Fit') # Fitted spectrum
+                    (self.fitline[spectrum]
+                     + self.baseline[spectrum]) * self.ymax[spectrum],
+                    'r-', linewidth = 0.5, zorder = 1, label = 'Fit')
 
             # plot the single peaks
             for name in self.comps.keys():
                 if (name != 'constant'):
                     ax.plot(self.xreduced[spectrum],
-                            (self.comps[name] + self.baseline[spectrum] + self.comps['constant']) * self.ymax[spectrum],
+                            (self.comps[name] + self.baseline[spectrum]
+                             + self.comps['constant']) * self.ymax[spectrum],
                             'k-', linewidth = 0.5, zorder = 0)
 
             # check if errors exist.
             # calculate and plot confidence band
             if self.fitresult_peaks[spectrum].params['c'].stderr is not None:
                 # calculate confidence band
-                self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(x = self.xreduced[spectrum],
-                                                        sigma=3)
+                self.confidence[spectrum] = self.fitresult_peaks[spectrum].eval_uncertainty(
+                                                x = self.xreduced[spectrum],
+                                                sigma=3)
                 # plot confidence band
                 ax.fill_between(self.xreduced[spectrum],
-                     (self.fitline[spectrum] + self.baseline[spectrum] + self.confidence[spectrum]) * self.ymax[spectrum],
-                     (self.fitline[spectrum] + self.baseline[spectrum] - self.confidence[spectrum]) * self.ymax[spectrum],
-                     color = 'r', linewidth = 1, alpha = 0.5, zorder = 1, label = '3$\sigma$') # plot confidence band
+                     (self.fitline[spectrum] + self.baseline[spectrum]
+                      + self.confidence[spectrum]) * self.ymax[spectrum],
+                     (self.fitline[spectrum] + self.baseline[spectrum]
+                      - self.confidence[spectrum]) * self.ymax[spectrum],
+                     color = 'r', linewidth = 1, alpha = 0.5, zorder = 1,
+                     label = '3$\sigma$') # plot confidence band
 
             fig.legend(loc = 'upper right')
-            plt.title('Fit to ' + self.folder + ' spectrum ' + str(spectrum + 1))
+            plt.title('Fit to ' + self.folder + ' spectrum '
+                      + str(spectrum + 1))
 
             # label the x and y axis
             plt.ylabel('Scattered light intensity (arb. u.)')
@@ -640,7 +695,8 @@ class spectrum(object):
 
             # save figures
             fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.png', dpi=300)
+            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.png',
+                        dpi=300)
 
             if show:
                 figManager = plt.get_current_fig_manager()  # get current figure
@@ -654,55 +710,73 @@ class spectrum(object):
         given.
         """
         for i in range(self.numberOfFiles):
-            self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4), show=show, report=report)
+            self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4),
+                             show=show, report=report)
 
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, usedpeaks=[], label='', spectrum=0):
         """
-        The optimized line shapes as well as the corresponding fit parameters with uncertainties are saved in several folders, all contained in the folder 'results/'.
-        The optimized baseline from each spectrum can be found in '/results/baselines/' + label + '_baseline.dat' and the 
-        line shape of the background subtracted spectrum in '/results/fitlines/' + label + '_fitline.dat'. 
-        The folder '/results/fitparameter/spectra/' + label + '_' + peak + '.dat' contains files each of which with one parameter including its uncertainty.
-        The parameters are also sorted by peak for different spectra. This is stored in '/results/fitparameter/peakwise/' + name + '.dat'.
+        The optimized line shapes as well as the corresponding fit parameters
+        with uncertainties are saved in several folders, all contained in the
+        folder 'results/'.
+        The optimized baseline from each spectrum can be found in
+        '/results/baselines/' + label + '_baseline.dat' and the line shape
+        of the background subtracted spectrum in
+        '/results/fitlines/' + label + '_fitline.dat'.
+        The folder '/results/fitparameter/spectra/' + label + '_' + peak
+        + '.dat' contains files each of which with one parameter including
+        its uncertainty.
+        The parameters are also sorted by peak for different spectra. This is
+        stored in '/results/fitparameter/peakwise/' + name + '.dat'.
 
         Parameters
         ----------
         peaks : list, default: ['breit_wigner', 'lorentzian']
-            Possible line shapes of the peaks to fit are 
+            Possible line shapes of the peaks to fit are
             'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
-        usedpeaks : 
+
+        usedpeaks :
             ?
+
         label : string, default: ''
             Label for the spectrumborders file in case you want to have
             different borders for different files.
+
         spectrum : int, default: 0
-            Defines which spectrum in the analysis folder is chosen. including the correlations of the fit parameters.
+            Defines which spectrum in the analysis folder is chosen.
+            including the correlations of the fit parameters.
 
         """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
         else:
             # get the data to be stored
-            fitparams_back = self.fitresult_bg[spectrum].params     # Fitparameter Background
-            fitparams_peaks = self.fitresult_peaks[spectrum].params # Fitparamter Peaks
+            fitparams_back = self.fitresult_bg[spectrum].params     # Background
+            fitparams_peaks = self.fitresult_peaks[spectrum].params # Peaks
 
             # save background parameters
-            f = open(self.folder + '/results/fitparameter/spectra/' + label + '_background.dat','a')
+            f = open(self.folder + '/results/fitparameter/spectra/' + label
+                     + '_background.dat','a')
             # iterate through all the background parameters
             for name in fitparams_back:
                 # get parameters for saving
-                parametervalue = fitparams_back[name].value * self.ymax[spectrum]
-                parametererror = fitparams_back[name].stderr * self.ymax[spectrum]
+                parametervalue = (fitparams_back[name].value
+                                 * self.ymax[spectrum])
+                parametererror = (fitparams_back[name].stderr
+                                 * self.ymax[spectrum])
 
                 # add background from peaks fit
                 if name == 'c0':
-                    parametervalue += fitparams_peaks['c'].value * self.ymax[spectrum]
+                    parametervalue += (fitparams_peaks['c'].value
+                                      * self.ymax[spectrum])
                     if fitparams_peaks['c'].stderr is not None:
                         parametererror = np.sqrt(parametererror**2 +\
-                                         (fitparams_peaks['c'].stderr*self.ymax[spectrum])**2)
+                                         (fitparams_peaks['c'].stderr
+                                         * self.ymax[spectrum])**2)
 
                 f.write(name.ljust(5) + '{:>13.5f}'.format(parametervalue)
-                                      + ' +/- ' + '{:>11.5f}'.format(parametererror)
+                                      + ' +/- '
+                                      + '{:>11.5f}'.format(parametererror)
                                       + '\n')
             f.close()
 
@@ -712,8 +786,8 @@ class spectrum(object):
 
             # iterate through all peaks used in the current model
             for peak in modelpeaks:
-                peakfile = self.folder + '/results/fitparameter/spectra/' + label +\
-                           '_' + peak + '.dat'
+                peakfile = (self.folder + '/results/fitparameter/spectra/'
+                            + label + '_' + peak + '.dat')
                 f = open(peakfile, 'a')
                 # iterate through all fit parameters
                 for name in fitparams_peaks.keys():
@@ -721,7 +795,9 @@ class spectrum(object):
                     peakparameter = re.findall(peak, name)
                     if peakparameter:
                         # create file for each parameter
-                        allpeaks = self.folder + '/results/fitparameter/peakwise/' + name + '.dat'
+                        allpeaks = (self.folder
+                                    + '/results/fitparameter/peakwise/'
+                                    + name + '.dat')
                         g = open(allpeaks, 'a')
 
                         # get parameters for saving
@@ -731,20 +807,27 @@ class spectrum(object):
 
                         # if parameter is height or amplitude or intensity
                         # it has to be scaled properly as the fit was normalized
-                        if (peakparameter == 'amplitude') or (peakparameter == 'height') or (peakparameter == 'intensity'):
-                            parametervalue = parametervalue * self.ymax[spectrum]
+                        if ((peakparameter == 'amplitude')
+                            or (peakparameter == 'height')
+                            or (peakparameter == 'intensity')):
+                            parametervalue = (parametervalue
+                                             * self.ymax[spectrum])
                             if parametererror is not None:
-                                parametererror = parametererror * self.ymax[spectrum]
+                                parametererror = (parametererror
+                                                 * self.ymax[spectrum])
 
                         # if there is no error set the value to -1
                         if parametererror is None:
                             parametererror = -1.0
 
                         # write to file
-                        f.write(peakparameter.ljust(12) + '{:>13.5f}'.format(parametervalue)
-                                              + ' +/- ' + '{:>11.5f}'.format(parametererror)
-                                              + '\n')
-                        g.write('{:>13.5f}'.format(parametervalue) + '\t' + '{:>11.5f}'.format(parametererror) + '\n')
+                        f.write(peakparameter.ljust(12)
+                                + '{:>13.5f}'.format(parametervalue)
+                                + ' +/- ' + '{:>11.5f}'.format(parametererror)
+                                + '\n')
+                        g.write('{:>13.5f}'.format(parametervalue)
+                                + '\t' + '{:>11.5f}'.format(parametererror)
+                                + '\n')
                         g.close()
                 f.close()
 
@@ -766,21 +849,29 @@ class spectrum(object):
 
                     # go through all parameters and write missing values
                     for parameter in model.param_names:
-                        peakfile = self.folder + '/results/fitparameter/peakwise/' + parameter + '.dat'
+                        peakfile = (self.folder
+                                    + '/results/fitparameter/peakwise/'
+                                    + parameter + '.dat')
                         # open file and write missing values
                         f = open(peakfile, 'a')
-                        f.write('{:>13.5f}'.format(self.missingvalue) + '\t' + '{:>11.5f}'.format(self.missingvalue) + '\n')
+                        f.write('{:>13.5f}'.format(self.missingvalue)
+                                + '\t' + '{:>11.5f}'.format(self.missingvalue)
+                                + '\n')
                         f.close()
 
             # save the fitlines
             for line in self.fitline:
-                file = self.folder + '/results/fitlines/' + label + '_fitline.dat'
-                np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]))
+                file = (self.folder + '/results/fitlines/'
+                        + label + '_fitline.dat')
+                np.savetxt(file, np.column_stack([self.xreduced[spectrum],
+                           line * self.ymax[spectrum]]))
 
             # save the fitlines
             for line in self.baseline:
-                file = self.folder + '/results/baselines/' + label + '_baseline.dat'
-                np.savetxt(file, np.column_stack([self.xreduced[spectrum], line * self.ymax[spectrum]]))
+                file = (self.folder + '/results/baselines/'
+                        + label + '_baseline.dat')
+                np.savetxt(file, np.column_stack([self.xreduced[spectrum],
+                           line * self.ymax[spectrum]]))
 
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')
@@ -788,8 +879,8 @@ class spectrum(object):
     # Save all the results
     def SaveAllFitParams(self, peaks):
         """
-        Wrapper around :func:`~spectrum.SaveFitParams` that iterates over all spectra
-        given.
+        Wrapper around :func:`~spectrum.SaveFitParams` that iterates over
+        all spectra given.
         """
         # find all peaks that were fitted and generate a list
         allpeaks = []
@@ -799,4 +890,5 @@ class spectrum(object):
         allusedpeaks = list(set(allpeaks))
 
         for i in range(self.numberOfFiles):
-            self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i, label=str(i+1).zfill(4))
+            self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i,
+                               label=str(i+1).zfill(4))
