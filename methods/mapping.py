@@ -224,8 +224,17 @@ class mapping(object):
             savefile = self.folder + '/results/plot/map_clustered'
 
         # check if any value in plot_value is a missing value or 1
+<<<<<<< HEAD
         missingindices = [i for i, x in enumerate(plot_value) if (x == self.missingvalue) or (x == 1.0) and not clustered]
         existingindices = [i for i, x in enumerate(plot_value) if (x != self.missingvalue) and (x != 1.0)]
+=======
+        missingindices = [i for i, x in enumerate(plot_value)
+                          if (x == self.missingvalue) or (x == 1.0)
+                                                      or (x == 0.0)]
+        existingindices = [i for i, x in enumerate(plot_value)
+                           if (x != self.missingvalue) and (x != 1.0)
+                                                       and (x != 0.0)]
+>>>>>>> corrected relation
 
         # calculate the mean of the existing values
         fitmean = 0
