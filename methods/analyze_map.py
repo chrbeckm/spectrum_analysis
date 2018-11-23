@@ -19,11 +19,11 @@ map = mapping('smallmap', 2, 4, 10)
 #map.PlotMapping(maptype='lorentzian_p1_sigma')
 
 # or use PlotAllMappings for all fit parameters to be mapped
-#map.PlotAllMappings()
+map.PlotAllMappings()
 
 # use PlotMapping(top='file1', bot='file2') to plot a mapping of
 # top/bot
-#map.PlotMapping(top='lorentzian_p1_height.dat', bot='breit_wigner_p1_height.dat')
+map.PlotMapping(top='lorentzian_p1_height.dat', bot='breit_wigner_p1_height.dat')
 
 # Use cluster algorithms to identify something in the mapping
 map.PlotClusteredPCAMapping(colorlist=colorlist)
