@@ -214,13 +214,12 @@ class mapping(object):
 
         # check if any value in plot_value is a missing value or 1
         missingindices = [i for i, x in enumerate(plot_value)
-                          if (x == self.missingvalue) or (x == 1.0)
-                                                      or (x == 0.0)
+                          if ((x == self.missingvalue) or (x == 1.0)
+                                                      or (x == 0.0))
                                                       and not clustered]
         existingindices = [i for i, x in enumerate(plot_value)
                            if (x != self.missingvalue) and (x != 1.0)
                                                        and (x != 0.0)]
-
         # calculate the mean of the existing values
         fitmean = 0
         for index in existingindices:
@@ -236,7 +235,9 @@ class mapping(object):
         plot_matrix = np.flipud(plot_matrix)
 
         # create matrix with missing values
-        missing_matrix = (plot_matrix == fitmean)
+        missing_matrix = np.full_like(plot_matrix, False, dtype=bool)
+        if not clustered:
+            missing_matrix = (plot_matrix == fitmean)
 
         # set font and parameters
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
