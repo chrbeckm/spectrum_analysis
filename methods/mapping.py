@@ -4,6 +4,7 @@ import re
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -33,8 +34,11 @@ class mapping(object):
             os.makedirs(self.folder + '/results/plot')
 
     # function to label the z-axis with label
-    def LabelZ(self, plt, ax, label='Integrated Intensity\n(arb. u.)'):
-        tick_locator = matplotlib.ticker.MaxNLocator(nbins=5)
+    def LabelZ(self, plt, ax, label='Integrated Intensity\n(arb. u.)', nbins=5,
+               linear=False):
+        tick_locator = matplotlib.ticker.MaxNLocator(nbins=nbins)
+        if linear:
+            tick_locator = matplotlib.ticker.LinearLocator(numticks=nbins)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         clb = plt.colorbar(cax=cax)
@@ -49,6 +53,7 @@ class mapping(object):
     def PlotMapping(self, xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     top='', bot='',                 # define these if you want to calculate a ratio
+                    clustered = False, colorlist=['w'],  # True if clustered should be plotted
                     label='',
                     xticker=2, colormap='RdYlGn'):
         # create x and y ticks accordingly to the parameters of the mapping
@@ -120,8 +125,12 @@ class mapping(object):
             file2 = re.sub('.dat', '', bot)
             savefile = self.folder + '/results/plot/map_' + file1 + '_' + file2
 
+        elif clustered:
+            plot_value = self.clustered.labels_
+            savefile = self.folder + '/results/plot/map_clustered'
+
         # check if any value in plot_value is a missing value or 1
-        missingindices = [i for i, x in enumerate(plot_value) if (x == self.missingvalue) or (x == 1.0)]
+        missingindices = [i for i, x in enumerate(plot_value) if (x == self.missingvalue) or (x == 1.0) and not clustered]
         existingindices = [i for i, x in enumerate(plot_value) if (x != self.missingvalue) and (x != 1.0)]
 
         # calculate the mean of the existing values
@@ -146,7 +155,14 @@ class mapping(object):
         matplotlib.rcParams.update({'font.size': 22})
 
         # plot the selected mapping
-        plt.imshow(plot_matrix, cmap=colormap)
+        if clustered:
+            # make a color map of fixed colors
+            colorlist = colorlist[0:self.clustered.n_clusters]
+            cmap = colors.ListedColormap(colorlist)
+            ticks = [i for i, x in enumerate(colorlist)]
+            plt.imshow(plot_matrix, cmap=cmap)
+        else:
+            plt.imshow(plot_matrix, cmap=colormap)
         plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
         plt.yticks(np.arange(self.ydim), y_ticks)
 
@@ -192,6 +208,9 @@ class mapping(object):
         elif (top != '') & (bot != ''):
             plt.title('Mapping of ' + self.folder + ' ' + top + '/' + bot, fontsize='small')
             self.LabelZ(plt, ax, label='Ratio (arb. u.)')
+        elif clustered:
+            plt.title('Mapping of the clustered ' + self.decompose + ' data.')
+            self.LabelZ(plt, ax, label='Cluster (arb. u.)', linear=True, nbins=3)
 
         # have a tight layout
         plt.tight_layout()
@@ -204,6 +223,9 @@ class mapping(object):
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
         elif (top != '') & (bot != ''):
+            plt.savefig(savefile + '.pdf', format='pdf')
+            plt.savefig(savefile + '.png')
+        elif clustered:
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
         else:
@@ -249,7 +271,7 @@ class mapping(object):
             for colormap in category[1]:
                 self.PlotMapping(maptype=map, label=category[0] + colormap, colormap=colormap)
 
-    def DecomposePCA(self, decompose='', n_components=2):
+    def DecomposePCA(self, decompose='raw', n_components=2):
         """
         Decompose the spectra of a given mapping.
 
@@ -264,6 +286,7 @@ class mapping(object):
         """
         # create the pca analysis
         pca = PCA(n_components=n_components)
+        self.decompose = decompose
 
         # get requested data
         self.x = np.empty(self.numberOfFiles)
@@ -272,19 +295,19 @@ class mapping(object):
         folder = self.folder
         type = 'txt'
 
-        printstring = 'Decompose ' + decompose
+        printstring = 'Decompose ' + self.decompose
 
         # create strings to get the requested data
-        if decompose == 'baselines':
+        if self.decompose == 'raw':
+            printstring += ' data.'
+        elif self.decompose == 'baselines':
             printstring += '.'
             folder += '/results/baselines'
             type = 'dat'
-        elif decompose == 'fitlines':
+        elif self.decompose == 'fitlines':
             printstring += '.'
             folder += '/results/fitlines'
             type = 'dat'
-        else:
-            printstring += 'raw data.'
 
         print(printstring)
 
@@ -319,11 +342,11 @@ class mapping(object):
 
         self.clustered.fit(self.pca_analysis)
 
-    def PlotClusteredPCA(self, colors):
+    def PlotClusteredPCA(self, colorlist):
         """
-        Plot the clustered data.
+        Plot the clustered data. And calculate the sum of each cluster.
         """
-        cluster_sum = np.empty([self.clustered.n_clusters, len(self.y)])
+        self.cluster_sum = np.empty([self.clustered.n_clusters, len(self.y)])
 
         f, ax = plt.subplots()
         for point in range(0, len(self.pca_analysis)):
@@ -331,11 +354,22 @@ class mapping(object):
             clust = self.clustered.labels_[point]
 
             # calculate the sum spectra for each cluster
-            cluster_sum[clust] += sum(self.y[point][:])
+            self.cluster_sum[clust] += sum(self.y[point][:])
 
             # plot each pca point into a scatter plot
             ax.scatter(self.pca_analysis[point, 0], self.pca_analysis[point, 1],
-                       color=colors[clust], alpha=.8)
+                       color=colorlist[clust], alpha=.8)
         ax.set_title('PCA of ' + self.folder + ' with ' + self.clustered.init
                      + ' coloring')
         plt.show()
+
+    def PlotClusteredPCAMapping(self, colorlist, cluster='kmeans', n_clusters=3):
+        """
+        Plot a mapping PCA decomposed mapping clustered with a cluster
+        algorithm.
+        """
+
+        self.DecomposePCA()
+        self.ClusterPCA(cluster=cluster, n_clusters=n_clusters)
+        self.PlotClusteredPCA(colorlist=colorlist)
+        self.PlotMapping(clustered=True, colorlist=colorlist)

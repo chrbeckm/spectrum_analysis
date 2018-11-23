@@ -1,7 +1,7 @@
 from mapping import *
 
 # colors for clustering (add more if you use more than 10 clusters)
-colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
+colorlist = ['red', 'blue', 'green', 'orange', 'black', 'purple',
           'lightgreen', 'turquoise', 'lightblue', 'yellow']
 
 # xdim:     the number of Spectra in x direction
@@ -25,7 +25,5 @@ map = mapping('smallmap', 2, 4, 10)
 # top/bot
 #map.PlotMapping(top='lorentzian_p1_height.dat', bot='breit_wigner_p1_height.dat')
 
-#
-map.DecomposePCA()
-map.ClusterPCA()
-map.PlotClusteredPCA(colors=colors)
+# Use cluster algorithms to identify something in the mapping
+map.PlotClusteredPCAMapping(colorlist=colorlist)
