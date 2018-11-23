@@ -1,5 +1,9 @@
 from mapping import *
 
+# colors for clustering (add more if you use more than 10 clusters)
+colors = ['red', 'blue', 'green', 'orange', 'black', 'purple',
+          'lightgreen', 'turquoise', 'lightblue', 'yellow']
+
 # xdim:     the number of Spectra in x direction
 # ydim:     the number of Spectra in y direction
 # stepsize: the interval at which the mapping was collected in µm
@@ -23,3 +27,5 @@ map = mapping('smallmap', 2, 4, 10)
 
 #
 map.DecomposePCA()
+map.ClusterPCA()
+map.PlotClusteredPCA(colors=colors)

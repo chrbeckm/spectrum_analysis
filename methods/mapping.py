@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 
 from functions import *
 
@@ -265,8 +266,8 @@ class mapping(object):
         pca = PCA(n_components=n_components)
 
         # get requested data
-        x = np.empty(self.numberOfFiles)
-        y = np.empty(self.numberOfFiles)
+        self.x = np.empty(self.numberOfFiles)
+        self.y = np.empty(self.numberOfFiles)
 
         folder = self.folder
         type = 'txt'
@@ -290,11 +291,51 @@ class mapping(object):
         # get the files and data
         self.listOfFiles, self.numberOfFiles = GetFolderContent(folder, type,
                                                                 quiet=True)
-        x, y = GetMonoData(self.listOfFiles)
+        self.x, self.y = GetMonoData(self.listOfFiles)
 
         # do the pca analysis
-        self.pca_analysis = pca.fit(y).transform(y)
+        self.pca_analysis = pca.fit(self.y).transform(self.y)
 
         # print the result
         print('Explained variance ratio (first two components): %s'
               % str(pca.explained_variance_ratio_))
+
+    def ClusterPCA(self, cluster='kmeans', n_clusters=3):
+        """
+        Parameters
+        ----------
+        cluster : string
+            Name of the clustering Algorithm. At the moment only kmeans from
+            'sklearn.cluster <https://scikit-learn.org/stable/modules/classes.html#module-sklearn.cluster>'_
+            is defined
+
+        n_clusters : int
+            Number of clusters that should be used for clustering.
+        """
+        if cluster == 'kmeans':
+            self.clustered = KMeans(init='k-means++', n_clusters=n_clusters)
+        else:
+            print('Use different cluster algorithm.')
+
+        self.clustered.fit(self.pca_analysis)
+
+    def PlotClusteredPCA(self, colors):
+        """
+        Plot the clustered data.
+        """
+        cluster_sum = np.empty([self.clustered.n_clusters, len(self.y)])
+
+        f, ax = plt.subplots()
+        for point in range(0, len(self.pca_analysis)):
+            # get cluster calculated from ClusterPCA
+            clust = self.clustered.labels_[point]
+
+            # calculate the sum spectra for each cluster
+            cluster_sum[clust] += sum(self.y[point][:])
+
+            # plot each pca point into a scatter plot
+            ax.scatter(self.pca_analysis[point, 0], self.pca_analysis[point, 1],
+                       color=colors[clust], alpha=.8)
+        ax.set_title('PCA of ' + self.folder + ' with ' + self.clustered.init
+                     + ' coloring')
+        plt.show()
