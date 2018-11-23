@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+from sklearn.decomposition import PCA
+
 from functions import *
 
 # Class for spectra (under development)
@@ -72,7 +74,7 @@ class mapping(object):
             else:
                 folder = self.folder + '/results/fitlines'
                 self.listOfFiles, self.numberOfFiles = GetFolderContent(folder, 'dat')
-                x, y = GetMonoData(listOfFiles)
+                x, y = GetMonoData(self.listOfFiles)
 
                 # define save file
                 savefile = self.folder + '/results/plot/map'
@@ -245,3 +247,54 @@ class mapping(object):
             print(category[0])
             for colormap in category[1]:
                 self.PlotMapping(maptype=map, label=category[0] + colormap, colormap=colormap)
+
+    def DecomposePCA(self, decompose='', n_components=2):
+        """
+        Decompose the spectra of a given mapping.
+
+        Parameters
+        ----------
+        decompose : string
+            string that names what should be decomposed.
+            For example raw, baselines, fitlines, fitspectra or fitpeaks
+
+        n_components : int
+            Number of components for the PCA analysis
+        """
+        # create the pca analysis
+        pca = PCA(n_components=n_components)
+
+        # get requested data
+        x = np.empty(self.numberOfFiles)
+        y = np.empty(self.numberOfFiles)
+
+        folder = self.folder
+        type = 'txt'
+
+        printstring = 'Decompose ' + decompose
+
+        # create strings to get the requested data
+        if decompose == 'baselines':
+            printstring += '.'
+            folder += '/results/baselines'
+            type = 'dat'
+        elif decompose == 'fitlines':
+            printstring += '.'
+            folder += '/results/fitlines'
+            type = 'dat'
+        else:
+            printstring += 'raw data.'
+
+        print(printstring)
+
+        # get the files and data
+        self.listOfFiles, self.numberOfFiles = GetFolderContent(folder, type,
+                                                                quiet=True)
+        x, y = GetMonoData(self.listOfFiles)
+
+        # do the pca analysis
+        self.pca_analysis = pca.fit(y).transform(y)
+
+        # print the result
+        print('Explained variance ratio (first two components): %s'
+              % str(pca.explained_variance_ratio_))
