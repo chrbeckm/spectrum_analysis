@@ -348,7 +348,7 @@ class mapping(object):
         """
         self.cluster_sum = np.empty([self.clustered.n_clusters, len(self.y)])
 
-        f, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(12,9))
         for point in range(0, len(self.pca_analysis)):
             # get cluster calculated from ClusterPCA
             clust = self.clustered.labels_[point]
@@ -359,9 +359,16 @@ class mapping(object):
             # plot each pca point into a scatter plot
             ax.scatter(self.pca_analysis[point, 0], self.pca_analysis[point, 1],
                        color=colorlist[clust], alpha=.8)
-        ax.set_title('PCA of ' + self.folder + ' with ' + self.clustered.init
+
+        # set the labels
+        plt.title('PCA of ' + self.folder + ' with ' + self.clustered.init
                      + ' coloring')
-        plt.show()
+        plt.xlabel('principal component 1')
+        plt.ylabel('principal component 2')
+
+        # save the figures
+        fig.savefig(self.folder + '/results/plot/pca_analysis.pdf')
+        fig.savefig(self.folder + '/results/plot/pca_analysis.png', dpi=150)
 
     def PlotClusteredPCAMapping(self, colorlist, cluster='kmeans', n_clusters=3):
         """
