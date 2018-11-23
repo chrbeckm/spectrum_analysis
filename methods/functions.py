@@ -11,13 +11,14 @@ def Teller(number, kind, location):
         print()
 
 # get a list of files with defined type in the folder
-def GetFolderContent(folder, filetype, object='file', where='folder'):
+def GetFolderContent(folder, filetype, object='file', where='folder', quiet=False):
     #generate list of files in requested folder
     files = folder + '/*.' + filetype
     listOfFiles = sorted(glob.glob(files))
     numberOfFiles = len(listOfFiles)
     # tell the number of files in the requested folder
-    Teller(numberOfFiles, object, where)
+    if not quiet:
+        Teller(numberOfFiles, object, where)
 
     return listOfFiles, numberOfFiles
 

@@ -4,8 +4,12 @@ import re
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 
 from functions import *
 
@@ -30,8 +34,11 @@ class mapping(object):
             os.makedirs(self.folder + '/results/plot')
 
     # function to label the z-axis with label
-    def LabelZ(self, plt, ax, label='Integrated Intensity\n(arb. u.)'):
-        tick_locator = matplotlib.ticker.MaxNLocator(nbins=5)
+    def LabelZ(self, plt, ax, label='Integrated Intensity\n(arb. u.)', nbins=5,
+               linear=False):
+        tick_locator = matplotlib.ticker.MaxNLocator(nbins=nbins)
+        if linear:
+            tick_locator = matplotlib.ticker.LinearLocator(numticks=nbins)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         clb = plt.colorbar(cax=cax)
@@ -46,6 +53,7 @@ class mapping(object):
     def PlotMapping(self, xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     top='', bot='',                 # define these if you want to calculate a ratio
+                    clustered = False, colorlist=['w'],  # True if clustered should be plotted
                     label='',
                     xticker=2, colormap='RdYlGn'):
         # create x and y ticks accordingly to the parameters of the mapping
@@ -72,7 +80,7 @@ class mapping(object):
             else:
                 folder = self.folder + '/results/fitlines'
                 self.listOfFiles, self.numberOfFiles = GetFolderContent(folder, 'dat')
-                x, y = GetMonoData(listOfFiles)
+                x, y = GetMonoData(self.listOfFiles)
 
                 # define save file
                 savefile = self.folder + '/results/plot/map'
@@ -117,8 +125,12 @@ class mapping(object):
             file2 = re.sub('.dat', '', bot)
             savefile = self.folder + '/results/plot/map_' + file1 + '_' + file2
 
+        elif clustered:
+            plot_value = self.clustered.labels_
+            savefile = self.folder + '/results/plot/map_clustered'
+
         # check if any value in plot_value is a missing value or 1
-        missingindices = [i for i, x in enumerate(plot_value) if (x == self.missingvalue) or (x == 1.0)]
+        missingindices = [i for i, x in enumerate(plot_value) if (x == self.missingvalue) or (x == 1.0) and not clustered]
         existingindices = [i for i, x in enumerate(plot_value) if (x != self.missingvalue) and (x != 1.0)]
 
         # calculate the mean of the existing values
@@ -143,7 +155,14 @@ class mapping(object):
         matplotlib.rcParams.update({'font.size': 22})
 
         # plot the selected mapping
-        plt.imshow(plot_matrix, cmap=colormap)
+        if clustered:
+            # make a color map of fixed colors
+            colorlist = colorlist[0:self.clustered.n_clusters]
+            cmap = colors.ListedColormap(colorlist)
+            ticks = [i for i, x in enumerate(colorlist)]
+            plt.imshow(plot_matrix, cmap=cmap)
+        else:
+            plt.imshow(plot_matrix, cmap=colormap)
         plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
         plt.yticks(np.arange(self.ydim), y_ticks)
 
@@ -189,6 +208,9 @@ class mapping(object):
         elif (top != '') & (bot != ''):
             plt.title('Mapping of ' + self.folder + ' ' + top + '/' + bot, fontsize='small')
             self.LabelZ(plt, ax, label='Ratio (arb. u.)')
+        elif clustered:
+            plt.title('Mapping of the clustered ' + self.decompose + ' data.')
+            self.LabelZ(plt, ax, label='Cluster (arb. u.)', linear=True, nbins=3)
 
         # have a tight layout
         plt.tight_layout()
@@ -201,6 +223,9 @@ class mapping(object):
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
         elif (top != '') & (bot != ''):
+            plt.savefig(savefile + '.pdf', format='pdf')
+            plt.savefig(savefile + '.png')
+        elif clustered:
             plt.savefig(savefile + '.pdf', format='pdf')
             plt.savefig(savefile + '.png')
         else:
@@ -245,3 +270,113 @@ class mapping(object):
             print(category[0])
             for colormap in category[1]:
                 self.PlotMapping(maptype=map, label=category[0] + colormap, colormap=colormap)
+
+    def DecomposePCA(self, decompose='raw', n_components=2):
+        """
+        Decompose the spectra of a given mapping.
+
+        Parameters
+        ----------
+        decompose : string
+            string that names what should be decomposed.
+            For example raw, baselines, fitlines, fitspectra or fitpeaks
+
+        n_components : int
+            Number of components for the PCA analysis
+        """
+        # create the pca analysis
+        pca = PCA(n_components=n_components)
+        self.decompose = decompose
+
+        # get requested data
+        self.x = np.empty(self.numberOfFiles)
+        self.y = np.empty(self.numberOfFiles)
+
+        folder = self.folder
+        type = 'txt'
+
+        printstring = 'Decompose ' + self.decompose
+
+        # create strings to get the requested data
+        if self.decompose == 'raw':
+            printstring += ' data.'
+        elif self.decompose == 'baselines':
+            printstring += '.'
+            folder += '/results/baselines'
+            type = 'dat'
+        elif self.decompose == 'fitlines':
+            printstring += '.'
+            folder += '/results/fitlines'
+            type = 'dat'
+
+        print(printstring)
+
+        # get the files and data
+        self.listOfFiles, self.numberOfFiles = GetFolderContent(folder, type,
+                                                                quiet=True)
+        self.x, self.y = GetMonoData(self.listOfFiles)
+
+        # do the pca analysis
+        self.pca_analysis = pca.fit(self.y).transform(self.y)
+
+        # print the result
+        print('Explained variance ratio (first two components): %s'
+              % str(pca.explained_variance_ratio_))
+
+    def ClusterPCA(self, cluster='kmeans', n_clusters=3):
+        """
+        Parameters
+        ----------
+        cluster : string
+            Name of the clustering Algorithm. At the moment only kmeans from
+            'sklearn.cluster <https://scikit-learn.org/stable/modules/classes.html#module-sklearn.cluster>'_
+            is defined
+
+        n_clusters : int
+            Number of clusters that should be used for clustering.
+        """
+        if cluster == 'kmeans':
+            self.clustered = KMeans(init='k-means++', n_clusters=n_clusters)
+        else:
+            print('Use different cluster algorithm.')
+
+        self.clustered.fit(self.pca_analysis)
+
+    def PlotClusteredPCA(self, colorlist):
+        """
+        Plot the clustered data. And calculate the sum of each cluster.
+        """
+        self.cluster_sum = np.empty([self.clustered.n_clusters, len(self.y)])
+
+        fig, ax = plt.subplots(figsize=(12,9))
+        for point in range(0, len(self.pca_analysis)):
+            # get cluster calculated from ClusterPCA
+            clust = self.clustered.labels_[point]
+
+            # calculate the sum spectra for each cluster
+            self.cluster_sum[clust] += sum(self.y[point][:])
+
+            # plot each pca point into a scatter plot
+            ax.scatter(self.pca_analysis[point, 0], self.pca_analysis[point, 1],
+                       color=colorlist[clust], alpha=.8)
+
+        # set the labels
+        plt.title('PCA of ' + self.folder + ' with ' + self.clustered.init
+                     + ' coloring')
+        plt.xlabel('principal component 1')
+        plt.ylabel('principal component 2')
+
+        # save the figures
+        fig.savefig(self.folder + '/results/plot/pca_analysis.pdf')
+        fig.savefig(self.folder + '/results/plot/pca_analysis.png', dpi=150)
+
+    def PlotClusteredPCAMapping(self, colorlist, cluster='kmeans', n_clusters=3):
+        """
+        Plot a mapping PCA decomposed mapping clustered with a cluster
+        algorithm.
+        """
+
+        self.DecomposePCA()
+        self.ClusterPCA(cluster=cluster, n_clusters=n_clusters)
+        self.PlotClusteredPCA(colorlist=colorlist)
+        self.PlotMapping(clustered=True, colorlist=colorlist)
