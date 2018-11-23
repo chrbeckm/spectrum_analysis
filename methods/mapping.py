@@ -83,7 +83,6 @@ class mapping(object):
         clb.locator = tick_locator
         clb.update_ticks()
 
-<<<<<<< HEAD
     # plot mapping
     # input values are
     # xmin:     the lowest wavenumber to be used in the mapping
@@ -92,12 +91,7 @@ class mapping(object):
                     maptype='',                     # maptypes accordingly to fitparameter/peakwise/*
                     top='', bot='',                 # define these if you want to calculate a ratio
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
-=======
-    def PlotMapping(self, xmin=None, xmax=None,
-                    maptype='',
-                    top='', bot='',
                     distance=False,
->>>>>>> added distance mappings
                     label='',
                     xticker=2, colormap='Reds'):
         """
@@ -173,15 +167,10 @@ class mapping(object):
                 iterator += 1
         elif maptype != '':
             # get the selected file and the corresponding values
-<<<<<<< HEAD
-            folder = self.folder + '/results/fitparameter/peakwise/' + maptype + '.dat'
-            plot_value, error = GetMonoData([folder])
-=======
             file = (self.folder + '/results/fitparameter/peakwise/'
                      + maptype
                      + '.dat')
             plot_value, error = GetMonoData([file])
->>>>>>> added distance mappings
 
             # define save file
             savefile = self.folder + '/results/plot/map_' + maptype + label
@@ -224,17 +213,13 @@ class mapping(object):
             savefile = self.folder + '/results/plot/map_clustered'
 
         # check if any value in plot_value is a missing value or 1
-<<<<<<< HEAD
-        missingindices = [i for i, x in enumerate(plot_value) if (x == self.missingvalue) or (x == 1.0) and not clustered]
-        existingindices = [i for i, x in enumerate(plot_value) if (x != self.missingvalue) and (x != 1.0)]
-=======
         missingindices = [i for i, x in enumerate(plot_value)
                           if (x == self.missingvalue) or (x == 1.0)
-                                                      or (x == 0.0)]
+                                                      or (x == 0.0)
+                                                      and not clustered]
         existingindices = [i for i, x in enumerate(plot_value)
                            if (x != self.missingvalue) and (x != 1.0)
                                                        and (x != 0.0)]
->>>>>>> corrected relation
 
         # calculate the mean of the existing values
         fitmean = 0
