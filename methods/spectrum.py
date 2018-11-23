@@ -258,7 +258,18 @@ class spectrum(object):
     # linear function for muon approximation
     def linear(self, x, m, b):
         """
+        Parameters
+        ----------
+        x : float
 
+        m : float
+
+        b : float
+
+        Returns
+        -------
+        x * m + b : float
+            calculated y value for inserted x, m and b.
         """
         return x * m + b
 
