@@ -870,19 +870,17 @@ class spectrum(object):
                                 + '\n')
                         f.close()
 
-            # save the fitlines
-            for line in self.fitline:
-                file = (self.folder + '/results/fitlines/'
+            # save the fitline
+            file = (self.folder + '/results/fitlines/'
                         + label + '_fitline.dat')
-                np.savetxt(file, np.column_stack([self.xreduced[spectrum],
-                           line * self.ymax[spectrum]]))
+            np.savetxt(file, np.column_stack([self.xreduced[spectrum],
+                           self.fitline[spectrum] * self.ymax[spectrum]]))
 
-            # save the fitlines
-            for line in self.baseline:
-                file = (self.folder + '/results/baselines/'
+            # save the baseline
+            file = (self.folder + '/results/baselines/'
                         + label + '_baseline.dat')
-                np.savetxt(file, np.column_stack([self.xreduced[spectrum],
-                           line * self.ymax[spectrum]]))
+            np.savetxt(file, np.column_stack([self.xreduced[spectrum],
+                           self.baseline[spectrum] * self.ymax[spectrum]]))
 
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')

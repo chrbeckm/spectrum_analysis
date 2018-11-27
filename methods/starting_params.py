@@ -15,13 +15,13 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     ----------
     fitmodel : CLASS from lmfit ?
     peaks : list, default: ['breit_wigner', 'lorentzian']
-        Possible line shapes of the peaks to fit are 
+        Possible line shapes of the peaks to fit are
         'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
     xpeak array (float), default = 0
         Position of the peaks maxima (x-value).
     ypeak array (float), default = 0
         Position of the peaks maxima (y-value).
-    i : int 
+    i : int
         Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
 
     """
@@ -38,13 +38,13 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     if any(model in peak for peak in peaks):
         if model == 'voigt':
             fitmodel.set_param_hint('sigma', #starting value gauß-width
-                                value = 1,
+                                value = 100,
                                 min = 0,
-                                max = 100)
+                                max = 300)
             fitmodel.set_param_hint('gamma', #starting value lorentzian-width (== gauß-width by default)
-                                value = 1,
+                                value = 100,
                                 min = 0,
-                                max = 100,
+                                max = 300,
                                 vary = True, expr = '') #vary gamma independently
             fitmodel.set_param_hint('amplitude', # starting value amplitude ist approxamitaly 11*height (my guess)
                                 value = ypeak[i]*11,
@@ -52,13 +52,17 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
             #parameters calculated based on the fit-parameters
             fitmodel.set_param_hint('height',
                                 value = ypeak[i])
+            fitmodel.set_param_hint('fwhm_g',
+                                expr = '2 *' + fitmodel.prefix + 'sigma * sqrt(2 * log(2))')
+            fitmodel.set_param_hint('fwhm_l',
+                                expr = '2 *' + fitmodel.prefix + 'gamma')
             # precise FWHM approximation by Olivero and Longbothum (doi:10.1016/0022-4073(77)90161-3)
             # it is not possible to take the fwhm form lmfit for an independently varying gamma
             fitmodel.set_param_hint('fwhm',
-                                expr = '0.5346 * 2 *' + fitmodel.prefix +
-                                       'gamma + sqrt(0.2166 * (2*' + fitmodel.prefix +
-                                       'gamma)**2 + (2 * ' + fitmodel.prefix +
-                                       'sigma * sqrt(2 * log(2) ) )**2  )')
+                                expr = '0.5346 *' + fitmodel.prefix +
+                                       'fwhm_l + sqrt(0.2166 *' + fitmodel.prefix +
+                                       'fwhm_l**2 +' + fitmodel.prefix +
+                                       'fwhm_g**2 )')
 
         if model == 'breit_wigner': # should be BreitWignerModel!
             #fit-parameter
@@ -118,10 +122,10 @@ def ChoosePeakType(peaktype, i):
 
     Parameters
     ----------
-    peaktype : string 
-        Possible line shapes of the peaks to fit are 
+    peaktype : string
+        Possible line shapes of the peaks to fit are
         'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
-    i : int 
+    i : int
         Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
 
     """
