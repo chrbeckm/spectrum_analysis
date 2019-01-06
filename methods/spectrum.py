@@ -926,5 +926,3 @@ class spectrum(object):
 
 
 
-class ParameterWarning(UserWarning):
-    pass
