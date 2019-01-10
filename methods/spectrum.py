@@ -952,8 +952,9 @@ class spectrum(object):
             # store the chosen values
             peakfile = self.folder + '/temp/fftpeak_' +\
                        str(spectrum).zfill(4) + '.dat'
-            np.savetxt(peakfile, np.transpose([np.array(xpeak),
-                                               np.array(ypeak)]))
+            if xpeak != []:
+                np.savetxt(peakfile, np.transpose([np.array(xpeak),
+                                                   np.array(ypeak)]))
 
     # remove an unwanted frequency from the spectrum given
     def RemoveFrequency(self, spectrum=0, tolerance=6, prnt=False):
@@ -974,47 +975,49 @@ class spectrum(object):
             peakfile = self.folder + '/temp/fftpeak_' +\
                                    str(spectrum).zfill(4) + '.dat'
 
-            # get the selected peak position
-            xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
-            # search the closest index and generate min and max values
-            index = np.abs(self.fourierFreq - xpeak).argmin()
-            indexmin = index - tolerance
-            indexmax = index + tolerance
+            # check if there is an unwanted frequency
+            if os.path.exists(peakfile):
+                # get the selected peak position
+                xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+                # search the closest index and generate min and max values
+                index = np.abs(self.fourierFreq - xpeak).argmin()
+                indexmin = index - tolerance
+                indexmax = index + tolerance
 
-            # calculate mean and replace unwanted frequencies
-            ymean = np.mean(self.fourierSpec)
-            self.modifiedSpec = self.fourierSpec.copy()
+                # calculate mean and replace unwanted frequencies
+                ymean = np.mean(self.fourierSpec)
+                self.modifiedSpec = self.fourierSpec.copy()
 
-            # as fourier is symmetric the indices have
-            # to be removed symmetrically
-            self.modifiedSpec[indexmin:indexmax] = ymean
-            self.modifiedSpec[-indexmax:-indexmin] = ymean
+                # as fourier is symmetric the indices have
+                # to be removed symmetrically
+                self.modifiedSpec[indexmin:indexmax] = ymean
+                self.modifiedSpec[-indexmax:-indexmin] = ymean
 
-            if prnt:
-                plt.plot(self.fourierFreq, abs(self.fourierSpec),
-                         label='Fourier frequencies')
-                plt.plot(self.fourierFreq, abs(self.modifiedSpec),
-                         label='Modified frequencies')
-                plt.title('Frequency spectrum of the selected spectrum.')
-                plt.legend()
-                figManager = plt.get_current_fig_manager()  # get current figure
-                figManager.window.showMaximized()           # show it maximized
-                plt.show()
+                if prnt:
+                    plt.plot(self.fourierFreq, abs(self.fourierSpec),
+                             label='Fourier frequencies')
+                    plt.plot(self.fourierFreq, abs(self.modifiedSpec),
+                             label='Modified frequencies')
+                    plt.title('Frequency spectrum of the selected spectrum.')
+                    plt.legend()
+                    figManager = plt.get_current_fig_manager()  # get current figure
+                    figManager.window.showMaximized()           # show it maximized
+                    plt.show()
 
-                plt.plot(self.xreduced[spectrum],
-                         self.yreduced[spectrum]-self.baseline[spectrum],
-                         label='raw signal')
+                    plt.plot(self.xreduced[spectrum],
+                             self.yreduced[spectrum]-self.baseline[spectrum],
+                             label='raw signal')
 
-            # calculate the inverse fft
-            self.yreduced[spectrum] = np.fft.ifft(self.modifiedSpec) +\
-                                      self.baseline[spectrum]
+                # calculate the inverse fft
+                self.yreduced[spectrum] = np.fft.ifft(self.modifiedSpec) +\
+                                          self.baseline[spectrum]
 
-            if prnt:
-                plt.plot(self.xreduced[spectrum],
-                         self.yreduced[spectrum] - self.baseline[spectrum],
-                         label='frequency removed signal')
-                plt.title('Comparison of original and frequency removed Spectrum.')
-                plt.legend()
-                figManager = plt.get_current_fig_manager()  # get current figure
-                figManager.window.showMaximized()           # show it maximized
-                plt.show()
+                if prnt:
+                    plt.plot(self.xreduced[spectrum],
+                             self.yreduced[spectrum] - self.baseline[spectrum],
+                             label='frequency removed signal')
+                    plt.title('Comparison of original and frequency removed Spectrum.')
+                    plt.legend()
+                    figManager = plt.get_current_fig_manager()  # get current figure
+                    figManager.window.showMaximized()           # show it maximized
+                    plt.show()
