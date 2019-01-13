@@ -86,6 +86,9 @@ class spectrum(object):
         self.fitline = [None] * self.numberOfFiles
         self.confidence = [None] * self.numberOfFiles
 
+        # boolean value for exception handling
+        self.critical = False
+
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):
         """
@@ -659,7 +662,8 @@ class spectrum(object):
                                                     x = self.xreduced[spectrum],
                                                     method = 'leastsq',
                                                     scale_covar = True)
-            #print(np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]))
+            
+
             best_values = np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]) #best values of all parameters in the spectrum
             names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()])
             limit = 0.01
