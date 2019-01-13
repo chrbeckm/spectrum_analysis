@@ -647,23 +647,31 @@ class spectrum(object):
 
             # create the fit parameters of the background substracted fit
             pars = ramanmodel.make_params()
-            lower_bounds = [pars[key].min for key in pars.keys()] #lists of lower and upper bounds of the start parameters
-            upper_bounds = [pars[key].max for key in pars.keys()]
+
+            lower_bounds = np.array([pars[key].min for key in pars.keys()]) #arrays of lower and upper bounds of the start parameters
+            upper_bounds = np.array([pars[key].max for key in pars.keys()])
+            upper_inf_mask = upper_bounds != float('inf')
+            lower_inf_mask = lower_bounds != float('-inf')
+            range_bounds = upper_bounds - lower_bounds
             
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
                                                     x = self.xreduced[spectrum],
                                                     method = 'leastsq',
                                                     scale_covar = True)
-
-            best_values = list(self.fitresult_peaks[spectrum].best_values.values()) #best values of all parameters in the spectrum
-
+            #print(np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]))
+            best_values = np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]) #best values of all parameters in the spectrum
+            names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()])
+            limit = 0.01
+            lower_mask = best_values[lower_inf_mask] <= lower_bounds[lower_inf_mask] + limit * range_bounds[lower_inf_mask] #mask = True if best_values is near lower bound  
+            upper_mask = best_values[upper_inf_mask] >= lower_bounds[upper_inf_mask] + (1 - limit) * range_bounds[upper_inf_mask] #mask = True if best_values is near upper bound 
             
-            lower_mask = best_values == lower_bounds #mask = True if best_values has reached lower bound  
-            upper_mask = best_values == upper_bounds #mask = True if best_values has reached upper bound 
+            
 
             if True in lower_mask or True in upper_mask: #warn if one of the parameters has reached the bounds
-                warn(ParameterWarning)
+                print((lower_bounds[lower_inf_mask])[lower_mask])
+                print((best_values[lower_inf_mask])[lower_mask])
+                warn(f'The parameter(s) {(names[lower_inf_mask])[lower_mask]} are close to chosen bounds.', ParameterWarning)
             
                                                             
                                                   
