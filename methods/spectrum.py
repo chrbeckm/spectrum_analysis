@@ -86,8 +86,8 @@ class spectrum(object):
         self.fitline = [None] * self.numberOfFiles
         self.confidence = [None] * self.numberOfFiles
 
-        # boolean value for exception handling
-        self.critical = False
+        # boolean values for exception handling
+        self.critical = [False for files in self.listOfFiles]
 
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):
@@ -665,18 +665,16 @@ class spectrum(object):
             
 
             best_values = np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]) #best values of all parameters in the spectrum
-            names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()])
-            limit = 0.01
+            names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()]) #names of all parameters in the spectrum
+            limit = 0.01 #percentage distance to the bounds leading to a warning
             lower_mask = best_values[lower_inf_mask] <= lower_bounds[lower_inf_mask] + limit * range_bounds[lower_inf_mask] #mask = True if best_values is near lower bound  
             upper_mask = best_values[upper_inf_mask] >= lower_bounds[upper_inf_mask] + (1 - limit) * range_bounds[upper_inf_mask] #mask = True if best_values is near upper bound 
             
             
 
             if True in lower_mask or True in upper_mask: #warn if one of the parameters has reached the bounds
-                print((lower_bounds[lower_inf_mask])[lower_mask])
-                print((best_values[lower_inf_mask])[lower_mask])
-                warn(f'The parameter(s) {(names[lower_inf_mask])[lower_mask]} are close to chosen bounds.', ParameterWarning)
-            
+                warn(f'The parameter(s) {(names[lower_inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen bounds.', ParameterWarning)
+                self.critical[spectrum] = True
                                                             
                                                   
             # calculate the fit line

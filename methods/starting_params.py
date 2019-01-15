@@ -7,10 +7,10 @@ class ParameterWarning(UserWarning):
     pass
 
 def custom_formatwarning(message, category, filename, lineno, line=None):
-    return formatwarning_orig(message, category, filename, lineno, line='') 
+    return formatwarning_orig(message, category, filename, lineno, line='') #don't show line in warning
 
 formatwarning_orig = warnings.formatwarning
-warnings.formatwarning = custom_formatwarning
+warnings.formatwarning = custom_formatwarning #change format of warning
 
 
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
