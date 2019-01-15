@@ -677,7 +677,7 @@ class spectrum(object):
                 self.critical[spectrum] = True
 
             if True in upper_mask: #warn if one of the parameters has reached the upper bound
-                warn(f'The parameter(s) {(names[inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen upper bounds.', ParameterWarning)
+                warn(f'The parameter(s) {(names[inf_mask])[upper_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen upper bounds.', ParameterWarning)
                 self.critical[spectrum] = True    
                                                             
                                                   
