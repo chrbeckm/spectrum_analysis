@@ -653,9 +653,9 @@ class spectrum(object):
 
             lower_bounds = np.array([pars[key].min for key in pars.keys()]) #arrays of lower and upper bounds of the start parameters
             upper_bounds = np.array([pars[key].max for key in pars.keys()])
-            upper_inf_mask = upper_bounds != float('inf')
-            lower_inf_mask = lower_bounds != float('-inf')
-            range_bounds = upper_bounds - lower_bounds
+            inf_mask = (upper_bounds != float('inf')) & (lower_bounds != float('-inf')) 
+            range_bounds = upper_bounds[inf_mask] - lower_bounds[inf_mask]
+            
             
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
@@ -667,14 +667,18 @@ class spectrum(object):
             best_values = np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]) #best values of all parameters in the spectrum
             names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()]) #names of all parameters in the spectrum
             limit = 0.01 #percentage distance to the bounds leading to a warning
-            lower_mask = best_values[lower_inf_mask] <= lower_bounds[lower_inf_mask] + limit * range_bounds[lower_inf_mask] #mask = True if best_values is near lower bound  
-            upper_mask = best_values[upper_inf_mask] >= lower_bounds[upper_inf_mask] + (1 - limit) * range_bounds[upper_inf_mask] #mask = True if best_values is near upper bound 
+            lower_mask = best_values[inf_mask] <= lower_bounds[inf_mask] + limit * range_bounds #mask = True if best value is near lower bound  
+            upper_mask = best_values[inf_mask] >= lower_bounds[inf_mask] + (1 - limit) * range_bounds #mask = True if best value is near upper bound 
             
             
 
-            if True in lower_mask or True in upper_mask: #warn if one of the parameters has reached the bounds
-                warn(f'The parameter(s) {(names[lower_inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen bounds.', ParameterWarning)
+            if True in lower_mask: #warn if one of the parameters has reached the lower bound
+                warn(f'The parameter(s) {(names[inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen lower bounds.', ParameterWarning)
                 self.critical[spectrum] = True
+
+            if True in upper_mask: #warn if one of the parameters has reached the upper bound
+                warn(f'The parameter(s) {(names[inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen upper bounds.', ParameterWarning)
+                self.critical[spectrum] = True    
                                                             
                                                   
             # calculate the fit line
