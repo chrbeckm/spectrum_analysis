@@ -517,13 +517,16 @@ class spectrum(object):
         The positions (x- and y-value) are taken as initial values in the
         function :func:`~spectrum.FitSpectrum`.
         It saves the selected positions to
-        '/temp/locpeak_' + peaktype + '_' +\label + '.dat'.
+        '/temp/locpeak_' + peaktype + '_' + label + '.dat'.
+
+        Usage: Select peaks with left mouse click, remove them with right mouse click.
 
         Parameters
         ----------
         peaks : list, default: ['breit_wigner', 'lorentzian']
             Possible line shapes of the peaks to fit are
-            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'. 
+            See lmfit documentation (https://lmfit.github.io/lmfit-py/builtin_models.html) for details.
 
         spectrum : int, default: 0
             Defines which spectrum in the analysis folder is chosen.
