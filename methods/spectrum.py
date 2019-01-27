@@ -144,7 +144,7 @@ class spectrum(object):
     def SelectSpectrum(self, spectrum=0, label=''):
         """
         Function that lets the user select a region of interest by running the 
-        method PlotVerticalLines().
+        method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
         It saves the
         selected region to '/temp/spectrumborders' + label + '.dat'
 
@@ -361,7 +361,10 @@ class spectrum(object):
     def SelectBaseline(self, spectrum=0, label='', color='b'):
         """
         Function that lets the user distinguish between the background and
-        the signal. It saves the selected regions to '/temp/baseline' + label
+        the signal. It runs the method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>` 
+        to select the regions that do 
+        not belong to the background and are therefore not used for background fit. 
+        The selected regions will be saved to '/temp/baseline' + label
         + '.dat'.
 
         Parameters
