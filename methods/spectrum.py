@@ -256,20 +256,22 @@ class spectrum(object):
             self.DetectMuonsWavelet(spectrum=i, prnt=prnt)
 
     # linear function for muon approximation
-    def linear(self, x, m, b):
+    def linear(self, x, slope, intercept):
         """
         Parameters
         ----------
         x : float
 
-        m : float
+        slope : float
+            Slope of the linear model.
 
         b : float
+            Y-intercept of the linear model.
 
         Returns
         -------
         x * m + b : float
-            calculated y value for inserted x, m and b.
+            Calculated y value for inserted x, slope and intercept.
         """
         return x * m + b
 
