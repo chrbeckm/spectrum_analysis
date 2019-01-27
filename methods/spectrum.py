@@ -89,7 +89,7 @@ class spectrum(object):
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):
         """
-        Function that plots regions chosen by clicking into the plot
+        Function to select horizontal regions by clicking into a plot.
 
         Parameters
         ----------
@@ -143,7 +143,9 @@ class spectrum(object):
     # Select the interesting region in the spectrum, by clicking on the plot
     def SelectSpectrum(self, spectrum=0, label=''):
         """
-        Function that lets the user select a region of interest. It saves the
+        Function that lets the user select a region of interest by running the 
+        method PlotVerticalLines().
+        It saves the
         selected region to '/temp/spectrumborders' + label + '.dat'
 
         Parameters
