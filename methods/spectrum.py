@@ -272,10 +272,10 @@ class spectrum(object):
 
         Returns
         -------
-        x * m + b : float
+        x * slope + intercept : float
             Calculated y value for inserted x, slope and intercept.
         """
-        return x * m + b
+        return x * slope + intercept
 
     # approximate muon by linear function
     def RemoveMuons(self, spectrum=0, prnt=False):
