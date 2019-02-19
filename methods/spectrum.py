@@ -267,7 +267,7 @@ class spectrum(object):
         slope : float
             Slope of the linear model.
 
-        b : float
+        intercept : float
             Y-intercept of the linear model.
 
         Returns
