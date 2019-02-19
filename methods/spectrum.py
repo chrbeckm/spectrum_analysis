@@ -473,13 +473,16 @@ class spectrum(object):
     # function that plots the dots at the peaks you wish to fit
     def PlotPeaks(self, fig, ax):
         """
-        Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running.
+        Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running. 
 
         Parameters
         ----------
-        fig : string
+        fig : matplotlib.figure.Figure
             Currently displayed window that shows the spectrum as well as
             the selected peaks.
+
+        ax : matplotlib.axes.Axes
+            Corresponding Axes object to Figure object fig. 
 
         """
         xpeak = []  # x and
@@ -926,3 +929,7 @@ class spectrum(object):
         for i in range(self.numberOfFiles):
             self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i,
                                label=str(i+1).zfill(4))
+
+
+
+

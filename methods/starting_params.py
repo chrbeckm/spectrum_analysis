@@ -1,5 +1,10 @@
 import re
 import lmfit
+from warnings import warn
+
+class ParameterWarning(UserWarning):
+    pass
+
 
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     """
