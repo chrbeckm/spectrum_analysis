@@ -89,7 +89,7 @@ class spectrum(object):
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):
         """
-        Function that plots regions chosen by clicking into the plot
+        Function to select horizontal regions by clicking into a plot.
 
         Parameters
         ----------
@@ -143,7 +143,9 @@ class spectrum(object):
     # Select the interesting region in the spectrum, by clicking on the plot
     def SelectSpectrum(self, spectrum=0, label=''):
         """
-        Function that lets the user select a region of interest. It saves the
+        Function that lets the user select a region of interest by running the 
+        method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
+        It saves the
         selected region to '/temp/spectrumborders' + label + '.dat'
 
         Parameters
@@ -256,22 +258,24 @@ class spectrum(object):
             self.DetectMuonsWavelet(spectrum=i, prnt=prnt)
 
     # linear function for muon approximation
-    def linear(self, x, m, b):
+    def linear(self, x, slope, intercept):
         """
         Parameters
         ----------
         x : float
 
-        m : float
+        slope : float
+            Slope of the linear model.
 
-        b : float
+        intercept : float
+            Y-intercept of the linear model.
 
         Returns
         -------
-        x * m + b : float
-            calculated y value for inserted x, m and b.
+        x * slope + intercept : float
+            Calculated y value for inserted x, slope and intercept.
         """
-        return x * m + b
+        return x * slope + intercept
 
     # approximate muon by linear function
     def RemoveMuons(self, spectrum=0, prnt=False):
@@ -357,7 +361,10 @@ class spectrum(object):
     def SelectBaseline(self, spectrum=0, label='', color='b'):
         """
         Function that lets the user distinguish between the background and
-        the signal. It saves the selected regions to '/temp/baseline' + label
+        the signal. It runs the method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>` 
+        to select the regions that do 
+        not belong to the background and are therefore not used for background fit. 
+        The selected regions will be saved to '/temp/baseline' + label
         + '.dat'.
 
         Parameters
@@ -517,13 +524,16 @@ class spectrum(object):
         The positions (x- and y-value) are taken as initial values in the
         function :func:`~spectrum.FitSpectrum`.
         It saves the selected positions to
-        '/temp/locpeak_' + peaktype + '_' +\label + '.dat'.
+        '/temp/locpeak_' + peaktype + '_' + label + '.dat'.
+
+        Usage: Select peaks with left mouse click, remove them with right mouse click.
 
         Parameters
         ----------
         peaks : list, default: ['breit_wigner', 'lorentzian']
             Possible line shapes of the peaks to fit are
-            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'. 
+            See lmfit documentation (https://lmfit.github.io/lmfit-py/builtin_models.html) for details.
 
         spectrum : int, default: 0
             Defines which spectrum in the analysis folder is chosen.
