@@ -19,6 +19,7 @@ from functions import *
 
 import decimal                          # to get exponent of missingvalue
 
+
 # Class for spectra (under development)
 class spectrum(object):
     """
@@ -92,7 +93,7 @@ class spectrum(object):
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):
         """
-        Function to select horizontal regions by clicking into a plot.
+        Function to select horizontal regions by clicking into the plot.
 
         Parameters
         ----------
@@ -146,15 +147,15 @@ class spectrum(object):
     # Select the interesting region in the spectrum, by clicking on the plot
     def SelectSpectrum(self, spectrum=0, label=''):
         """
-        Function that lets the user select a region of interest by running the 
+        Function that lets the user select a region by running the 
         method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
-        It saves the
-        selected region to '/temp/spectrumborders' + label + '.dat'
+        The region of interest is only chosen for one specific spectrum and assumed to be the same for all others.
+        The borders of the selected region is saved to '/temp/spectrumborders' + label + '.dat'
 
         Parameters
         ----------
         spectrum : int, default: 0
-            Defines which spectrum in the analysis folder is chosen.
+            Defines which of the spectra is chosen to select the region of interest.
 
         label : string, default: ''
             Label for the spectrumborders file in case you want to have
@@ -373,7 +374,8 @@ class spectrum(object):
         Parameters
         ----------
         spectrum : int, default: 0
-            Defines which spectrum in the analysis folder is chosen.
+            Defines which of the spectra is chosen to distinguish 
+            between the background and the signal.
 
         label : string, default: ''
             Label for the spectrumborders file in case you want to have
@@ -413,7 +415,7 @@ class spectrum(object):
         Parameters
         ----------
         spectrum : int, default: 0
-            Defines which spectrum in the analysis folder is chosen.
+            Defines which of the spectra is modeled.
 
         show : boolean, default: False
             Decides whether the a window with the fitted baseline is opened
@@ -483,9 +485,14 @@ class spectrum(object):
         fig : matplotlib.figure.Figure
             Currently displayed window that shows the spectrum as well as
             the selected peaks.
-
+            
         ax : matplotlib.axes.Axes
             Corresponding Axes object to Figure object fig. 
+
+        Returns
+        -------
+        xpeak, ypeak : array
+            Peak position (xpeak) and height (ypeak) selected from the user.
 
         """
         xpeak = []  # x and
@@ -542,11 +549,10 @@ class spectrum(object):
             See lmfit documentation (https://lmfit.github.io/lmfit-py/builtin_models.html) for details.
 
         spectrum : int, default: 0
-            Defines which spectrum in the analysis folder is chosen.
+            Defines the spectrum which peaks are selected.
 
         label : string, default: ''
-            Label for the spectrumborders file in case you want to have
-            different borders for different files.
+            Name of the spectrum is N if spectrum is (N-1).
 
         """
         if spectrum >= self.numberOfFiles:
@@ -592,15 +598,50 @@ class spectrum(object):
         The fit functions of the selectable peaks are described in detail in
         :func:`~starting_params.ChoosePeakType` and the choice of the initial
         values in :func:`~starting_params.StartingParameters`.
-        In addition a plot of the fitted spectrum is created including the
+        In addition, a plot of the fitted spectrum is created including the
         :math:`3\sigma`-confidence-band.
 
 
 
-        It saves the figures to '/results/plot/fitplot_' + label + '.pdf' and
-        '/results/plot/fitplot_' + label + '.png'.
+        It saves the figures to '/results/plot/fitplot\_' + label + '.pdf' and
+        '/results/plot/fitplot\_' + label + '.png'.
         The fit parameters are saved in the function
         :func:`~spectrum.SaveFitParams`.
+        The fit parameters values that are derived from the fit parameters 
+        are individual for each line shape. 
+        Especially parameters of the BreitWignerModel() is adapted to our research. 
+
+        **VoigtModel():**
+            |'center': x value of the maximum
+            |'heigt': fit-function evaluation at 'center'
+            |'amplitude': area under fit-function
+            |'sigma': parameter related to gaussian-width
+            |'gamma': parameter related to lorentzian-width
+            |'fwhm_g': gaussian-FWHM
+            |'fwhm_l': lorentzian-FWHM
+            |'fwhm': FWHM
+
+        **GaussianModel():** 
+            |'center': x value of the maximum
+            |'heigt': fit-function evaluation at 'center'
+            |'amplitude': area under fit-function
+            |'sigma': parameter related to gaussian-width (variance)
+            |'fwhm': FWHM
+
+        **LorentzianModel():**
+            |'center': x value of the maximum
+            |'heigt': fit-function evaluation at 'center'
+            |'amplitude': area under fit-function
+            |'sigma': parameter related to lorentzian-width
+            |'fwhm': FWHM
+
+        **BreitWigner():**
+            |'center': position of BWF resonance (not the maximum)
+            |'sigma': FWHM of BWF resonance
+            |'q': coupling coefficient of BWF is q^{-1}
+            |'amplitude': A
+            |'intensity': fit-function evaluation at 'center' (is A^2)
+            |'heigt': y-value of the maximum (is A^2+1)
 
         Parameters
         ----------
@@ -608,10 +649,9 @@ class spectrum(object):
             Possible line shapes of the peaks to fit are
             'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
         spectrum : int, default: 0
-            Defines which spectrum in the analysis folder is chosen.
+            Defines which spectrum to be modeled.
         label : string, default: ''
-            Label for the spectrumborders file in case you want to have
-            different borders for different files.
+            Name of the spectrum is N if spectrum is (N-1).
         show : boolean, default=True
             If True the plot of the fitted spectrum is shown.
         report : boolean, default = False
@@ -794,8 +834,9 @@ class spectrum(object):
         The folder '/results/fitparameter/spectra/' + label + '_' + peak
         + '.dat' contains files each of which with one parameter including
         its uncertainty.
-        The parameters are also sorted by peak for different spectra. This is
-        stored in '/results/fitparameter/peakwise/' + name + '.dat'.
+        The parameters are also sorted by peak for different spectra. 
+        This is stored in '/results/fitparameter/peakwise/' + name + '.dat'
+        including the correlations of the fit parameters.
 
         Parameters
         ----------
@@ -803,16 +844,14 @@ class spectrum(object):
             Possible line shapes of the peaks to fit are
             'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
 
-        usedpeaks :
-            ?
+        usedpeaks : list, default []
+            List of all actually used peaks. 
 
         label : string, default: ''
-            Label for the spectrumborders file in case you want to have
-            different borders for different files.
+            Name of the spectrum is N if spectrum is (N-1).
 
         spectrum : int, default: 0
-            Defines which spectrum in the analysis folder is chosen.
-            including the correlations of the fit parameters.
+            Defines which spectrum is chosen.
 
         """
         if spectrum >= self.numberOfFiles:
