@@ -86,6 +86,9 @@ class spectrum(object):
         self.fitline = [None] * self.numberOfFiles
         self.confidence = [None] * self.numberOfFiles
 
+        # boolean values for exception handling
+        self.critical = [False for files in self.listOfFiles]
+
     # function that plots regions chosen by clicking into the plot
     def PlotVerticalLines(self, color, fig):
         """
@@ -654,11 +657,37 @@ class spectrum(object):
 
             # create the fit parameters of the background substracted fit
             pars = ramanmodel.make_params()
+
+            lower_bounds = np.array([pars[key].min for key in pars.keys()]) #arrays of lower and upper bounds of the start parameters
+            upper_bounds = np.array([pars[key].max for key in pars.keys()])
+            inf_mask = (upper_bounds != float('inf')) & (lower_bounds != float('-inf')) 
+            range_bounds = upper_bounds[inf_mask] - lower_bounds[inf_mask]
+            
+            
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
                                                     x = self.xreduced[spectrum],
                                                     method = 'leastsq',
                                                     scale_covar = True)
+            
+
+            best_values = np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]) #best values of all parameters in the spectrum
+            names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()]) #names of all parameters in the spectrum
+            limit = 0.01 #percentage distance to the bounds leading to a warning
+            lower_mask = best_values[inf_mask] <= lower_bounds[inf_mask] + limit * range_bounds #mask = True if best value is near lower bound  
+            upper_mask = best_values[inf_mask] >= lower_bounds[inf_mask] + (1 - limit) * range_bounds #mask = True if best value is near upper bound 
+            
+            
+
+            if True in lower_mask: #warn if one of the parameters has reached the lower bound
+                warn(f'The parameter(s) {(names[inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen lower bounds.', ParameterWarning)
+                self.critical[spectrum] = True
+
+            if True in upper_mask: #warn if one of the parameters has reached the upper bound
+                warn(f'The parameter(s) {(names[inf_mask])[upper_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen upper bounds.', ParameterWarning)
+                self.critical[spectrum] = True    
+                                                            
+                                                  
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(
                                         self.fitresult_peaks[spectrum].params,
