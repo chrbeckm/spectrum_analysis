@@ -956,6 +956,11 @@ class spectrum(object):
                 np.savetxt(peakfile, np.transpose([np.array(xpeak),
                                                    np.array(ypeak)]))
 
+    # select an unwanted frequency in all spectra
+    def SelectAllFrequencies(self):
+        for i in range(self.numberOfFiles):
+            self.SelectFrequency(spectrum=i)
+
     # remove an unwanted frequency from the spectrum given
     def RemoveFrequency(self, spectrum=0, tolerance=6, prnt=False):
             """
@@ -1021,3 +1026,8 @@ class spectrum(object):
                     figManager = plt.get_current_fig_manager()  # get current figure
                     figManager.window.showMaximized()           # show it maximized
                     plt.show()
+
+    # remove an unwanted frequency in all spectra
+    def RemoveAllFrequencies(self):
+        for i in range(self.numberOfFiles):
+            self.RemoveFrequency(spectrum=i)

@@ -38,16 +38,16 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     if any(model in peak for peak in peaks):
         if model == 'voigt':
             fitmodel.set_param_hint('sigma', #starting value gauß-width
-                                value = 10,
+                                value = 100,
                                 min = 0,
-                                max = 100)
+                                max = 300)
             fitmodel.set_param_hint('gamma', #starting value lorentzian-width (== gauß-width by default)
-                                value = 5,
+                                value = 100,
                                 min = 0,
-                                max = 100,
+                                max = 300,
                                 vary = True, expr = '') #vary gamma independently
             fitmodel.set_param_hint('amplitude', # starting value amplitude ist approxamitaly 11*height (my guess)
-                                value = ypeak[i]*20,
+                                value = ypeak[i]*11,
                                 min = 0)
             #parameters calculated based on the fit-parameters
             fitmodel.set_param_hint('height',

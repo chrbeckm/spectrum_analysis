@@ -6,9 +6,9 @@ peaks = ['voigt']
 
 # select folder you want to analyze and initialize everything
 # it doesn't matter if there is one or more files in the folder
-spec = spectrum('smallmap')
+spec = spectrum('02019-01-17-MoS2-633nm-average')
 # choose the spectrum you want to analyze
-spectrum = 2
+spectrum = 1
 
 # calculate the correct values
 spectrum = spectrum - 1
