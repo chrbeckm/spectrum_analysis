@@ -863,7 +863,7 @@ class spectrum(object):
 
             # save background parameters
             f = open(self.folder + '/results/fitparameter/spectra/' + label
-                     + '_background.dat','a')
+                     + '_background.dat','w')
             # iterate through all the background parameters
             for name in fitparams_back:
                 # get parameters for saving
@@ -895,7 +895,7 @@ class spectrum(object):
             for peak in modelpeaks:
                 peakfile = (self.folder + '/results/fitparameter/spectra/'
                             + label + '_' + peak + '.dat')
-                f = open(peakfile, 'a')
+                f = open(peakfile, 'w')
                 # iterate through all fit parameters
                 for name in fitparams_peaks.keys():
                     # and find the current peak
@@ -905,7 +905,7 @@ class spectrum(object):
                         allpeaks = (self.folder
                                     + '/results/fitparameter/peakwise/'
                                     + name + '.dat')
-                        g = open(allpeaks, 'a')
+                        g = open(allpeaks, 'w')
 
                         # get parameters for saving
                         peakparameter = name.replace(peak, '')
@@ -960,7 +960,7 @@ class spectrum(object):
                                     + '/results/fitparameter/peakwise/'
                                     + parameter + '.dat')
                         # open file and write missing values
-                        f = open(peakfile, 'a')
+                        f = open(peakfile, 'w')
                         f.write('{:>13.5f}'.format(self.missingvalue)
                                 + '\t' + '{:>11.5f}'.format(self.missingvalue)
                                 + '\n')
