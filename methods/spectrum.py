@@ -36,6 +36,7 @@ class spectrum(object):
         self.folder = foldername
         self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
                                                                 'txt')
+        self.labels = [files.split('/')[1].split('.')[0] for files in self.listOfFiles]                                                                    
         self.x, self.y = GetMonoData(self.listOfFiles)
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
