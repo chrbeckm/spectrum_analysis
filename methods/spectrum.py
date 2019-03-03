@@ -36,7 +36,34 @@ class spectrum(object):
         self.folder = foldername
         self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
                                                                 'txt')
-        self.labels = [files.split('/')[1].split('.')[0] for files in self.listOfFiles]                                                                    
+        self.labels = [files.split('/')[1].split('.')[0] for files in self.listOfFiles]
+
+        if os.path.exists(self.folder + '/results'):
+            answer = input('These spectra have been analyzed already. Do you want to analyze all of them again? (y/n) \n')
+            if answer == 'y':
+                pass
+            elif answer == 'n': 
+                for label in self.labels:
+                    print(f'{label} \n')
+                print('Enter the spectra that you want to analyze again. (Finish the selection with x).') 
+                list_of_labels = []
+                list_of_filenames = []
+                while True:
+                    label = input()
+                    if label == 'x':
+                        break
+                    if label in self.labels:
+                        list_of_labels.append(label)
+                        list_of_filenames.append(self.listOfFiles[self.labels.index(label)])
+                    else: 
+                        print('This spectrum does not exist.') 
+                self.listOfFiles = list_of_filenames
+                self.labels = list_of_labels
+                self.numberOfFiles = len(self.labels)
+
+
+
+                                                                            
         self.x, self.y = GetMonoData(self.listOfFiles)
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
