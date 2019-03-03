@@ -40,8 +40,8 @@ class spectrum(object):
         self.labels = [files.split('/')[1].split('.')[0] for files in self.listOfFiles]
 
         if os.path.exists(self.folder + '/results'):
-            self.indices = np.arange(self.numberOfFiles)
-            self.second_analysis = True
+            self.indices = np.arange(self.numberOfFiles) #indices of the files that are analyzed again, default are all spectra
+            self.second_analysis = True 
             answer = input('These spectra have been analyzed already. Do you want to analyze all of them again? (y/n) \n')
             if answer == 'y':
                 pass
@@ -63,10 +63,10 @@ class spectrum(object):
                         list_of_filenames.append(self.listOfFiles[index])
                     else: 
                         print('This spectrum does not exist.') 
-                self.listOfFiles = list_of_filenames
-                self.labels = list_of_labels
-                self.indices = list_of_incides
-                self.numberOfFiles = len(self.labels)
+                self.listOfFiles = list_of_filenames #update listOfFiles
+                self.labels = list_of_labels #update labels
+                self.indices = list_of_incides ##update indices of the files that are analyzed again 
+                self.numberOfFiles = len(self.labels) #update number of files
                 
 
 
@@ -969,11 +969,11 @@ class spectrum(object):
                                 + '{:>13.5f}'.format(parametervalue)
                                 + ' +/- ' + '{:>11.5f}'.format(parametererror)
                                 + '\n')
-                        if self.second_analysis == True:
-                            values, stderrs = np.genfromtxt(allpeaks, unpack = True) 
-                            values[self.indices[spectrum]] = parametervalue
+                        if self.second_analysis == True: #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters 
+                            values, stderrs = np.genfromtxt(allpeaks, unpack = True) #read existing values
+                            values[self.indices[spectrum]] = parametervalue #update values
                             stderrs[self.indices[spectrum]] = parametererror
-                            with open(allpeaks, 'w') as g:
+                            with open(allpeaks, 'w') as g: #write updated values to file
                                 for i in range(len(values)):
                                     g.write('{:>13.5f}'.format(values[i])
                                     + '\t' + '{:>11.5f}'.format(stderrs[i])
@@ -1007,14 +1007,7 @@ class spectrum(object):
                                     + '/results/fitparameter/peakwise/'
                                     + parameter + '.dat')
 
-                        if self.second_analysis == False:            
-                            # open file and write missing values
-                            f = open(peakfile, 'a')
-                            f.write('{:>13.5f}'.format(self.missingvalue)
-                                    + '\t' + '{:>11.5f}'.format(self.missingvalue)
-                                    + '\n')
-                            f.close()
-                        else: 
+                        if self.second_analysis == True:   #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters 
                             values, stderrs = np.genfromtxt(peakfile, unpack = True) 
                             values[self.indices[spectrum]] = self.missingvalue
                             stderrs[self.indices[spectrum]] = self.missingvalue
@@ -1023,7 +1016,14 @@ class spectrum(object):
                                     g.write('{:>13.5f}'.format(values[i])
                                     + '\t' + '{:>11.5f}'.format(stderrs[i])
                                     + '\n') 
-
+          
+                        else:
+                            # open file and write missing values
+                            f = open(peakfile, 'a')
+                            f.write('{:>13.5f}'.format(self.missingvalue)
+                                    + '\t' + '{:>11.5f}'.format(self.missingvalue)
+                                    + '\n')
+                            f.close()
 
             # save the fitline
             file = (self.folder + '/results/fitlines/'
