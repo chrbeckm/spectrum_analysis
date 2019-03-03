@@ -183,7 +183,7 @@ class spectrum(object):
     # Select the interesting region in the spectrum, by clicking on the plot
     def SelectSpectrum(self, spectrum=0, label=''):
         """
-        Function that lets the user select a region by running the 
+        Function that lets the user select a region by running the
         method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
         The region of interest is only chosen for one specific spectrum and assumed to be the same for all others.
         The borders of the selected region is saved to '/temp/spectrumborders' + label + '.dat'
@@ -401,16 +401,16 @@ class spectrum(object):
     def SelectBaseline(self, spectrum=0, label='', color='b'):
         """
         Function that lets the user distinguish between the background and
-        the signal. It runs the method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>` 
-        to select the regions that do 
-        not belong to the background and are therefore not used for background fit. 
+        the signal. It runs the method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`
+        to select the regions that do
+        not belong to the background and are therefore not used for background fit.
         The selected regions will be saved to '/temp/baseline' + label
         + '.dat'.
 
         Parameters
         ----------
         spectrum : int, default: 0
-            Defines which of the spectra is chosen to distinguish 
+            Defines which of the spectra is chosen to distinguish
             between the background and the signal.
 
         label : string, default: ''
@@ -430,7 +430,7 @@ class spectrum(object):
                     '.', label='Data', color=color)
             ax.set_title('Normalized spectrum\n Select the area of the spectrum\
                          you wish to exclude from the background by clicking\
-                        into the plot\n (3rd-degree polynomial assumed)')
+                        into the plot\n (1st-degree polynomial assumed)')
 
             # choose the region
             xregion = self.PlotVerticalLines('red', fig)
@@ -441,7 +441,7 @@ class spectrum(object):
             np.savetxt(self.fBaseline, np.array(xregion))
 
     # actual fit of the baseline
-    def FitBaseline(self, spectrum=0, show=False, degree=3):
+    def FitBaseline(self, spectrum=0, show=False, degree=1):
         """
         Fit of the baseline by using the
         `PolynomalModel()
@@ -457,7 +457,7 @@ class spectrum(object):
             Decides whether the a window with the fitted baseline is opened
             or not.
 
-        degree : int, default: 3
+        degree : int, default: 1
             Degree of the polynomial that describes the background.
 
         """
@@ -503,7 +503,7 @@ class spectrum(object):
                 plt.show()
 
     # fit all baselines
-    def FitAllBaselines(self, show=False, degree=3):
+    def FitAllBaselines(self, show=False, degree=1):
         """
         Wrapper around :func:`~spectrum.FitBaseline` that iterates over
         all spectra given.
@@ -514,16 +514,16 @@ class spectrum(object):
     # function that plots the dots at the peaks you wish to fit
     def PlotPeaks(self, fig, ax):
         """
-        Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running. 
+        Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running.
 
         Parameters
         ----------
         fig : matplotlib.figure.Figure
             Currently displayed window that shows the spectrum as well as
             the selected peaks.
-            
+
         ax : matplotlib.axes.Axes
-            Corresponding Axes object to Figure object fig. 
+            Corresponding Axes object to Figure object fig.
 
         Returns
         -------
@@ -535,27 +535,27 @@ class spectrum(object):
         ypeak = []  # y arrays for peak coordinates
         global line
         line, = ax.plot(xpeak, ypeak, 'ro', markersize = 10)
-        
+
 
         def onclickpeaks(event):
-            
+
             if event.button == 1: # left mouse click to add data point
                 xpeak.append(event.xdata)               # append x data and
                 ypeak.append(event.ydata)               # append y data
                 line.set_xdata(xpeak)
-                line.set_ydata(ypeak)        
+                line.set_ydata(ypeak)
                 plt.draw()                       # and show it
 
 
             if event.button == 3: #right mouse click to remove data point
                 if xpeak != []:
-                    xdata_nearest_index = ( np.abs(xpeak - event.xdata) ).argmin() #nearest neighbour  
-                    del xpeak[xdata_nearest_index] #delte x 
+                    xdata_nearest_index = ( np.abs(xpeak - event.xdata) ).argmin() #nearest neighbour
+                    del xpeak[xdata_nearest_index] #delte x
                     del ypeak[xdata_nearest_index] #and y data point
                     line.set_xdata(xpeak) #update x
                     line.set_ydata(ypeak) #and y data in plot
-                    plt.draw()   # and show it    
-                    
+                    plt.draw()   # and show it
+
 
         # actual execution of the defined function oneclickpeaks
         cid = fig.canvas.mpl_connect('button_press_event', onclickpeaks)
@@ -581,7 +581,7 @@ class spectrum(object):
         ----------
         peaks : list, default: ['breit_wigner', 'lorentzian']
             Possible line shapes of the peaks to fit are
-            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'. 
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
             See lmfit documentation (https://lmfit.github.io/lmfit-py/builtin_models.html) for details.
 
         spectrum : int, default: 0
@@ -643,9 +643,9 @@ class spectrum(object):
         '/results/plot/fitplot\_' + label + '.png'.
         The fit parameters are saved in the function
         :func:`~spectrum.SaveFitParams`.
-        The fit parameters values that are derived from the fit parameters 
-        are individual for each line shape. 
-        Especially parameters of the BreitWignerModel() is adapted to our research. 
+        The fit parameters values that are derived from the fit parameters
+        are individual for each line shape.
+        Especially parameters of the BreitWignerModel() is adapted to our research.
 
         **VoigtModel():**
             |'center': x value of the maximum
@@ -657,7 +657,7 @@ class spectrum(object):
             |'fwhm_l': lorentzian-FWHM
             |'fwhm': FWHM
 
-        **GaussianModel():** 
+        **GaussianModel():**
             |'center': x value of the maximum
             |'heigt': fit-function evaluation at 'center'
             |'amplitude': area under fit-function
@@ -736,24 +736,24 @@ class spectrum(object):
 
             lower_bounds = np.array([pars[key].min for key in pars.keys()]) #arrays of lower and upper bounds of the start parameters
             upper_bounds = np.array([pars[key].max for key in pars.keys()])
-            inf_mask = (upper_bounds != float('inf')) & (lower_bounds != float('-inf')) 
+            inf_mask = (upper_bounds != float('inf')) & (lower_bounds != float('-inf'))
             range_bounds = upper_bounds[inf_mask] - lower_bounds[inf_mask]
-            
-            
+
+
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
                                                     x = self.xreduced[spectrum],
                                                     method = 'leastsq',
                                                     scale_covar = True)
-            
+
 
             best_values = np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]) #best values of all parameters in the spectrum
             names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()]) #names of all parameters in the spectrum
             limit = 0.01 #percentage distance to the bounds leading to a warning
-            lower_mask = best_values[inf_mask] <= lower_bounds[inf_mask] + limit * range_bounds #mask = True if best value is near lower bound  
-            upper_mask = best_values[inf_mask] >= lower_bounds[inf_mask] + (1 - limit) * range_bounds #mask = True if best value is near upper bound 
-            
-            
+            lower_mask = best_values[inf_mask] <= lower_bounds[inf_mask] + limit * range_bounds #mask = True if best value is near lower bound
+            upper_mask = best_values[inf_mask] >= lower_bounds[inf_mask] + (1 - limit) * range_bounds #mask = True if best value is near upper bound
+
+
 
             if True in lower_mask: #warn if one of the parameters has reached the lower bound
                 warn(f'The parameter(s) {(names[inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen lower bounds.', ParameterWarning)
@@ -761,9 +761,9 @@ class spectrum(object):
 
             if True in upper_mask: #warn if one of the parameters has reached the upper bound
                 warn(f'The parameter(s) {(names[inf_mask])[upper_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen upper bounds.', ParameterWarning)
-                self.critical[spectrum] = True    
-                                                            
-                                                  
+                self.critical[spectrum] = True
+
+
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(
                                         self.fitresult_peaks[spectrum].params,
@@ -870,7 +870,7 @@ class spectrum(object):
         The folder '/results/fitparameter/spectra/' + label + '_' + peak
         + '.dat' contains files each of which with one parameter including
         its uncertainty.
-        The parameters are also sorted by peak for different spectra. 
+        The parameters are also sorted by peak for different spectra.
         This is stored in '/results/fitparameter/peakwise/' + name + '.dat'
         including the correlations of the fit parameters.
 
@@ -881,7 +881,7 @@ class spectrum(object):
             'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
 
         usedpeaks : list, default []
-            List of all actually used peaks. 
+            List of all actually used peaks.
 
         label : string, default: ''
             Name of the spectrum is N if spectrum is (N-1).
@@ -1056,7 +1056,3 @@ class spectrum(object):
         for i in range(self.numberOfFiles):
             self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i,
                                label=self.labels[i])
-
-
-
-
