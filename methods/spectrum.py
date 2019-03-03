@@ -586,7 +586,7 @@ class spectrum(object):
         all spectra given.
         """
         for i in range(self.numberOfFiles):
-            self.SelectPeaks(peaks, spectrum=i, label=str(i+1).zfill(4))
+            self.SelectPeaks(peaks, spectrum=i, label=self.labels[i])
 
 
     def FitSpectrum(self, peaks, spectrum=0, label='', show=True, report=False):
@@ -819,7 +819,7 @@ class spectrum(object):
         given.
         """
         for i in range(self.numberOfFiles):
-            self.FitSpectrum(peaks, spectrum=i, label=str(i+1).zfill(4),
+            self.FitSpectrum(peaks, spectrum=i, label=self.labels[i],
                              show=show, report=report)
 
     # Save the Results of the fit in a file using
@@ -906,7 +906,7 @@ class spectrum(object):
                         allpeaks = (self.folder
                                     + '/results/fitparameter/peakwise/'
                                     + name + '.dat')
-                        g = open(allpeaks, 'w')
+                        g = open(allpeaks, 'a')
 
                         # get parameters for saving
                         peakparameter = name.replace(peak, '')
@@ -961,7 +961,7 @@ class spectrum(object):
                                     + '/results/fitparameter/peakwise/'
                                     + parameter + '.dat')
                         # open file and write missing values
-                        f = open(peakfile, 'w')
+                        f = open(peakfile, 'a')
                         f.write('{:>13.5f}'.format(self.missingvalue)
                                 + '\t' + '{:>11.5f}'.format(self.missingvalue)
                                 + '\n')
@@ -997,7 +997,7 @@ class spectrum(object):
 
         for i in range(self.numberOfFiles):
             self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i,
-                               label=str(i+1).zfill(4))
+                               label=self.labels[i])
 
 
 
