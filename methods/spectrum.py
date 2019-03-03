@@ -33,19 +33,23 @@ class spectrum(object):
     """
 
     def __init__(self, foldername):
+        self.second_analysis = False #boolean value for exception handling if several spectra are analyzed for the second time
         self.folder = foldername
         self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
                                                                 'txt')
         self.labels = [files.split('/')[1].split('.')[0] for files in self.listOfFiles]
 
         if os.path.exists(self.folder + '/results'):
+            self.indices = np.arange(self.numberOfFiles)
+            self.second_analysis = True
             answer = input('These spectra have been analyzed already. Do you want to analyze all of them again? (y/n) \n')
             if answer == 'y':
                 pass
             elif answer == 'n': 
                 for label in self.labels:
                     print(f'{label} \n')
-                print('Enter the spectra that you want to analyze again. (Finish the selection with x).') 
+                print('Enter the spectra that you want to analyze again. (Finish the selection with x).')
+                list_of_incides = [] 
                 list_of_labels = []
                 list_of_filenames = []
                 while True:
@@ -54,12 +58,16 @@ class spectrum(object):
                         break
                     if label in self.labels:
                         list_of_labels.append(label)
-                        list_of_filenames.append(self.listOfFiles[self.labels.index(label)])
+                        index = self.labels.index(label)
+                        list_of_incides.append(index) 
+                        list_of_filenames.append(self.listOfFiles[index])
                     else: 
                         print('This spectrum does not exist.') 
                 self.listOfFiles = list_of_filenames
                 self.labels = list_of_labels
+                self.indices = list_of_incides
                 self.numberOfFiles = len(self.labels)
+                
 
 
 
@@ -933,7 +941,8 @@ class spectrum(object):
                         allpeaks = (self.folder
                                     + '/results/fitparameter/peakwise/'
                                     + name + '.dat')
-                        g = open(allpeaks, 'a')
+                        if self.second_analysis == False: 
+                            g = open(allpeaks, 'a')                       
 
                         # get parameters for saving
                         peakparameter = name.replace(peak, '')
@@ -960,10 +969,20 @@ class spectrum(object):
                                 + '{:>13.5f}'.format(parametervalue)
                                 + ' +/- ' + '{:>11.5f}'.format(parametererror)
                                 + '\n')
-                        g.write('{:>13.5f}'.format(parametervalue)
-                                + '\t' + '{:>11.5f}'.format(parametererror)
-                                + '\n')
-                        g.close()
+                        if self.second_analysis == True:
+                            values, stderrs = np.genfromtxt(allpeaks, unpack = True) 
+                            values[self.indices[spectrum]] = parametervalue
+                            stderrs[self.indices[spectrum]] = parametererror
+                            with open(allpeaks, 'w') as g:
+                                for i in range(len(values)):
+                                    g.write('{:>13.5f}'.format(values[i])
+                                    + '\t' + '{:>11.5f}'.format(stderrs[i])
+                                    + '\n')      
+                        else:            
+                            g.write('{:>13.5f}'.format(parametervalue)
+                                    + '\t' + '{:>11.5f}'.format(parametererror)
+                                    + '\n')
+                            g.close()
                 f.close()
 
             # enter value for non used peaks
