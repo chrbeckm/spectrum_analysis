@@ -1006,12 +1006,24 @@ class spectrum(object):
                         peakfile = (self.folder
                                     + '/results/fitparameter/peakwise/'
                                     + parameter + '.dat')
-                        # open file and write missing values
-                        f = open(peakfile, 'a')
-                        f.write('{:>13.5f}'.format(self.missingvalue)
-                                + '\t' + '{:>11.5f}'.format(self.missingvalue)
-                                + '\n')
-                        f.close()
+
+                        if self.second_analysis == False:            
+                            # open file and write missing values
+                            f = open(peakfile, 'a')
+                            f.write('{:>13.5f}'.format(self.missingvalue)
+                                    + '\t' + '{:>11.5f}'.format(self.missingvalue)
+                                    + '\n')
+                            f.close()
+                        else: 
+                            values, stderrs = np.genfromtxt(peakfile, unpack = True) 
+                            values[self.indices[spectrum]] = self.missingvalue
+                            stderrs[self.indices[spectrum]] = self.missingvalue
+                            with open(peakfile, 'w') as g:
+                                for i in range(len(values)):
+                                    g.write('{:>13.5f}'.format(values[i])
+                                    + '\t' + '{:>11.5f}'.format(stderrs[i])
+                                    + '\n') 
+
 
             # save the fitline
             file = (self.folder + '/results/fitlines/'
