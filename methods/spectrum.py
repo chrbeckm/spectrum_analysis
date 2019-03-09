@@ -107,6 +107,7 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
             os.makedirs(self.folder + '/results/denoised/')
+            os.makedirs(self.folder + '/results/grouped_spectra/')
 
         # save missing value
         missingvaluedecimal = decimal.Decimal(str(self.missingvalue))
@@ -1042,7 +1043,7 @@ class spectrum(object):
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')
 
-    def group_spectra(self):
+    def group_spectra(self, sigma = 1.5):
         c = np.cov(self.yreduced, rowvar = False)
         l, W = np.linalg.eigh(c)
         
@@ -1051,8 +1052,6 @@ class spectrum(object):
 
         y_Prime = self.yreduced @ W 
         y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime)   
-        plt.scatter(y_Prime[:, 0], y_Prime[:, 1])
-        plt.show()
         rows = np.arange(np.shape(self.y)[0])
         self.groups = []
         interval_x = np.arange(-1.5, 2, 0.5)
@@ -1060,13 +1059,54 @@ class spectrum(object):
         for iter_x in range(len(interval_x)-1):
             for iter_y in range(len(interval_y)-1):
                self.groups.append(rows[(y_Prime[:, 0] > interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] > interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
+               if self.groups[-1] != []:
+                    fig = plt.figure(figsize = (15, 10))
+                    ax1 = fig.add_subplot(122)
+                    ax2 = fig.add_subplot(223)
+                    ax1.set_title(f'{len(self.groups[-1])} spectra')
+                    ax1.set_xlabel('Raman Shift / $cm^{-1}$')
+                    ax1.set_ylabel('Normed Intensity / a.u.')
+                    for spectrum in self.groups[-1]: 
+                        pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
+                        clr = pl[0].get_color()
+                        ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
+                    ax3 = fig.add_subplot(221)
+                    ax3.scatter(y_Prime[:, 0], y_Prime[:, 1], color =  'k')
+                    ax3.fill_between(np.linspace(interval_x[iter_x], interval_x[iter_x+1], 100), interval_y[iter_y], interval_y[iter_y+1], color = 'g', alpha = 0.5)    
+                    ax3.set_xlabel('PC 1') 
+                    ax3.set_ylabel('PC 2') 
+                    ax2.set_xlabel('PC 1') 
+                    ax2.set_ylabel('PC 2')    
+                    fig.savefig(f'{self.folder}/results/grouped_spectra/group{len(self.groups)}.png', bbox_inches = 'tight', pad_inches = 0)
+                    plt.clf()
+
+
+        fig = plt.figure(figsize = (15, 10))
+        ax1 = fig.add_subplot(122)
+        ax2 = fig.add_subplot(223)
+        ax3 = fig.add_subplot(221)
+        ax3.scatter(y_Prime[:, 0], y_Prime[:, 1], color =  'k')
+        ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), min(y_Prime[:, 1]), -sigma, color = 'r', alpha = 0.5, linewidth = 0)    
+        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), -sigma, 100), -sigma, sigma, color = 'r', alpha = 0.5, linewidth = 0)    
+        ax3.fill_between(np.linspace(sigma, max(y_Prime[:, 0]), 100), -sigma, sigma, color = 'r', alpha = 0.5, linewidth = 0)    
+        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), max(y_Prime[:, 0]), 100), sigma , max([sigma, max(y_Prime[:, 1])]), color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.set_xlabel('PC 1') 
+        ax3.set_ylabel('PC 2') 
+        ax2.set_xlabel('PC 1') 
+        ax2.set_ylabel('PC 2') 
+        for spectrum in rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)]:
+             ax1.set_xlabel('Raman Shift / $cm^{-1}$')
+             ax1.set_ylabel('Normed Intensity / a.u.')
+             pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
+             clr = pl[0].get_color()
+             ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
+             
+                 
+        ax1.set_title(f'{len(rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)])} spectra (outliners)')        
+        fig.savefig(f'{self.folder}/results/grouped_spectra/outliners.png', bbox_inches = 'tight', pad_inches = 0)
+                        
+    
         
-        for i in range(len(self.groups)): 
-            if self.groups[i] != []:
-                for spectrum in self.groups[i]: 
-                    plt.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
-                #plt.savefig(f'test/group{i + 1}.png')
-                #plt.clf()
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
