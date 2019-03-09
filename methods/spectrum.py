@@ -1058,8 +1058,10 @@ class spectrum(object):
         interval_y = np.arange(-1.5, 3, 1.5)
         for iter_x in range(len(interval_x)-1):
             for iter_y in range(len(interval_y)-1):
-               self.groups.append(rows[(y_Prime[:, 0] > interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] > interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
-               if self.groups[-1] != []:
+               self.groups.append(rows[(y_Prime[:, 0] >= interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] >= interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
+               
+               if (self.groups[-1].size != 0):
+                    
                     fig = plt.figure(figsize = (15, 10))
                     ax1 = fig.add_subplot(122)
                     ax2 = fig.add_subplot(223)
@@ -1079,6 +1081,7 @@ class spectrum(object):
                     ax2.set_ylabel('PC 2')    
                     fig.savefig(f'{self.folder}/results/grouped_spectra/group{len(self.groups)}.png', bbox_inches = 'tight', pad_inches = 0)
                     plt.clf()
+                 
 
 
         fig = plt.figure(figsize = (15, 10))
@@ -1087,9 +1090,9 @@ class spectrum(object):
         ax3 = fig.add_subplot(221)
         ax3.scatter(y_Prime[:, 0], y_Prime[:, 1], color =  'k')
         ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), min(y_Prime[:, 1]), -sigma, color = 'r', alpha = 0.5, linewidth = 0)    
-        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), -sigma, 100), -sigma, sigma, color = 'r', alpha = 0.5, linewidth = 0)    
-        ax3.fill_between(np.linspace(sigma, max(y_Prime[:, 0]), 100), -sigma, sigma, color = 'r', alpha = 0.5, linewidth = 0)    
-        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), max(y_Prime[:, 0]), 100), sigma , max([sigma, max(y_Prime[:, 1])]), color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), -sigma, 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)    
+        ax3.fill_between(np.linspace(sigma, max(y_Prime[:, 0]), 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)    
+        ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), sigma , max([sigma, max(y_Prime[:, 1])]), color = 'r', alpha = 0.5, linewidth = 0)
         ax3.set_xlabel('PC 1') 
         ax3.set_ylabel('PC 2') 
         ax2.set_xlabel('PC 1') 
