@@ -19,6 +19,8 @@ from functions import *
 
 import decimal                          # to get exponent of missingvalue
 
+from sklearn import preprocessing
+
 
 # Class for spectra (under development)
 class spectrum(object):
@@ -1039,6 +1041,32 @@ class spectrum(object):
 
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')
+
+    def group_spectra(self):
+        c = np.cov(self.yreduced, rowvar = False)
+        l, W = np.linalg.eigh(c)
+        
+        l = l[::-1]
+        W = W[:, ::-1]
+
+        y_Prime = self.yreduced @ W 
+        y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime)   
+        plt.scatter(y_Prime[:, 0], y_Prime[:, 1])
+        plt.show()
+        rows = np.arange(np.shape(self.y)[0])
+        self.groups = []
+        interval_x = np.arange(-1.5, 2, 0.5)
+        interval_y = np.arange(-1.5, 3, 1.5)
+        for iter_x in range(len(interval_x)-1):
+            for iter_y in range(len(interval_y)-1):
+               self.groups.append(rows[(y_Prime[:, 0] > interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] > interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
+        
+        for i in range(len(self.groups)): 
+            if self.groups[i] != []:
+                for spectrum in self.groups[i]: 
+                    plt.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
+                #plt.savefig(f'test/group{i + 1}.png')
+                #plt.clf()
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
