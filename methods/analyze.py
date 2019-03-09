@@ -16,26 +16,28 @@ spec.SelectSpectrum()
 spec.DetectAllMuons()
 spec.RemoveAllMuons()
 
+spec.group_spectra()
+
 # Function opens a window with the data,
 # you can select the regions that do not belong to
 # the third degree polynominal background signal
 # by clicking in the plot
-spec.SelectBaseline()
+#spec.SelectBaseline()
 
 # fit the baselines
-spec.FitAllBaselines()
+#spec.FitAllBaselines()
 
 # Function that opens a Window with the data,
 # you can choose initial values for the peaks by clicking on the plot.
 # You have to choose peaks for all spectra to get the proper starting
 # values. -> Improvement needed
-spec.SelectAllPeaks(peaks)
+#spec.SelectAllPeaks(peaks)
 
 # Fit all spectra with initial values provided by SelectBaseline()
 # and SelectAllPeaks()
 # if you need to see the fit results set report to True,
 # otherwise set it to false
-spec.FitAllSpectra(peaks, report=False)
+#spec.FitAllSpectra(peaks, report=False)
 
 # Save the results of the fit in txt-files
-spec.SaveAllFitParams(peaks)
+#spec.SaveAllFitParams(peaks)
