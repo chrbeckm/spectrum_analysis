@@ -216,6 +216,7 @@ class spectrum(object):
 
             plt.legend(loc='upper right')
             plt.show()
+         
             self.yreduced = self.ynormed[:, (self.x[spectrum] > xregion[0]) &
                                             (self.x[spectrum] < xregion[-1])]
             self.xreduced = self.x[:, (self.x[spectrum] > xregion[0]) &
@@ -1044,6 +1045,19 @@ class spectrum(object):
             print('Spectrum ' + label + ' saved')
 
     def group_spectra(self, sigma = 1.5):
+        """
+        Method uses PCA analysis to group equal spectra. Therefore the first and second PCA are used. 
+        Since the different PCA contain more information if the corresponding eigenvalues are large, 
+        5 splits on PCA1 and only one split on PCA2 are performed.     
+
+        Parameters
+        ----------
+        sigma : float, default: 1.5
+            Number of standard deviations to mark oulined spectra. 
+            In order to detect outlined spectra, all the spectra with PCA components 
+            outside of sigma standard deviations of the normal distributed sample are 
+            marked as outliners. 
+        """
         c = np.cov(self.yreduced, rowvar = False)
         l, W = np.linalg.eigh(c)
         
@@ -1051,7 +1065,7 @@ class spectrum(object):
         W = W[:, ::-1]
 
         y_Prime = self.yreduced @ W 
-        y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime)   
+        y_Prime = preprocessing.QuantileTransformer().fit_transform(y_Prime)   
         rows = np.arange(np.shape(self.y)[0])
         self.groups = []
         interval_x = np.arange(-1.5, 2, 0.5)
