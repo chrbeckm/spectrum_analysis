@@ -1044,3 +1044,28 @@ class spectrum(object):
     def RemoveAllFrequencies(self):
         for i in range(self.numberOfFiles):
             self.RemoveFrequency(spectrum=i)
+
+# plot XAES data and its derivative
+    def PlotXaes(self, spectrum):
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1.plot(self.x[spectrum], self.ynormed[spectrum],
+                'b.', label = 'Data')
+        ax1.plot(self.x[spectrum], self.ydenoised[spectrum],
+                'r-', label = 'Wavelet-Denoised')
+        fig.legend(loc='upper right')
+
+        # calculate and plot derivative
+        self.dy = np.diff(self.ydenoised[spectrum])
+        ax2.plot(self.x[spectrum][:-1], self.dy,
+                 'g-', label = 'Derivative')
+
+        plt.legend(loc='upper right')
+        #plt.show()
+        fig.savefig(self.folder + '/results/plot/derivative_'
+                                + str(spectrum + 1).zfill(4)
+                                + '.png', dpi=300)
+
+# plot all XAES data and the corresponding derivative
+    def PlotAllXaes(self):
+        for i in range(self.numberOfFiles):
+            self.PlotXaes(spectrum=i)
