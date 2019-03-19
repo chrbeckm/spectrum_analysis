@@ -69,6 +69,9 @@ class spectrum(object):
         # array to contain denoised data
         self.ydenoised = [None] * self.numberOfFiles
 
+        # array containing yderived
+        self.dy = [None] * self.numberOfFiles
+
         # denoised values
         self.muonsgrouped = [None] * self.numberOfFiles
 
@@ -83,6 +86,7 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
             os.makedirs(self.folder + '/results/denoised/')
+            os.makedirs(self.folder + '/results/derived/')
 
         # save missing value
         missingvaluedecimal = decimal.Decimal(str(self.missingvalue))
@@ -1055,8 +1059,8 @@ class spectrum(object):
         fig.legend(loc='upper right')
 
         # calculate and plot derivative
-        self.dy = np.diff(self.ydenoised[spectrum])
-        ax2.plot(self.x[spectrum][:-1], self.dy,
+        self.dy[spectrum] = np.diff(self.ydenoised[spectrum])
+        ax2.plot(self.x[spectrum][:-1], self.dy[spectrum],
                  'g-', label = 'Derivative')
 
         plt.legend(loc='upper right')
@@ -1064,6 +1068,10 @@ class spectrum(object):
         fig.savefig(self.folder + '/results/plot/derivative_'
                                 + str(spectrum + 1).zfill(4)
                                 + '.png', dpi=300)
+        savefile = (self.folder + '/results/derived/'
+                    + str(spectrum + 1).zfill(4) + '.dat')
+        np.savetxt(savefile, np.column_stack([self.x[spectrum][:-1],
+                                              self.dy[spectrum]]))
 
 # plot all XAES data and the corresponding derivative
     def PlotAllXaes(self):
