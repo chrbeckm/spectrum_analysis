@@ -31,13 +31,26 @@ class spectrum(object):
     foldername : string
         The folder of interest has to be in the current directory.
         The data will be prepared to analyze spectral data.
+    measurement : sting
+        Defines the type of measurement used to generate the data that
+        should be analyzed now.
+        Possible measurements are
+        - xps
     """
 
-    def __init__(self, foldername):
+    def __init__(self, foldername, **kwargs):
         self.folder = foldername
         self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
                                                                 'txt')
-        self.x, self.y = GetMonoData(self.listOfFiles)
+
+        # default are raman measurements
+        if kwargs == {}:
+            print('Raman measurements')
+            self.x, self.y = GetMonoData(self.listOfFiles)
+        elif kwargs['measurement'] == 'xps':
+            print('XPS measurements')
+            self.x, self.y = GetMonoData(self.listOfFiles, measurement='xps')
+
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
             self.y = np.array([self.y])

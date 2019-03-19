@@ -23,7 +23,7 @@ def GetFolderContent(folder, filetype, object='file', where='folder', quiet=Fals
     return listOfFiles, numberOfFiles
 
 # returns arrays containing the measured data
-def GetMonoData(listOfFiles):
+def GetMonoData(listOfFiles, **kwargs):
     # define arrays to hold data from the files
     inversecm = np.array([])
     intensity = np.array([])
@@ -32,7 +32,12 @@ def GetMonoData(listOfFiles):
     for fileName in listOfFiles:
         # read one file
         index = listOfFiles.index(fileName)
-        cm, inty = np.genfromtxt(listOfFiles[index], unpack=True)
+        if kwargs == {}:
+            cm, inty = np.genfromtxt(listOfFiles[index], unpack=True)
+        elif kwargs['measurement'] == 'xps':
+            cm, inty = np.genfromtxt(listOfFiles[index], unpack=True,
+                                                         skip_header=1,
+                                                         usecols=(0,10))
         if index != 0:
             inversecm = np.vstack((inversecm, cm))
             intensity = np.vstack((intensity, inty))
