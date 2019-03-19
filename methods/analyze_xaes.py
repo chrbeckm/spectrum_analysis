@@ -6,11 +6,33 @@ peaks = ['breit_wigner', 'lorentzian']
 
 # select folder you want to analyze and initialize everything
 # it doesn't matter if there is one or more files in the folder
-spec = spectrum('0XPS/highres_450/01_0', measurement='xps')
+spec = spectrum('0XPS/highres_450/01_1', measurement='xps')
 
 # Select the interesting region in the spectrum,
 # by clicking on the plot
 spec.SelectSpectrum()
+
+spec.WaveletSmoothAllSpectra(level=0, sav=True)
+
+# plot spectrum
+for spectr in range(0,4):
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+    ax1.plot(spec.x[spectr], spec.ynormed[spectr],
+            'b.', label = 'Data')
+    ax1.plot(spec.x[spectr], spec.ydenoised[spectr],
+            'r-', label = 'Wavelet-Denoised')
+    fig.legend(loc='upper right')
+
+    # calculate and plot derivative
+    dy = np.diff(spec.ydenoised[spectr])
+    ax2.plot(spec.x[spectr][:-1], dy,
+             'g-', label = 'Derivative')
+
+    plt.legend(loc='upper right')
+    #plt.show()
+    fig.savefig(spec.folder + '/results/plot/derivative'
+                            + str(spectr + 1).zfill(4)
+                            + '.png', dpi=300)
 
 # Function opens a window with the data,
 # you can select the regions that do not belong to
