@@ -346,7 +346,7 @@ class spectrum(object):
         denoised = pywt.waverec(coeff, wavelet)
 
         # return the value of denoised except for the last value
-        if (len(self.yreduced) % 2) == 0:
+        if (len(self.yreduced[spectrum]) % 2) == 0:
             self.ydenoised[spectrum] = denoised
         else:
             self.ydenoised[spectrum] = denoised[:-1]
