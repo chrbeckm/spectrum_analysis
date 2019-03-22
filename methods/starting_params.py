@@ -1,5 +1,17 @@
 import re
 import lmfit
+import warnings
+from warnings import warn
+
+class ParameterWarning(UserWarning):
+    pass
+
+def custom_formatwarning(message, category, filename, lineno, line=None):
+    return formatwarning_orig(message, category, filename, lineno, line='') #don't show line in warning
+
+formatwarning_orig = warnings.formatwarning
+warnings.formatwarning = custom_formatwarning #change format of warning
+
 
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     """
@@ -13,19 +25,27 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
 
     Parameters
     ----------
-    fitmodel : CLASS from lmfit ?
+    fitmodel : class
+        Model chosen in :func:`~starting_params.ChoosePeakType`.
     peaks : list, default: ['breit_wigner', 'lorentzian']
         Possible line shapes of the peaks to fit are
         'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
     xpeak array (float), default = 0
-        Position of the peaks maxima (x-value).
+        Position of the peak's maxima (x-value).
     ypeak array (float), default = 0
-        Position of the peaks maxima (y-value).
+        Height of the peak's maxima (y-value).
     i : int
         Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
 
+    Returns
+    -------
+    fitmodel : class
+        Model chosen in :func:`~starting_params.ChoosePeakType` 
+        including initial values for the fit (set_param_hint).
     """
+
     # starting position for the peak position is not allowed to vary much
+
     fitmodel.set_param_hint('center',
                              value = xpeak[i],
                              min = xpeak[i] - 50,
@@ -127,7 +147,13 @@ def ChoosePeakType(peaktype, i):
         'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
     i : int
         Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
-
+    
+    Returns
+    -------
+    lmfit.models.* : class
+        Returns either VoigtModel(), BreitWignerModel(), LorentzianModel(), or GaussianModel()
+        depending on the peaktype with *Model(prefix = prefix, nan_policy = 'omit').
+        The prefix contains the peaktype and i.
     """
     prefix = peaktype + '_p'+ str(i + 1) + '_'
     if peaktype == 'voigt':
