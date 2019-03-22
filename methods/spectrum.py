@@ -39,24 +39,24 @@ class spectrum(object):
         - xps
     """
 
-    def __init__(self, foldername):
+    def __init__(self, foldername, **kwargs):
         self.second_analysis = False #boolean value for exception handling if several spectra are analyzed for the second time
         self.folder = foldername
         self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
                                                                 'txt')
-        self.labels = [files.split('/')[1].split('.')[0] for files in self.listOfFiles]
+        self.labels = [files.split('/')[-1].split('.')[-2] for files in self.listOfFiles]
 
         if os.path.exists(self.folder + '/results'):
             self.indices = np.arange(self.numberOfFiles) #indices of the files that are analyzed again, default are all spectra
-            self.second_analysis = True 
+            self.second_analysis = True
             answer = input('These spectra have been analyzed already. Do you want to analyze all of them again? (y/n) \n')
             if answer == 'y':
                 pass
-            elif answer == 'n': 
+            elif answer == 'n':
                 for label in self.labels:
                     print(f'{label} \n')
                 print('Enter the spectra that you want to analyze again. (Finish the selection with x).')
-                list_of_incides = [] 
+                list_of_incides = []
                 list_of_labels = []
                 list_of_filenames = []
                 while True:
@@ -66,13 +66,13 @@ class spectrum(object):
                     if label in self.labels:
                         list_of_labels.append(label)
                         index = self.labels.index(label)
-                        list_of_incides.append(index) 
+                        list_of_incides.append(index)
                         list_of_filenames.append(self.listOfFiles[index])
-                    else: 
-                        print('This spectrum does not exist.') 
+                    else:
+                        print('This spectrum does not exist.')
                 self.listOfFiles = list_of_filenames #update listOfFiles
                 self.labels = list_of_labels #update labels
-                self.indices = list_of_incides ##update indices of the files that are analyzed again 
+                self.indices = list_of_incides ##update indices of the files that are analyzed again
                 self.numberOfFiles = len(self.labels) #update number of files
 
         # default are raman measurements
@@ -82,7 +82,7 @@ class spectrum(object):
         elif kwargs['measurement'] == 'xps':
             print('XPS measurements')
             self.x, self.y = GetMonoData(self.listOfFiles, measurement='xps')
-        
+
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
             self.y = np.array([self.y])
@@ -396,8 +396,8 @@ class spectrum(object):
 
         # save denoised data
         if sav:
-            savefile = (self.folder + '/results/denoised/'
-                        + str(spectrum + 1).zfill(4) + '.dat')
+            savefile = (self.folder + '/results/denoised/den_'
+                        + self.labels[spectrum] + '.dat')
             np.savetxt(savefile, np.column_stack([self.xreduced[spectrum],
                                                   self.ydenoised[spectrum]]))
 
@@ -955,8 +955,8 @@ class spectrum(object):
                         allpeaks = (self.folder
                                     + '/results/fitparameter/peakwise/'
                                     + name + '.dat')
-                        if self.second_analysis == False: 
-                            g = open(allpeaks, 'a')                       
+                        if self.second_analysis == False:
+                            g = open(allpeaks, 'a')
 
                         # get parameters for saving
                         peakparameter = name.replace(peak, '')
@@ -983,7 +983,7 @@ class spectrum(object):
                                 + '{:>13.5f}'.format(parametervalue)
                                 + ' +/- ' + '{:>11.5f}'.format(parametererror)
                                 + '\n')
-                        if self.second_analysis == True: #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters 
+                        if self.second_analysis == True: #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters
                             values, stderrs = np.genfromtxt(allpeaks, unpack = True) #read existing values
                             values[self.indices[spectrum]] = parametervalue #update values
                             stderrs[self.indices[spectrum]] = parametererror
@@ -991,8 +991,8 @@ class spectrum(object):
                                 for i in range(len(values)):
                                     g.write('{:>13.5f}'.format(values[i])
                                     + '\t' + '{:>11.5f}'.format(stderrs[i])
-                                    + '\n')      
-                        else:            
+                                    + '\n')
+                        else:
                             g.write('{:>13.5f}'.format(parametervalue)
                                     + '\t' + '{:>11.5f}'.format(parametererror)
                                     + '\n')
@@ -1021,16 +1021,16 @@ class spectrum(object):
                                     + '/results/fitparameter/peakwise/'
                                     + parameter + '.dat')
 
-                        if self.second_analysis == True:   #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters 
-                            values, stderrs = np.genfromtxt(peakfile, unpack = True) 
+                        if self.second_analysis == True:   #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters
+                            values, stderrs = np.genfromtxt(peakfile, unpack = True)
                             values[self.indices[spectrum]] = self.missingvalue
                             stderrs[self.indices[spectrum]] = self.missingvalue
                             with open(peakfile, 'w') as g:
                                 for i in range(len(values)):
                                     g.write('{:>13.5f}'.format(values[i])
                                     + '\t' + '{:>11.5f}'.format(stderrs[i])
-                                    + '\n') 
-          
+                                    + '\n')
+
                         else:
                             # open file and write missing values
                             f = open(peakfile, 'a')
@@ -1201,9 +1201,9 @@ class spectrum(object):
         plt.legend(loc='upper right')
         #plt.show()
         fig.savefig(self.folder + '/results/plot/derivative_'
-                                + str(spectrum + 1).zfill(4)
+                                + self.labels[spectrum]
                                 + '.png', dpi=300)
-        savefile = (self.folder + '/results/derived/'
+        savefile = (self.folder + '/results/derived/der_'
                     + self.labels[spectrum] + '.dat')
         np.savetxt(savefile, np.column_stack([self.x[spectrum][:-1],
                                               self.dy[spectrum]]))
