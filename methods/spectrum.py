@@ -1098,8 +1098,8 @@ class spectrum(object):
         #create groups by performing splits in the first two principle components
         rows = np.arange(np.shape(self.y)[0])
         self.groups = []
-        interval_x = np.arange(-1.5, 2, 0.5) #array of split points in first principle component
-        interval_y = np.arange(-1.5, 3, 1.5) #array of split points in second principle component
+        interval_x = np.arange(-sigma, 4/3 * sigma, sigma / 3) #array of split points in first principle component
+        interval_y = np.arange(-sigma, 2 * sigma, sigma) #array of split points in second principle component
         for iter_x in range(len(interval_x)-1):
             for iter_y in range(len(interval_y)-1):
                self.groups.append(rows[(y_Prime[:, 0] >= interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] >= interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
@@ -1159,7 +1159,7 @@ class spectrum(object):
     def SelectGroupedPeaks(self, peaks, groups = None):
         """
         Wrapper around :func:`~spectrum.SelectPeaks` that iterates over
-        all grouped spectra.
+        all grouped spectra by PCA analysis (see :func:`~spectrum.GroupSpectra`).
         """
         if groups == None:
             for i in range(len(self.groups)):
@@ -1173,7 +1173,7 @@ class spectrum(object):
 
     def FitAllGroupedSpectra(self, peaks, show=False, report=False):
         """
-        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over all grouped spectra.
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over all grouped spectra by PCA analysis (see :func:`~spectrum.GroupSpectra`).
         """
         for i in range(len(self.groups)):
             if self.groups[i].size != 0:
