@@ -920,6 +920,8 @@ class spectrum(object):
         """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
+        elif self.fitresult_peaks[spectrum] == None:
+            return
         else:
             # get the data to be stored
             fitparams_back = self.fitresult_bg[spectrum].params     # Background
@@ -1070,9 +1072,9 @@ class spectrum(object):
 
     def GroupSpectra(self, sigma = 1.5):
         """
-        Method uses PCA analysis to group equal spectra. Therefore the first and second PCA are used.
-        Since the different PCA contain more information if the corresponding eigenvalues are large,
-        5 splits on PCA1 and only one split on PCA2 are performed.
+        Method uses principle component analysis (PCA) to group equal spectra. Therefore the first and second principle components are used.
+        Since the different principle components contain more information if the corresponding eigenvalues are large,
+        5 splits on PC1 and only one split on PC2 are performed.
 
         Parameters
         ----------
@@ -1082,24 +1084,29 @@ class spectrum(object):
             outside of sigma standard deviations of the normal distributed sample are
             marked as outliners.
         """
-        c = np.cov(self.yreduced, rowvar = False)
-        l, W = np.linalg.eigh(c)
+        #calculation of the priniple components
+        c = np.cov(self.yreduced, rowvar = False) #covariance matrix of the data set
+        l, W = np.linalg.eigh(c) # eigenvalues and eigenvectors (columns of matrix W)
 
         l = l[::-1]
-        W = W[:, ::-1]
+        W = W[:, ::-1] #because np.linalg.eigh() returns eigenvalues and corresponding eigenvectors in decending order, the order is inverted
 
-        y_Prime = self.yreduced @ W
-        y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime)
+        y_Prime = self.yreduced @ W #transform the data set
+        y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime) #scale the data to a standard normal distribution
+
+
+        #create groups by performing splits in the first two principle components
         rows = np.arange(np.shape(self.y)[0])
         self.groups = []
-        interval_x = np.arange(-1.5, 2, 0.5)
-        interval_y = np.arange(-1.5, 3, 1.5)
+        interval_x = np.arange(-1.5, 2, 0.5) #array of split points in first principle component
+        interval_y = np.arange(-1.5, 3, 1.5) #array of split points in second principle component
         for iter_x in range(len(interval_x)-1):
             for iter_y in range(len(interval_y)-1):
                self.groups.append(rows[(y_Prime[:, 0] >= interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] >= interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
 
                if (self.groups[-1].size != 0):
 
+                    #plot the results
                     fig = plt.figure(figsize = (15, 10))
                     ax1 = fig.add_subplot(122)
                     ax2 = fig.add_subplot(223)
@@ -1118,7 +1125,8 @@ class spectrum(object):
                     ax2.set_xlabel('PC 1')
                     ax2.set_ylabel('PC 2')
                     fig.savefig(f'{self.folder}/results/grouped_spectra/group{len(self.groups)}.png', bbox_inches = 'tight', pad_inches = 0)
-                    plt.clf()
+                    plt.close(fig)
+
 
 
 
@@ -1145,7 +1153,7 @@ class spectrum(object):
 
         ax1.set_title(f'{len(rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)])} spectra (outliners)')
         fig.savefig(f'{self.folder}/results/grouped_spectra/outliners.png', bbox_inches = 'tight', pad_inches = 0)
-        plt.clf()
+        plt.close(fig)
 
 
     def SelectGroupedPeaks(self, peaks, groups = None):
@@ -1175,7 +1183,7 @@ class spectrum(object):
 
     def FitGroups(self, peaks, groups, show=False, report=False):
         """
-        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over given grouped spectra.
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over given groups of spectra.
         """
         for group in groups:
             if self.groups[group - 1].size != 0:
@@ -1188,13 +1196,14 @@ class spectrum(object):
     def SaveAllFitParams(self, peaks):
         """
         Wrapper around :func:`~spectrum.SaveFitParams` that iterates over
-        all spectra given.
+        all spectra that were analyzed.
         """
         # find all peaks that were fitted and generate a list
         allpeaks = []
         for i in range(self.numberOfFiles):
-            allpeaks.extend(re.findall('prefix=\'(.*?)\'',
-                                    self.fitresult_peaks[i].model.name))
+            if self.fitresult_peaks[i] != None:
+                allpeaks.extend(re.findall('prefix=\'(.*?)\'', self.fitresult_peaks[i].model.name))
+
         allusedpeaks = list(set(allpeaks))
 
         for i in range(self.numberOfFiles):
