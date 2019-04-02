@@ -43,15 +43,15 @@ class spectrum(object):
 
         if os.path.exists(self.folder + '/results'):
             self.indices = np.arange(self.numberOfFiles) #indices of the files that are analyzed again, default are all spectra
-            self.second_analysis = True 
+            self.second_analysis = True
             answer = input('These spectra have been analyzed already. Do you want to analyze all of them again? (y/n) \n')
             if answer == 'y':
                 pass
-            elif answer == 'n': 
+            elif answer == 'n':
                 for label in self.labels:
                     print(f'{label} \n')
                 print('Enter the spectra that you want to analyze again. (Finish the selection with x).')
-                list_of_incides = [] 
+                list_of_incides = []
                 list_of_labels = []
                 list_of_filenames = []
                 while True:
@@ -61,19 +61,19 @@ class spectrum(object):
                     if label in self.labels:
                         list_of_labels.append(label)
                         index = self.labels.index(label)
-                        list_of_incides.append(index) 
+                        list_of_incides.append(index)
                         list_of_filenames.append(self.listOfFiles[index])
-                    else: 
-                        print('This spectrum does not exist.') 
+                    else:
+                        print('This spectrum does not exist.')
                 self.listOfFiles = list_of_filenames #update listOfFiles
                 self.labels = list_of_labels #update labels
-                self.indices = list_of_incides ##update indices of the files that are analyzed again 
+                self.indices = list_of_incides ##update indices of the files that are analyzed again
                 self.numberOfFiles = len(self.labels) #update number of files
-                
 
 
 
-                                                                            
+
+
         self.x, self.y = GetMonoData(self.listOfFiles)
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
@@ -186,7 +186,7 @@ class spectrum(object):
     # Select the interesting region in the spectrum, by clicking on the plot
     def SelectSpectrum(self, spectrum=0, label=''):
         """
-        Function that lets the user select a region by running the 
+        Function that lets the user select a region by running the
         method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
         The region of interest is only chosen for one specific spectrum and assumed to be the same for all others.
         The borders of the selected region is saved to '/temp/spectrumborders' + label + '.dat'
@@ -216,7 +216,7 @@ class spectrum(object):
 
             plt.legend(loc='upper right')
             plt.show()
-         
+
             self.yreduced = self.ynormed[:, (self.x[spectrum] > xregion[0]) &
                                             (self.x[spectrum] < xregion[-1])]
             self.xreduced = self.x[:, (self.x[spectrum] > xregion[0]) &
@@ -405,16 +405,16 @@ class spectrum(object):
     def SelectBaseline(self, spectrum=0, label='', color='b'):
         """
         Function that lets the user distinguish between the background and
-        the signal. It runs the method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>` 
-        to select the regions that do 
-        not belong to the background and are therefore not used for background fit. 
+        the signal. It runs the method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`
+        to select the regions that do
+        not belong to the background and are therefore not used for background fit.
         The selected regions will be saved to '/temp/baseline' + label
         + '.dat'.
 
         Parameters
         ----------
         spectrum : int, default: 0
-            Defines which of the spectra is chosen to distinguish 
+            Defines which of the spectra is chosen to distinguish
             between the background and the signal.
 
         label : string, default: ''
@@ -507,7 +507,7 @@ class spectrum(object):
                 plt.show()
 
     # fit all baselines
-    def FitAllBaselines(self, show=False, degree=3):
+    def FitAllBaselines(self, show=False, degree=1):
         """
         Wrapper around :func:`~spectrum.FitBaseline` that iterates over
         all spectra given.
@@ -518,16 +518,16 @@ class spectrum(object):
     # function that plots the dots at the peaks you wish to fit
     def PlotPeaks(self, fig, ax):
         """
-        Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running. 
+        Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running.
 
         Parameters
         ----------
         fig : matplotlib.figure.Figure
             Currently displayed window that shows the spectrum as well as
             the selected peaks.
-            
+
         ax : matplotlib.axes.Axes
-            Corresponding Axes object to Figure object fig. 
+            Corresponding Axes object to Figure object fig.
 
         Returns
         -------
@@ -539,27 +539,27 @@ class spectrum(object):
         ypeak = []  # y arrays for peak coordinates
         global line
         line, = ax.plot(xpeak, ypeak, 'ro', markersize = 10)
-        
+
 
         def onclickpeaks(event):
-            
+
             if event.button == 1: # left mouse click to add data point
                 xpeak.append(event.xdata)               # append x data and
                 ypeak.append(event.ydata)               # append y data
                 line.set_xdata(xpeak)
-                line.set_ydata(ypeak)        
+                line.set_ydata(ypeak)
                 plt.draw()                       # and show it
 
 
             if event.button == 3: #right mouse click to remove data point
                 if xpeak != []:
-                    xdata_nearest_index = ( np.abs(xpeak - event.xdata) ).argmin() #nearest neighbour  
-                    del xpeak[xdata_nearest_index] #delte x 
+                    xdata_nearest_index = ( np.abs(xpeak - event.xdata) ).argmin() #nearest neighbour
+                    del xpeak[xdata_nearest_index] #delte x
                     del ypeak[xdata_nearest_index] #and y data point
                     line.set_xdata(xpeak) #update x
                     line.set_ydata(ypeak) #and y data in plot
-                    plt.draw()   # and show it    
-                    
+                    plt.draw()   # and show it
+
 
         # actual execution of the defined function oneclickpeaks
         cid = fig.canvas.mpl_connect('button_press_event', onclickpeaks)
@@ -585,7 +585,7 @@ class spectrum(object):
         ----------
         peaks : list, default: ['breit_wigner', 'lorentzian']
             Possible line shapes of the peaks to fit are
-            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'. 
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
             See lmfit documentation (https://lmfit.github.io/lmfit-py/builtin_models.html) for details.
 
         spectrum : int, default: 0
@@ -628,7 +628,7 @@ class spectrum(object):
             self.SelectPeaks(peaks, spectrum=i, label=self.labels[i])
 
 
-    def FitSpectrum(self, peaks, spectrum=0, label='', show=True, report=False):
+    def FitSpectrum(self, peaks, spectrum=0, show=True, report=False, init_spectrum = None):
         """
         Conducts the actual fit of the spectrum. A `CompositeModel()
         <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_
@@ -647,9 +647,9 @@ class spectrum(object):
         '/results/plot/fitplot\_' + label + '.png'.
         The fit parameters are saved in the function
         :func:`~spectrum.SaveFitParams`.
-        The fit parameters values that are derived from the fit parameters 
-        are individual for each line shape. 
-        Especially parameters of the BreitWignerModel() is adapted to our research. 
+        The fit parameters values that are derived from the fit parameters
+        are individual for each line shape.
+        Especially parameters of the BreitWignerModel() is adapted to our research.
 
         **VoigtModel():**
             |'center': x value of the maximum
@@ -661,7 +661,7 @@ class spectrum(object):
             |'fwhm_l': lorentzian-FWHM
             |'fwhm': FWHM
 
-        **GaussianModel():** 
+        **GaussianModel():**
             |'center': x value of the maximum
             |'heigt': fit-function evaluation at 'center'
             |'amplitude': area under fit-function
@@ -714,50 +714,75 @@ class spectrum(object):
 
             # go through all defined peaks
             for peaktype in peaks:
-                peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
-                           label + '.dat'
 
-                # check, if the current peaktype has been selected
-                if(os.stat(peakfile).st_size > 0):
-                    # get the selected peak positions
-                    xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+                if init_spectrum != None:
+                    init_peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
+                               self.labels[init_spectrum] + '.dat'
 
-                    # necessary if only one peak is selected
-                    if type(xpeak) == np.float64:
-                        xpeak = [xpeak]
-                        ypeak = [ypeak]
+                    # check, if the current peaktype has been selected
+                    if(os.stat(init_peakfile).st_size > 0):
+                        # get the selected peak positions
+                        xpeak, ypeak = np.genfromtxt(init_peakfile, unpack = True)
+                        # necessary if only one peak is selected
+                        if type(xpeak) == np.float64:
+                           xpeak = [xpeak]
+                           ypeak = [ypeak]
 
-                    #define starting values for the fit
-                    for i in range(0, len(xpeak)):
-                        # prefix for the different peaks from one model
-                        temp = ChoosePeakType(peaktype, i)
-                        temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
+                        #define starting values for the fit
+                        for i in range(0, len(xpeak)):
+                            # prefix for the different peaks from one model
+                            temp = ChoosePeakType(peaktype, i)
+                            temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
+                            ramanmodel += temp # add the models to 'ramanmodel'
 
-                        ramanmodel += temp # add the models to 'ramanmodel'
+                else:
+                    peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
+                           self.labels[spectrum] + '.dat'
+
+                    # check, if the current peaktype has been selected
+                    if(os.stat(peakfile).st_size > 0):
+                        # get the selected peak positions
+                        xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+                        # necessary if only one peak is selected
+                        if type(xpeak) == np.float64:
+                            xpeak = [xpeak]
+                            ypeak = [ypeak]
+
+                        #define starting values for the fit
+                        for i in range(0, len(xpeak)):
+                            # prefix for the different peaks from one model
+                            temp = ChoosePeakType(peaktype, i)
+                            temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
+                            ramanmodel += temp # add the models to 'ramanmodel'
+
+
 
             # create the fit parameters of the background substracted fit
-            pars = ramanmodel.make_params()
+            if init_spectrum != None:
+                pars = self.fitresult_peaks[init_spectrum].params
+            else:
+                pars = ramanmodel.make_params()
 
             lower_bounds = np.array([pars[key].min for key in pars.keys()]) #arrays of lower and upper bounds of the start parameters
             upper_bounds = np.array([pars[key].max for key in pars.keys()])
-            inf_mask = (upper_bounds != float('inf')) & (lower_bounds != float('-inf')) 
+            inf_mask = (upper_bounds != float('inf')) & (lower_bounds != float('-inf'))
             range_bounds = upper_bounds[inf_mask] - lower_bounds[inf_mask]
-            
-            
+
+
             # fit the data to the created model
             self.fitresult_peaks[spectrum] = ramanmodel.fit(y_fit, pars,
                                                     x = self.xreduced[spectrum],
                                                     method = 'leastsq',
                                                     scale_covar = True)
-            
+
 
             best_values = np.array([self.fitresult_peaks[spectrum].params[key].value for key in self.fitresult_peaks[spectrum].params.keys()]) #best values of all parameters in the spectrum
             names = np.array([self.fitresult_peaks[spectrum].params[key].name for key in self.fitresult_peaks[spectrum].params.keys()]) #names of all parameters in the spectrum
             limit = 0.01 #percentage distance to the bounds leading to a warning
-            lower_mask = best_values[inf_mask] <= lower_bounds[inf_mask] + limit * range_bounds #mask = True if best value is near lower bound  
-            upper_mask = best_values[inf_mask] >= lower_bounds[inf_mask] + (1 - limit) * range_bounds #mask = True if best value is near upper bound 
-            
-            
+            lower_mask = best_values[inf_mask] <= lower_bounds[inf_mask] + limit * range_bounds #mask = True if best value is near lower bound
+            upper_mask = best_values[inf_mask] >= lower_bounds[inf_mask] + (1 - limit) * range_bounds #mask = True if best value is near upper bound
+
+
 
             if True in lower_mask: #warn if one of the parameters has reached the lower bound
                 warn(f'The parameter(s) {(names[inf_mask])[lower_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen lower bounds.', ParameterWarning)
@@ -765,9 +790,9 @@ class spectrum(object):
 
             if True in upper_mask: #warn if one of the parameters has reached the upper bound
                 warn(f'The parameter(s) {(names[inf_mask])[upper_mask]} of spectrum {self.listOfFiles[spectrum]} are close to chosen upper bounds.', ParameterWarning)
-                self.critical[spectrum] = True    
-                                                            
-                                                  
+                self.critical[spectrum] = True
+
+
             # calculate the fit line
             self.fitline[spectrum] = ramanmodel.eval(
                                         self.fitresult_peaks[spectrum].params,
@@ -784,7 +809,7 @@ class spectrum(object):
                 self.comps['constant'] = 0
 
             # print which fit is conducted
-            print('Spectrum ' + label + ' fitted')
+            print('Spectrum ' + self.labels[spectrum] + ' fitted')
 
             # show fit report in terminal
             if report:
@@ -842,8 +867,8 @@ class spectrum(object):
             plt.xlabel('Raman shift (cm$^{-1}$)')
 
             # save figures
-            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.png',
+            fig.savefig(self.folder + '/results/plot/fitplot_' + self.labels[spectrum] + '.pdf')
+            fig.savefig(self.folder + '/results/plot/fitplot_' + self.labels[spectrum] + '.png',
                         dpi=300)
 
             if show:
@@ -858,8 +883,7 @@ class spectrum(object):
         given.
         """
         for i in range(self.numberOfFiles):
-            self.FitSpectrum(peaks, spectrum=i, label=self.labels[i],
-                             show=show, report=report)
+            self.FitSpectrum(peaks, spectrum=i, show=show, report=report)
 
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, usedpeaks=[], label='', spectrum=0):
@@ -874,7 +898,7 @@ class spectrum(object):
         The folder '/results/fitparameter/spectra/' + label + '_' + peak
         + '.dat' contains files each of which with one parameter including
         its uncertainty.
-        The parameters are also sorted by peak for different spectra. 
+        The parameters are also sorted by peak for different spectra.
         This is stored in '/results/fitparameter/peakwise/' + name + '.dat'
         including the correlations of the fit parameters.
 
@@ -885,7 +909,7 @@ class spectrum(object):
             'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
 
         usedpeaks : list, default []
-            List of all actually used peaks. 
+            List of all actually used peaks.
 
         label : string, default: ''
             Name of the spectrum is N if spectrum is (N-1).
@@ -945,8 +969,8 @@ class spectrum(object):
                         allpeaks = (self.folder
                                     + '/results/fitparameter/peakwise/'
                                     + name + '.dat')
-                        if self.second_analysis == False: 
-                            g = open(allpeaks, 'a')                       
+                        if self.second_analysis == False:
+                            g = open(allpeaks, 'a')
 
                         # get parameters for saving
                         peakparameter = name.replace(peak, '')
@@ -973,7 +997,7 @@ class spectrum(object):
                                 + '{:>13.5f}'.format(parametervalue)
                                 + ' +/- ' + '{:>11.5f}'.format(parametererror)
                                 + '\n')
-                        if self.second_analysis == True: #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters 
+                        if self.second_analysis == True: #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters
                             values, stderrs = np.genfromtxt(allpeaks, unpack = True) #read existing values
                             values[self.indices[spectrum]] = parametervalue #update values
                             stderrs[self.indices[spectrum]] = parametererror
@@ -981,8 +1005,8 @@ class spectrum(object):
                                 for i in range(len(values)):
                                     g.write('{:>13.5f}'.format(values[i])
                                     + '\t' + '{:>11.5f}'.format(stderrs[i])
-                                    + '\n')      
-                        else:            
+                                    + '\n')
+                        else:
                             g.write('{:>13.5f}'.format(parametervalue)
                                     + '\t' + '{:>11.5f}'.format(parametererror)
                                     + '\n')
@@ -1011,16 +1035,16 @@ class spectrum(object):
                                     + '/results/fitparameter/peakwise/'
                                     + parameter + '.dat')
 
-                        if self.second_analysis == True:   #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters 
-                            values, stderrs = np.genfromtxt(peakfile, unpack = True) 
+                        if self.second_analysis == True:   #if several spectra are analyzed again, the new values have to be put on the right position in the peakwise files for the parameters
+                            values, stderrs = np.genfromtxt(peakfile, unpack = True)
                             values[self.indices[spectrum]] = self.missingvalue
                             stderrs[self.indices[spectrum]] = self.missingvalue
                             with open(peakfile, 'w') as g:
                                 for i in range(len(values)):
                                     g.write('{:>13.5f}'.format(values[i])
                                     + '\t' + '{:>11.5f}'.format(stderrs[i])
-                                    + '\n') 
-          
+                                    + '\n')
+
                         else:
                             # open file and write missing values
                             f = open(peakfile, 'a')
@@ -1044,28 +1068,28 @@ class spectrum(object):
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')
 
-    def group_spectra(self, sigma = 1.5):
+    def GroupSpectra(self, sigma = 1.5):
         """
-        Method uses PCA analysis to group equal spectra. Therefore the first and second PCA are used. 
-        Since the different PCA contain more information if the corresponding eigenvalues are large, 
-        5 splits on PCA1 and only one split on PCA2 are performed.     
+        Method uses PCA analysis to group equal spectra. Therefore the first and second PCA are used.
+        Since the different PCA contain more information if the corresponding eigenvalues are large,
+        5 splits on PCA1 and only one split on PCA2 are performed.
 
         Parameters
         ----------
         sigma : float, default: 1.5
-            Number of standard deviations to mark oulined spectra. 
-            In order to detect outlined spectra, all the spectra with PCA components 
-            outside of sigma standard deviations of the normal distributed sample are 
-            marked as outliners. 
+            Number of standard deviations to mark oulined spectra.
+            In order to detect outlined spectra, all the spectra with PCA components
+            outside of sigma standard deviations of the normal distributed sample are
+            marked as outliners.
         """
         c = np.cov(self.yreduced, rowvar = False)
         l, W = np.linalg.eigh(c)
-        
+
         l = l[::-1]
         W = W[:, ::-1]
 
-        y_Prime = self.yreduced @ W 
-        y_Prime = preprocessing.QuantileTransformer().fit_transform(y_Prime)   
+        y_Prime = self.yreduced @ W
+        y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime)
         rows = np.arange(np.shape(self.y)[0])
         self.groups = []
         interval_x = np.arange(-1.5, 2, 0.5)
@@ -1073,29 +1097,29 @@ class spectrum(object):
         for iter_x in range(len(interval_x)-1):
             for iter_y in range(len(interval_y)-1):
                self.groups.append(rows[(y_Prime[:, 0] >= interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] >= interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
-               
+
                if (self.groups[-1].size != 0):
-                    
+
                     fig = plt.figure(figsize = (15, 10))
                     ax1 = fig.add_subplot(122)
                     ax2 = fig.add_subplot(223)
                     ax1.set_title(f'{len(self.groups[-1])} spectra')
                     ax1.set_xlabel('Raman Shift / $cm^{-1}$')
                     ax1.set_ylabel('Normed Intensity / a.u.')
-                    for spectrum in self.groups[-1]: 
+                    for spectrum in self.groups[-1]:
                         pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
                         clr = pl[0].get_color()
                         ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
                     ax3 = fig.add_subplot(221)
                     ax3.scatter(y_Prime[:, 0], y_Prime[:, 1], color =  'k')
-                    ax3.fill_between(np.linspace(interval_x[iter_x], interval_x[iter_x+1], 100), interval_y[iter_y], interval_y[iter_y+1], color = 'g', alpha = 0.5)    
-                    ax3.set_xlabel('PC 1') 
-                    ax3.set_ylabel('PC 2') 
-                    ax2.set_xlabel('PC 1') 
-                    ax2.set_ylabel('PC 2')    
+                    ax3.fill_between(np.linspace(interval_x[iter_x], interval_x[iter_x+1], 100), interval_y[iter_y], interval_y[iter_y+1], color = 'g', alpha = 0.5)
+                    ax3.set_xlabel('PC 1')
+                    ax3.set_ylabel('PC 2')
+                    ax2.set_xlabel('PC 1')
+                    ax2.set_ylabel('PC 2')
                     fig.savefig(f'{self.folder}/results/grouped_spectra/group{len(self.groups)}.png', bbox_inches = 'tight', pad_inches = 0)
                     plt.clf()
-                 
+
 
 
         fig = plt.figure(figsize = (15, 10))
@@ -1103,27 +1127,62 @@ class spectrum(object):
         ax2 = fig.add_subplot(223)
         ax3 = fig.add_subplot(221)
         ax3.scatter(y_Prime[:, 0], y_Prime[:, 1], color =  'k')
-        ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), min(y_Prime[:, 1]), -sigma, color = 'r', alpha = 0.5, linewidth = 0)    
-        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), -sigma, 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)    
-        ax3.fill_between(np.linspace(sigma, max(y_Prime[:, 0]), 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)    
+        ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), min(y_Prime[:, 1]), -sigma, color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), -sigma, 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.fill_between(np.linspace(sigma, max(y_Prime[:, 0]), 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)
         ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), sigma , max([sigma, max(y_Prime[:, 1])]), color = 'r', alpha = 0.5, linewidth = 0)
-        ax3.set_xlabel('PC 1') 
-        ax3.set_ylabel('PC 2') 
-        ax2.set_xlabel('PC 1') 
-        ax2.set_ylabel('PC 2') 
+        ax3.set_xlabel('PC 1')
+        ax3.set_ylabel('PC 2')
+        ax2.set_xlabel('PC 1')
+        ax2.set_ylabel('PC 2')
         for spectrum in rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)]:
              ax1.set_xlabel('Raman Shift / $cm^{-1}$')
              ax1.set_ylabel('Normed Intensity / a.u.')
              pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
              clr = pl[0].get_color()
              ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
-             
-                 
-        ax1.set_title(f'{len(rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)])} spectra (outliners)')        
+
+
+        ax1.set_title(f'{len(rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)])} spectra (outliners)')
         fig.savefig(f'{self.folder}/results/grouped_spectra/outliners.png', bbox_inches = 'tight', pad_inches = 0)
-                        
-    
-        
+        plt.clf()
+
+
+    def SelectGroupedPeaks(self, peaks, groups = None):
+        """
+        Wrapper around :func:`~spectrum.SelectPeaks` that iterates over
+        all grouped spectra.
+        """
+        if groups == None:
+            for i in range(len(self.groups)):
+                if self.groups[i].size != 0:
+                    self.SelectPeaks(peaks, spectrum = (self.groups[i])[0], label=self.labels[(self.groups[i])[0]])
+
+        else:
+            for group in groups:
+                if self.groups[group - 1].size != 0:
+                    self.SelectPeaks(peaks, spectrum = (self.groups[group - 1])[0], label=self.labels[(self.groups[group - 1])[0]])
+
+    def FitAllGroupedSpectra(self, peaks, show=False, report=False):
+        """
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over all grouped spectra.
+        """
+        for i in range(len(self.groups)):
+            if self.groups[i].size != 0:
+                self.FitSpectrum(peaks, spectrum=(self.groups[i])[0], show=show, report=report)
+                for j in range(1, len(self.groups[i])):
+                    self.FitSpectrum(peaks, spectrum=(self.groups[i])[j], show=show, report=report, init_spectrum = (self.groups[i])[0])
+
+    def FitGroups(self, peaks, groups, show=False, report=False):
+        """
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over given grouped spectra.
+        """
+        for group in groups:
+            if self.groups[group - 1].size != 0:
+                self.FitSpectrum(peaks, spectrum=(self.groups[group - 1])[0], show=show, report=report)
+                for j in range(1, len(self.groups[group - 1])):
+                    self.FitSpectrum(peaks, spectrum=(self.groups[group - 1])[j], show=show, report=report, init_spectrum = (self.groups[group - 1])[0])
+
 
     # Save all the results
     def SaveAllFitParams(self, peaks):
@@ -1141,7 +1200,3 @@ class spectrum(object):
         for i in range(self.numberOfFiles):
             self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i,
                                label=self.labels[i])
-
-
-
-
