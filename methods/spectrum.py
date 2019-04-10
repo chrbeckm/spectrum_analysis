@@ -1074,13 +1074,13 @@ class spectrum(object):
         """
         Method uses principle component analysis (PCA) to group equal spectra. Therefore the first and second principle components are used.
         Since the different principle components contain more information if the corresponding eigenvalues are large,
-        5 splits on PC1 and only one split on PC2 are performed.
+        five splits on PC1 and only one split on PC2 are performed.
 
         Parameters
         ----------
         sigma : float, default: 1.5
-            Number of standard deviations to mark oulined spectra.
-            In order to detect outlined spectra, all the spectra with PCA components
+            Number of standard deviations to mark outlined spectra.
+            In order to detect outlined spectra, all the spectra with principle components
             outside of sigma standard deviations of the normal distributed sample are
             marked as outliners.
         """
@@ -1183,7 +1183,7 @@ class spectrum(object):
 
     def FitGroups(self, peaks, groups, show=False, report=False):
         """
-        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over given groups of spectra.
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over given groups (see :func:`~spectrum.GroupSpectra`) of spectra.
         """
         for group in groups:
             if self.groups[group - 1].size != 0:
