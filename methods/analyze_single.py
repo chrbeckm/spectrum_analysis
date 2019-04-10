@@ -2,13 +2,13 @@ from spectrum import *
 
 # possible peaks (breit_wigner == fano)
 # implemented are: breit_wigner, lorentzian, gaussian, voigt
-peaks = ['breit_wigner', 'lorentzian']
+peaks = ['voigt']
 
 # select folder you want to analyze and initialize everything
 # it doesn't matter if there is one or more files in the folder
-spec = spectrum('smallmap')
+spec = spectrum('02019-01-17-MoS2-633nm-average')
 # choose the spectrum you want to analyze
-spectrum = 8
+spectrum = 1
 
 # calculate the correct values
 spectrum = spectrum - 1
@@ -29,7 +29,12 @@ spec.RemoveMuons(spectrum=spectrum)
 spec.SelectBaseline(spectrum=spectrum)
 
 # fit the baselines
-spec.FitBaseline(spectrum=spectrum)
+spec.FitBaseline(spectrum=spectrum, degree=1)
+
+# select a frequency of the fourier spectrum (only needed if there is one)
+spec.SelectFrequency(spectrum=spectrum)
+# remove the selected and unwanted frequency (only needed if there is one)
+spec.RemoveFrequency(spectrum=spectrum)
 
 # Function that opens a Window with the data,
 # you can choose initial values for the peaks by clicking on the plot.

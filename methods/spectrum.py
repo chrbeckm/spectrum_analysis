@@ -7,6 +7,8 @@ import os
 import pywt                             # for wavelet operations
 from statsmodels.robust import mad      # median absolute deviation from array
 from scipy.optimize import curve_fit    # for interpolating muons
+from scipy.interpolate import UnivariateSpline  # for estimating FWHM of
+                                                # unwanted frequencies
 
 import numpy as np
 import matplotlib
@@ -32,14 +34,19 @@ class spectrum(object):
     foldername : string
         The folder of interest has to be in the current directory.
         The data will be prepared to analyze spectral data.
+    measurement : sting
+        Defines the type of measurement used to generate the data that
+        should be analyzed now.
+        Possible measurements are
+        - xps
     """
 
-    def __init__(self, foldername):
+    def __init__(self, foldername, **kwargs):
         self.second_analysis = False #boolean value for exception handling if several spectra are analyzed for the second time
         self.folder = foldername
         self.listOfFiles, self.numberOfFiles = GetFolderContent(self.folder,
                                                                 'txt')
-        self.labels = [files.split('/')[1].split('.')[0] for files in self.listOfFiles]
+        self.labels = [files.split('/')[-1].split('.')[-2] for files in self.listOfFiles]
 
         if os.path.exists(self.folder + '/results'):
             self.indices = np.arange(self.numberOfFiles) #indices of the files that are analyzed again, default are all spectra
@@ -70,7 +77,13 @@ class spectrum(object):
                 self.indices = list_of_incides ##update indices of the files that are analyzed again
                 self.numberOfFiles = len(self.labels) #update number of files
 
-
+        # default are raman measurements
+        if kwargs == {}:
+            print('Raman measurements')
+            self.x, self.y = GetMonoData(self.listOfFiles)
+        elif kwargs['measurement'] == 'xps':
+            print('XPS measurements')
+            self.x, self.y = GetMonoData(self.listOfFiles, measurement='xps')
 
 
 
@@ -93,6 +106,9 @@ class spectrum(object):
         # array to contain denoised data
         self.ydenoised = [None] * self.numberOfFiles
 
+        # array containing yderived
+        self.dy = [None] * self.numberOfFiles
+
         # denoised values
         self.muonsgrouped = [None] * self.numberOfFiles
 
@@ -107,7 +123,9 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
             os.makedirs(self.folder + '/results/denoised/')
-            os.makedirs(self.folder + '/results/grouped_spectra/')
+            os.makedirs(self.folder + '/results/grouped_spectra/'
+            os.makedirs(self.folder + '/results/derived/')
+
 
         # save missing value
         missingvaluedecimal = decimal.Decimal(str(self.missingvalue))
@@ -379,15 +397,15 @@ class spectrum(object):
         denoised = pywt.waverec(coeff, wavelet)
 
         # return the value of denoised except for the last value
-        if (len(self.yreduced) % 2) == 0:
+        if (len(self.yreduced[spectrum]) % 2) == 0:
             self.ydenoised[spectrum] = denoised
         else:
             self.ydenoised[spectrum] = denoised[:-1]
 
         # save denoised data
         if sav:
-            savefile = (self.folder + '/results/denoised/'
-                        + str(spectrum + 1).zfill(4) + '.dat')
+            savefile = (self.folder + '/results/denoised/den_'
+                        + self.labels[spectrum] + '.dat')
             np.savetxt(savefile, np.column_stack([self.xreduced[spectrum],
                                                   self.ydenoised[spectrum]]))
 
@@ -434,7 +452,7 @@ class spectrum(object):
                     '.', label='Data', color=color)
             ax.set_title('Normalized spectrum\n Select the area of the spectrum\
                          you wish to exclude from the background by clicking\
-                        into the plot\n (3rd-degree polynomial assumed)')
+                        into the plot\n (1st-degree polynomial assumed)')
 
             # choose the region
             xregion = self.PlotVerticalLines('red', fig)
@@ -445,7 +463,7 @@ class spectrum(object):
             np.savetxt(self.fBaseline, np.array(xregion))
 
     # actual fit of the baseline
-    def FitBaseline(self, spectrum=0, show=False, degree=3):
+    def FitBaseline(self, spectrum=0, show=False, degree=1):
         """
         Fit of the baseline by using the
         `PolynomalModel()
@@ -461,7 +479,7 @@ class spectrum(object):
             Decides whether the a window with the fitted baseline is opened
             or not.
 
-        degree : int, default: 3
+        degree : int, default: 1
             Degree of the polynomial that describes the background.
 
         """
@@ -1209,3 +1227,146 @@ class spectrum(object):
         for i in range(self.numberOfFiles):
             self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i,
                                label=self.labels[i])
+
+
+    # function that allows you select an unwanted frequency in the spectrum
+    def SelectFrequency(self, spectrum=0):
+        """
+        Function that lets the user select an unwanted frequency in the
+        spectrum given.
+        It saves the selected positions to
+        '/temp/fftpeak_' + spectrum + '.dat'.
+
+        Parameters
+        ----------
+
+        """
+        if spectrum >= self.numberOfFiles:
+            print('You need to choose a smaller number for spectra to select.')
+        else:
+            # create plot and baseline
+            fig, ax = plt.subplots()
+            # fourier transform data
+            self.fourierSpec = np.fft.fft(self.yreduced[spectrum] -
+                                          self.baseline[spectrum])
+            self.fourierFreq = np.fft.fftfreq(self.xreduced[spectrum].shape[-1])
+
+            # plot fourier transformed data
+            ax.plot(self.fourierFreq,
+                    abs(self.fourierSpec), 'b-')
+            ax.set_title('Fourier transform of Spectrum ' + str(spectrum) +\
+                         ' Select the maximum of the unwanted frequency.')
+            # arrays of initial values for the fits
+            xpeak, ypeak = self.PlotPeaks(fig, ax)
+            plt.show()
+            # store the chosen values
+            peakfile = self.folder + '/temp/fftpeak_' +\
+                       self.labels[spectrum] + '.dat'
+            if xpeak != []:
+                np.savetxt(peakfile, np.transpose([np.array(xpeak),
+                                                   np.array(ypeak)]))
+
+    # select an unwanted frequency in all spectra
+    def SelectAllFrequencies(self):
+        for i in range(self.numberOfFiles):
+            self.SelectFrequency(spectrum=i)
+
+    # remove an unwanted frequency from the spectrum given
+    def RemoveFrequency(self, spectrum=0, tolerance=6, prnt=False):
+            """
+            Function that removes an unwanted frequency in the
+            spectrum given within a given tolerance
+
+            Parameters
+            ----------
+            tolerance : int, default : 6
+                tolerance times 2 defines the width of the unwanted frequency
+                (in number of values not in the frequency regieme)
+            prnt : bool, default : False
+                plots some more information to process the images. You might
+                want to check if the tolerance is set properly.
+            """
+            # generate name of the fft peak file
+            peakfile = self.folder + '/temp/fftpeak_' +\
+                                   self.labels[spectrum] + '.dat'
+
+            # check if there is an unwanted frequency
+            if os.path.exists(peakfile):
+                # get the selected peak position
+                xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+                # search the closest index and generate min and max values
+                index = np.abs(self.fourierFreq - xpeak).argmin()
+                indexmin = index - tolerance
+                indexmax = index + tolerance
+
+                # calculate mean and replace unwanted frequencies
+                ymean = np.mean(self.fourierSpec)
+                self.modifiedSpec = self.fourierSpec.copy()
+
+                # as fourier is symmetric the indices have
+                # to be removed symmetrically
+                self.modifiedSpec[indexmin:indexmax] = ymean
+                self.modifiedSpec[-indexmax:-indexmin] = ymean
+
+                if prnt:
+                    plt.plot(self.fourierFreq, abs(self.fourierSpec),
+                             label='Fourier frequencies')
+                    plt.plot(self.fourierFreq, abs(self.modifiedSpec),
+                             label='Modified frequencies')
+                    plt.title('Frequency spectrum of the selected spectrum.')
+                    plt.legend()
+                    figManager = plt.get_current_fig_manager()  # get current figure
+                    figManager.window.showMaximized()           # show it maximized
+                    plt.show()
+
+                    plt.plot(self.xreduced[spectrum],
+                             self.yreduced[spectrum]-self.baseline[spectrum],
+                             label='raw signal')
+
+                # calculate the inverse fft
+                self.yreduced[spectrum] = np.fft.ifft(self.modifiedSpec) +\
+                                          self.baseline[spectrum]
+
+                if prnt:
+                    plt.plot(self.xreduced[spectrum],
+                             self.yreduced[spectrum] - self.baseline[spectrum],
+                             label='frequency removed signal')
+                    plt.title('Comparison of original and frequency removed Spectrum.')
+                    plt.legend()
+                    figManager = plt.get_current_fig_manager()  # get current figure
+                    figManager.window.showMaximized()           # show it maximized
+                    plt.show()
+
+    # remove an unwanted frequency in all spectra
+    def RemoveAllFrequencies(self):
+        for i in range(self.numberOfFiles):
+            self.RemoveFrequency(spectrum=i)
+
+# plot XAES data and its derivative
+    def PlotXaes(self, spectrum):
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1.plot(self.x[spectrum], self.ynormed[spectrum],
+                'b.', label = 'Data')
+        ax1.plot(self.x[spectrum], self.ydenoised[spectrum],
+                'r-', label = 'Wavelet-Denoised')
+        fig.legend(loc='upper right')
+
+        # calculate and plot derivative
+        self.dy[spectrum] = np.diff(self.ydenoised[spectrum])
+        ax2.plot(self.x[spectrum][:-1], self.dy[spectrum],
+                 'g-', label = 'Derivative')
+
+        plt.legend(loc='upper right')
+        #plt.show()
+        fig.savefig(self.folder + '/results/plot/derivative_'
+                                + self.labels[spectrum]
+                                + '.png', dpi=300)
+        savefile = (self.folder + '/results/derived/der_'
+                    + self.labels[spectrum] + '.dat')
+        np.savetxt(savefile, np.column_stack([self.x[spectrum][:-1],
+                                              self.dy[spectrum]]))
+
+# plot all XAES data and the corresponding derivative
+    def PlotAllXaes(self):
+        for i in range(self.numberOfFiles):
+            self.PlotXaes(spectrum=i)

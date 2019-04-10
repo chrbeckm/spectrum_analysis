@@ -1,17 +1,5 @@
 import re
 import lmfit
-import warnings
-from warnings import warn
-
-class ParameterWarning(UserWarning):
-    pass
-
-def custom_formatwarning(message, category, filename, lineno, line=None):
-    return formatwarning_orig(message, category, filename, lineno, line='') #don't show line in warning
-
-formatwarning_orig = warnings.formatwarning
-warnings.formatwarning = custom_formatwarning #change format of warning
-
 
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     """
@@ -25,27 +13,19 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
 
     Parameters
     ----------
-    fitmodel : class
-        Model chosen in :func:`~starting_params.ChoosePeakType`.
+    fitmodel : CLASS from lmfit ?
     peaks : list, default: ['breit_wigner', 'lorentzian']
         Possible line shapes of the peaks to fit are
         'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
     xpeak array (float), default = 0
-        Position of the peak's maxima (x-value).
+        Position of the peaks maxima (x-value).
     ypeak array (float), default = 0
-        Height of the peak's maxima (y-value).
+        Position of the peaks maxima (y-value).
     i : int
         Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
 
-    Returns
-    -------
-    fitmodel : class
-        Model chosen in :func:`~starting_params.ChoosePeakType` 
-        including initial values for the fit (set_param_hint).
     """
-
     # starting position for the peak position is not allowed to vary much
-
     fitmodel.set_param_hint('center',
                              value = xpeak[i],
                              min = xpeak[i] - 50,
@@ -58,16 +38,16 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     if any(model in peak for peak in peaks):
         if model == 'voigt':
             fitmodel.set_param_hint('sigma', #starting value gauß-width
-                                value = 10,
+                                value = 100,
                                 min = 0,
-                                max = 100)
+                                max = 300)
             fitmodel.set_param_hint('gamma', #starting value lorentzian-width (== gauß-width by default)
-                                value = 5,
+                                value = 100,
                                 min = 0,
-                                max = 100,
+                                max = 300,
                                 vary = True, expr = '') #vary gamma independently
             fitmodel.set_param_hint('amplitude', # starting value amplitude ist approxamitaly 11*height (my guess)
-                                value = ypeak[i]*20,
+                                value = ypeak[i]*11,
                                 min = 0)
             #parameters calculated based on the fit-parameters
             fitmodel.set_param_hint('height',
@@ -147,13 +127,7 @@ def ChoosePeakType(peaktype, i):
         'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
     i : int
         Integer between 0 and (N-1) to distinguish between N peaks of the same peaktype. It is used in the prefix.
-    
-    Returns
-    -------
-    lmfit.models.* : class
-        Returns either VoigtModel(), BreitWignerModel(), LorentzianModel(), or GaussianModel()
-        depending on the peaktype with *Model(prefix = prefix, nan_policy = 'omit').
-        The prefix contains the peaktype and i.
+
     """
     prefix = peaktype + '_p'+ str(i + 1) + '_'
     if peaktype == 'voigt':
