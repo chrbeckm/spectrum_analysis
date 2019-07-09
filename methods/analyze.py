@@ -16,8 +16,6 @@ spec.SelectSpectrum()
 spec.DetectAllMuons()
 spec.RemoveAllMuons()
 
-spec.group_spectra()
-
 # Function opens a window with the data,
 # you can select the regions that do not belong to
 # the third degree polynominal background signal

@@ -123,7 +123,7 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
             os.makedirs(self.folder + '/results/denoised/')
-            os.makedirs(self.folder + '/results/grouped_spectra/'
+            os.makedirs(self.folder + '/results/grouped_spectra/')
             os.makedirs(self.folder + '/results/derived/')
 
 
