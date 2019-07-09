@@ -10,6 +10,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from functions import *
 
@@ -388,7 +390,8 @@ class mapping(object):
             Number of components for the PCA analysis
         """
         # create the pca analysis
-        pca = PCA(n_components=n_components)
+        pipeline = make_pipeline(StandardScaler(),
+                                 PCA(n_components=n_components))
         self.decompose = decompose
 
         # get requested data
@@ -420,7 +423,8 @@ class mapping(object):
         self.x, self.y = GetMonoData(self.listOfFiles)
 
         # do the pca analysis
-        self.pca_analysis = pca.fit(self.y).transform(self.y)
+        self.pca_analysis = pipeline.fit(self.y).transform(self.y)
+        pca = pipeline.named_steps['pca']
 
         # print the result
         print('Explained variance ratio (first two components): %s'
