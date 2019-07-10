@@ -3,7 +3,7 @@ from spectrum import *
 
 # select folder you want to analyze and initialize everything
 # it doesn't matter if there is one or more files in the folder
-spec = spectrum('map')
+spec = spectrum('smallmap')
 
 # Select the interesting region in the spectrum,
 # by clicking on the plot
@@ -13,4 +13,5 @@ spec.SelectSpectrum()
 spec.DetectAllMuons()
 spec.RemoveAllMuons()
 
+spec.WaveletSmoothAllSpectra()
 spec.GroupSpectra()

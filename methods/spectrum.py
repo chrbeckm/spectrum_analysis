@@ -1088,11 +1088,11 @@ class spectrum(object):
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')
 
-    def GroupSpectra(self, sigma = 1.5):
+    def GroupSpectra(self, sigma = 1.5, denoised=False):
         """
         Method uses principle component analysis (PCA) to group equal spectra. Therefore the first and second principle components are used.
         Since the different principle components contain more information if the corresponding eigenvalues are large,
-        five splits on PC1 and only one split on PC2 are performed.
+        five splits on PC1 and three splits on PC2 are performed.
 
         Parameters
         ----------
@@ -1103,21 +1103,27 @@ class spectrum(object):
             marked as outliners.
         """
         #calculation of the priniple components
-        c = np.cov(self.yreduced, rowvar = False) #covariance matrix of the data set
+        if denoised:
+            c = np.cov(self.ydenoised, rowvar = False)
+        else:
+            c = np.cov(self.yreduced, rowvar = False) #covariance matrix of the data set
         l, W = np.linalg.eigh(c) # eigenvalues and eigenvectors (columns of matrix W)
 
         l = l[::-1]
         W = W[:, ::-1] #because np.linalg.eigh() returns eigenvalues and corresponding eigenvectors in decending order, the order is inverted
 
-        y_Prime = self.yreduced @ W #transform the data set
+        if denoised:
+            y_Prime = self.ydenoised @ W
+        else:
+            y_Prime = self.yreduced @ W #transform the data set
         y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime) #scale the data to a standard normal distribution
 
 
         #create groups by performing splits in the first two principle components
         rows = np.arange(np.shape(self.y)[0])
         self.groups = []
-        interval_x = np.arange(-sigma, 4/3 * sigma, sigma / 3) #array of split points in first principle component
-        interval_y = np.arange(-sigma, 2 * sigma, sigma) #array of split points in second principle component
+        interval_x = np.linspace(-sigma, sigma, 5) #array of split points in first principle component
+        interval_y = np.linspace(-sigma, sigma, 3) #array of split points in second principle component
         for iter_x in range(len(interval_x)-1):
             for iter_y in range(len(interval_y)-1):
                self.groups.append(rows[(y_Prime[:, 0] >= interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] >= interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
@@ -1132,7 +1138,10 @@ class spectrum(object):
                     ax1.set_xlabel('Raman Shift / $cm^{-1}$')
                     ax1.set_ylabel('Normed Intensity / a.u.')
                     for spectrum in self.groups[-1]:
-                        pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
+                        if denoised:
+                            pl = ax1.plot(self.xreduced[spectrum], self.ydenoised[spectrum], linewidth = 0.8)
+                        else:
+                            pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
                         clr = pl[0].get_color()
                         ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
                     ax3 = fig.add_subplot(221)
@@ -1164,7 +1173,10 @@ class spectrum(object):
         for spectrum in rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)]:
              ax1.set_xlabel('Raman Shift / $cm^{-1}$')
              ax1.set_ylabel('Normed Intensity / a.u.')
-             pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
+             if denoised:
+                 pl = ax1.plot(self.xreduced[spectrum], self.ydenoised[spectrum], linewidth = 0.8)
+             else:
+                 pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
              clr = pl[0].get_color()
              ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
 
