@@ -95,7 +95,7 @@ class mapping(object):
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
                     distance=False,
                     label='',
-                    xticker=2, colormap='Reds'):
+                    xticker=1, colormap='Reds'):
         """
         Method to plot different mappings.
 
@@ -164,7 +164,7 @@ class mapping(object):
             # sum up each spectrum
             iterator = 0
             for spectrum in y:
-                selectedvalues = spectrum[(x[0] > xmin) and (x[0] < xmax)]
+                selectedvalues = spectrum[(x[0] > xmin) & (x[0] < xmax)]
                 plot_value[iterator] = sum(selectedvalues)
                 iterator += 1
         elif maptype != '':
@@ -208,8 +208,6 @@ class mapping(object):
                 plot_value = plot1 / plot2
                 savefile = (self.folder + '/results/plot/map_'
                            + file1 + '_div_' + file2)
-
-
         elif clustered:
             plot_value = self.clustered.labels_
             savefile = self.folder + '/results/plot/map_clustered'
@@ -245,6 +243,8 @@ class mapping(object):
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
         matplotlib.rcParams.update({'font.size': 22})
 
+        plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
+        plt.yticks(np.arange(self.ydim), y_ticks)
         # plot the selected mapping
         if clustered:
             # make a color map of fixed colors
@@ -254,8 +254,6 @@ class mapping(object):
             plt.imshow(plot_matrix, cmap=cmap)
         else:
             plt.imshow(plot_matrix, cmap=colormap)
-        plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
-        plt.yticks(np.arange(self.ydim), y_ticks)
 
         # Create list for all the missing values as missing patches
         missingboxes = []
