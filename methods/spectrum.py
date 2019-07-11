@@ -21,6 +21,8 @@ from functions import *
 
 import decimal                          # to get exponent of missingvalue
 
+from sklearn import preprocessing
+
 
 # Class for spectra (under development)
 class spectrum(object):
@@ -83,6 +85,9 @@ class spectrum(object):
             print('XPS measurements')
             self.x, self.y = GetMonoData(self.listOfFiles, measurement='xps')
 
+
+
+        self.x, self.y = GetMonoData(self.listOfFiles)
         if self.numberOfFiles == 1:
             self.x = np.array([self.x])
             self.y = np.array([self.y])
@@ -118,7 +123,9 @@ class spectrum(object):
             os.makedirs(self.folder + '/results/fitparameter/peakwise')
             os.makedirs(self.folder + '/results/plot')
             os.makedirs(self.folder + '/results/denoised/')
+            os.makedirs(self.folder + '/results/grouped_spectra/')
             os.makedirs(self.folder + '/results/derived/')
+
 
         # save missing value
         missingvaluedecimal = decimal.Decimal(str(self.missingvalue))
@@ -227,6 +234,7 @@ class spectrum(object):
 
             plt.legend(loc='upper right')
             plt.show()
+
             self.yreduced = self.ynormed[:, (self.x[spectrum] > xregion[0]) &
                                             (self.x[spectrum] < xregion[-1])]
             self.xreduced = self.x[:, (self.x[spectrum] > xregion[0]) &
@@ -638,7 +646,7 @@ class spectrum(object):
             self.SelectPeaks(peaks, spectrum=i, label=self.labels[i])
 
 
-    def FitSpectrum(self, peaks, spectrum=0, label='', show=True, report=False):
+    def FitSpectrum(self, peaks, spectrum=0, show=True, report=False, init_spectrum = None):
         """
         Conducts the actual fit of the spectrum. A `CompositeModel()
         <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_
@@ -724,29 +732,54 @@ class spectrum(object):
 
             # go through all defined peaks
             for peaktype in peaks:
-                peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
-                           label + '.dat'
 
-                # check, if the current peaktype has been selected
-                if(os.stat(peakfile).st_size > 0):
-                    # get the selected peak positions
-                    xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+                if init_spectrum != None:
+                    init_peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
+                               self.labels[init_spectrum] + '.dat'
 
-                    # necessary if only one peak is selected
-                    if type(xpeak) == np.float64:
-                        xpeak = [xpeak]
-                        ypeak = [ypeak]
+                    # check, if the current peaktype has been selected
+                    if(os.stat(init_peakfile).st_size > 0):
+                        # get the selected peak positions
+                        xpeak, ypeak = np.genfromtxt(init_peakfile, unpack = True)
+                        # necessary if only one peak is selected
+                        if type(xpeak) == np.float64:
+                           xpeak = [xpeak]
+                           ypeak = [ypeak]
 
-                    #define starting values for the fit
-                    for i in range(0, len(xpeak)):
-                        # prefix for the different peaks from one model
-                        temp = ChoosePeakType(peaktype, i)
-                        temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
+                        #define starting values for the fit
+                        for i in range(0, len(xpeak)):
+                            # prefix for the different peaks from one model
+                            temp = ChoosePeakType(peaktype, i)
+                            temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
+                            ramanmodel += temp # add the models to 'ramanmodel'
 
-                        ramanmodel += temp # add the models to 'ramanmodel'
+                else:
+                    peakfile = self.folder + '/temp/locpeak_' + peaktype + '_' +\
+                           self.labels[spectrum] + '.dat'
+
+                    # check, if the current peaktype has been selected
+                    if(os.stat(peakfile).st_size > 0):
+                        # get the selected peak positions
+                        xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+                        # necessary if only one peak is selected
+                        if type(xpeak) == np.float64:
+                            xpeak = [xpeak]
+                            ypeak = [ypeak]
+
+                        #define starting values for the fit
+                        for i in range(0, len(xpeak)):
+                            # prefix for the different peaks from one model
+                            temp = ChoosePeakType(peaktype, i)
+                            temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
+                            ramanmodel += temp # add the models to 'ramanmodel'
+
+
 
             # create the fit parameters of the background substracted fit
-            pars = ramanmodel.make_params()
+            if init_spectrum != None:
+                pars = self.fitresult_peaks[init_spectrum].params
+            else:
+                pars = ramanmodel.make_params()
 
             lower_bounds = np.array([pars[key].min for key in pars.keys()]) #arrays of lower and upper bounds of the start parameters
             upper_bounds = np.array([pars[key].max for key in pars.keys()])
@@ -794,7 +827,7 @@ class spectrum(object):
                 self.comps['constant'] = 0
 
             # print which fit is conducted
-            print('Spectrum ' + label + ' fitted')
+            print('Spectrum ' + self.labels[spectrum] + ' fitted')
 
             # show fit report in terminal
             if report:
@@ -852,8 +885,8 @@ class spectrum(object):
             plt.xlabel('Raman shift (cm$^{-1}$)')
 
             # save figures
-            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.pdf')
-            fig.savefig(self.folder + '/results/plot/fitplot_' + label + '.png',
+            fig.savefig(self.folder + '/results/plot/fitplot_' + self.labels[spectrum] + '.pdf')
+            fig.savefig(self.folder + '/results/plot/fitplot_' + self.labels[spectrum] + '.png',
                         dpi=300)
 
             if show:
@@ -868,8 +901,7 @@ class spectrum(object):
         given.
         """
         for i in range(self.numberOfFiles):
-            self.FitSpectrum(peaks, spectrum=i, label=self.labels[i],
-                             show=show, report=report)
+            self.FitSpectrum(peaks, spectrum=i, show=show, report=report)
 
     # Save the Results of the fit in a file using
     def SaveFitParams(self, peaks, usedpeaks=[], label='', spectrum=0):
@@ -906,6 +938,8 @@ class spectrum(object):
         """
         if spectrum >= self.numberOfFiles:
             print('You need to choose a smaller number for spectra to select.')
+        elif self.fitresult_peaks[spectrum] == None:
+            return
         else:
             # get the data to be stored
             fitparams_back = self.fitresult_bg[spectrum].params     # Background
@@ -1054,22 +1088,158 @@ class spectrum(object):
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')
 
+    def GroupSpectra(self, sigma = 1.5, denoised=False):
+        """
+        Method uses principle component analysis (PCA) to group equal spectra. Therefore the first and second principle components are used.
+        Since the different principle components contain more information if the corresponding eigenvalues are large,
+        five splits on PC1 and three splits on PC2 are performed.
+
+        Parameters
+        ----------
+        sigma : float, default: 1.5
+            Number of standard deviations to mark outlined spectra.
+            In order to detect outlined spectra, all the spectra with principle components
+            outside of sigma standard deviations of the normal distributed sample are
+            marked as outliners.
+        """
+        #calculation of the priniple components
+        if denoised:
+            c = np.cov(self.ydenoised, rowvar = False)
+        else:
+            c = np.cov(self.yreduced, rowvar = False) #covariance matrix of the data set
+        l, W = np.linalg.eigh(c) # eigenvalues and eigenvectors (columns of matrix W)
+
+        l = l[::-1]
+        W = W[:, ::-1] #because np.linalg.eigh() returns eigenvalues and corresponding eigenvectors in decending order, the order is inverted
+
+        if denoised:
+            y_Prime = self.ydenoised @ W
+        else:
+            y_Prime = self.yreduced @ W #transform the data set
+        y_Prime = preprocessing.RobustScaler().fit_transform(y_Prime) #scale the data to a standard normal distribution
+
+
+        #create groups by performing splits in the first two principle components
+        rows = np.arange(np.shape(self.y)[0])
+        self.groups = []
+        interval_x = np.linspace(-sigma, sigma, 5) #array of split points in first principle component
+        interval_y = np.linspace(-sigma, sigma, 3) #array of split points in second principle component
+        for iter_x in range(len(interval_x)-1):
+            for iter_y in range(len(interval_y)-1):
+               self.groups.append(rows[(y_Prime[:, 0] >= interval_x[iter_x]) & (y_Prime[:, 0] < interval_x[iter_x + 1]) & (y_Prime[:, 1] >= interval_y[iter_y]) & (y_Prime[:, 1] < interval_y[iter_y + 1])])
+
+               if (self.groups[-1].size != 0):
+
+                    #plot the results
+                    fig = plt.figure(figsize = (15, 10))
+                    ax1 = fig.add_subplot(122)
+                    ax2 = fig.add_subplot(223)
+                    ax1.set_title(f'{len(self.groups[-1])} spectra')
+                    ax1.set_xlabel('Raman Shift / $cm^{-1}$')
+                    ax1.set_ylabel('Normed Intensity / a.u.')
+                    for spectrum in self.groups[-1]:
+                        if denoised:
+                            pl = ax1.plot(self.xreduced[spectrum], self.ydenoised[spectrum], linewidth = 0.8)
+                        else:
+                            pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
+                        clr = pl[0].get_color()
+                        ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
+                    ax3 = fig.add_subplot(221)
+                    ax3.scatter(y_Prime[:, 0], y_Prime[:, 1], color =  'k')
+                    ax3.fill_between(np.linspace(interval_x[iter_x], interval_x[iter_x+1], 100), interval_y[iter_y], interval_y[iter_y+1], color = 'g', alpha = 0.5)
+                    ax3.set_xlabel('PC 1')
+                    ax3.set_ylabel('PC 2')
+                    ax2.set_xlabel('PC 1')
+                    ax2.set_ylabel('PC 2')
+                    fig.savefig(f'{self.folder}/results/grouped_spectra/group{len(self.groups)}.png', bbox_inches = 'tight', pad_inches = 0)
+                    plt.close(fig)
+
+
+
+
+        fig = plt.figure(figsize = (15, 10))
+        ax1 = fig.add_subplot(122)
+        ax2 = fig.add_subplot(223)
+        ax3 = fig.add_subplot(221)
+        ax3.scatter(y_Prime[:, 0], y_Prime[:, 1], color =  'k')
+        ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), min(y_Prime[:, 1]), -sigma, color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.fill_between(np.linspace(min(y_Prime[:, 0]), -sigma, 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.fill_between(np.linspace(sigma, max(y_Prime[:, 0]), 100), max([-sigma, min(y_Prime[:, 1])]), sigma, color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.fill_between(np.linspace(min([-sigma, min(y_Prime[:, 0])]), max([sigma, max(y_Prime[:, 0])]), 100), sigma , max([sigma, max(y_Prime[:, 1])]), color = 'r', alpha = 0.5, linewidth = 0)
+        ax3.set_xlabel('PC 1')
+        ax3.set_ylabel('PC 2')
+        ax2.set_xlabel('PC 1')
+        ax2.set_ylabel('PC 2')
+        for spectrum in rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)]:
+             ax1.set_xlabel('Raman Shift / $cm^{-1}$')
+             ax1.set_ylabel('Normed Intensity / a.u.')
+             if denoised:
+                 pl = ax1.plot(self.xreduced[spectrum], self.ydenoised[spectrum], linewidth = 0.8)
+             else:
+                 pl = ax1.plot(self.xreduced[spectrum], self.yreduced[spectrum], linewidth = 0.8)
+             clr = pl[0].get_color()
+             ax2.plot(y_Prime[:, 0][spectrum], y_Prime[:, 1][spectrum], marker = 'o', color = clr, markersize = 10)
+
+
+        ax1.set_title(f'{len(rows[(abs(y_Prime[:, 0]) > sigma) | (abs(y_Prime[:, 1]) > sigma)])} spectra (outliners)')
+        fig.savefig(f'{self.folder}/results/grouped_spectra/outliners.png', bbox_inches = 'tight', pad_inches = 0)
+        plt.close(fig)
+
+
+    def SelectGroupedPeaks(self, peaks, groups = None):
+        """
+        Wrapper around :func:`~spectrum.SelectPeaks` that iterates over
+        all grouped spectra by PCA analysis (see :func:`~spectrum.GroupSpectra`).
+        """
+        if groups == None:
+            for i in range(len(self.groups)):
+                if self.groups[i].size != 0:
+                    self.SelectPeaks(peaks, spectrum = (self.groups[i])[0], label=self.labels[(self.groups[i])[0]])
+
+        else:
+            for group in groups:
+                if self.groups[group - 1].size != 0:
+                    self.SelectPeaks(peaks, spectrum = (self.groups[group - 1])[0], label=self.labels[(self.groups[group - 1])[0]])
+
+    def FitAllGroupedSpectra(self, peaks, show=False, report=False):
+        """
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over all grouped spectra by PCA analysis (see :func:`~spectrum.GroupSpectra`).
+        """
+        for i in range(len(self.groups)):
+            if self.groups[i].size != 0:
+                self.FitSpectrum(peaks, spectrum=(self.groups[i])[0], show=show, report=report)
+                for j in range(1, len(self.groups[i])):
+                    self.FitSpectrum(peaks, spectrum=(self.groups[i])[j], show=show, report=report, init_spectrum = (self.groups[i])[0])
+
+    def FitGroups(self, peaks, groups, show=False, report=False):
+        """
+        Wrapper around :func:`~spectrum.FitSpectrum` that iterates over given groups (see :func:`~spectrum.GroupSpectra`) of spectra.
+        """
+        for group in groups:
+            if self.groups[group - 1].size != 0:
+                self.FitSpectrum(peaks, spectrum=(self.groups[group - 1])[0], show=show, report=report)
+                for j in range(1, len(self.groups[group - 1])):
+                    self.FitSpectrum(peaks, spectrum=(self.groups[group - 1])[j], show=show, report=report, init_spectrum = (self.groups[group - 1])[0])
+
+
     # Save all the results
     def SaveAllFitParams(self, peaks):
         """
         Wrapper around :func:`~spectrum.SaveFitParams` that iterates over
-        all spectra given.
+        all spectra that were analyzed.
         """
         # find all peaks that were fitted and generate a list
         allpeaks = []
         for i in range(self.numberOfFiles):
-            allpeaks.extend(re.findall('prefix=\'(.*?)\'',
-                                    self.fitresult_peaks[i].model.name))
+            if self.fitresult_peaks[i] != None:
+                allpeaks.extend(re.findall('prefix=\'(.*?)\'', self.fitresult_peaks[i].model.name))
+
         allusedpeaks = list(set(allpeaks))
 
         for i in range(self.numberOfFiles):
             self.SaveFitParams(peaks, usedpeaks=allusedpeaks, spectrum=i,
                                label=self.labels[i])
+
 
     # function that allows you select an unwanted frequency in the spectrum
     def SelectFrequency(self, spectrum=0):

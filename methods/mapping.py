@@ -10,6 +10,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from functions import *
 
@@ -93,7 +95,7 @@ class mapping(object):
                     clustered = False, colorlist=['w'],  # True if clustered should be plotted
                     distance=False,
                     label='',
-                    xticker=2, colormap='Reds'):
+                    xticker=1, colormap='Reds'):
         """
         Method to plot different mappings.
 
@@ -162,7 +164,7 @@ class mapping(object):
             # sum up each spectrum
             iterator = 0
             for spectrum in y:
-                selectedvalues = spectrum[(x[0] > xmin) and (x[0] < xmax)]
+                selectedvalues = spectrum[(x[0] > xmin) & (x[0] < xmax)]
                 plot_value[iterator] = sum(selectedvalues)
                 iterator += 1
         elif maptype != '':
@@ -206,8 +208,6 @@ class mapping(object):
                 plot_value = plot1 / plot2
                 savefile = (self.folder + '/results/plot/map_'
                            + file1 + '_div_' + file2)
-
-
         elif clustered:
             plot_value = self.clustered.labels_
             savefile = self.folder + '/results/plot/map_clustered'
@@ -243,6 +243,8 @@ class mapping(object):
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
         matplotlib.rcParams.update({'font.size': 22})
 
+        plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
+        plt.yticks(np.arange(self.ydim), y_ticks)
         # plot the selected mapping
         if clustered:
             # make a color map of fixed colors
@@ -252,8 +254,6 @@ class mapping(object):
             plt.imshow(plot_matrix, cmap=cmap)
         else:
             plt.imshow(plot_matrix, cmap=colormap)
-        plt.xticks(np.arange(self.xdim, step=xticker), x_ticks)
-        plt.yticks(np.arange(self.ydim), y_ticks)
 
         # Create list for all the missing values as missing patches
         missingboxes = []
@@ -388,7 +388,8 @@ class mapping(object):
             Number of components for the PCA analysis
         """
         # create the pca analysis
-        pca = PCA(n_components=n_components)
+        pipeline = make_pipeline(StandardScaler(),
+                                 PCA(n_components=n_components))
         self.decompose = decompose
 
         # get requested data
@@ -420,7 +421,8 @@ class mapping(object):
         self.x, self.y = GetMonoData(self.listOfFiles)
 
         # do the pca analysis
-        self.pca_analysis = pca.fit(self.y).transform(self.y)
+        self.pca_analysis = pipeline.fit(self.y).transform(self.y)
+        pca = pipeline.named_steps['pca']
 
         # print the result
         print('Explained variance ratio (first two components): %s'
