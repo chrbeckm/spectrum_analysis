@@ -894,6 +894,9 @@ class spectrum(object):
                 figManager.window.showMaximized()           # show it maximized
                 plt.show()
 
+            # close the figure after it is saved and shown
+            plt.close()
+
     # fit all spectra
     def FitAllSpectra(self, peaks, show=False, report=False):
         """
@@ -1102,6 +1105,8 @@ class spectrum(object):
             outside of sigma standard deviations of the normal distributed sample are
             marked as outliners.
         """
+        print('group spectra')
+        
         #calculation of the priniple components
         if denoised:
             c = np.cov(self.ydenoised, rowvar = False)
