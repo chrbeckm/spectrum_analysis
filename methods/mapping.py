@@ -326,7 +326,7 @@ class mapping(object):
         else:
             plt.savefig(self.folder + '/results/plot/map.pdf', format='pdf')
             plt.savefig(self.folder + '/results/plot/map.png')
-        plt.clf()
+        plt.close()
 
         savefile = re.sub(self.folder + '/results/plot/map_', '', savefile)
         print(savefile)

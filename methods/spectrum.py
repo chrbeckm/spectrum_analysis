@@ -956,8 +956,11 @@ class spectrum(object):
                 # get parameters for saving
                 parametervalue = (fitparams_back[name].value
                                  * self.ymax[spectrum])
-                parametererror = (fitparams_back[name].stderr
-                                 * self.ymax[spectrum])
+                if fitparams_back[name].stderr is None:
+                    parametererror = self.missingvalue
+                else:
+                    parametererror = (fitparams_back[name].stderr
+                                     * self.ymax[spectrum])
 
                 # add background from peaks fit
                 if name == 'c0':
@@ -1106,7 +1109,7 @@ class spectrum(object):
             marked as outliners.
         """
         print('group spectra')
-        
+
         #calculation of the priniple components
         if denoised:
             c = np.cov(self.ydenoised, rowvar = False)
