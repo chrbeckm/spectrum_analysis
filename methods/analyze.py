@@ -16,6 +16,9 @@ spec.SelectSpectrum()
 spec.DetectAllMuons()
 spec.RemoveAllMuons()
 
+# normalize the spectra
+spec.NormalizeAll()
+
 # Function opens a window with the data,
 # you can select the regions that do not belong to
 # the third degree polynominal background signal

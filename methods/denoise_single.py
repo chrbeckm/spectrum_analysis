@@ -21,6 +21,9 @@ spec.SelectSpectrum(spectrum=spectrum)
 spec.DetectMuonsWavelet(spectrum=spectrum)
 spec.RemoveMuons(spectrum=spectrum)
 
+# normalize all spectra
+spec.NormalizeAll()
+
 # denoise spectrum and save the plot
 spec.WaveletSmoothSpectrum(spectrum=spectrum, sav=True)
 spec.PlotSmoothed(spectrum=spectrum)
