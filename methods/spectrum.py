@@ -95,10 +95,6 @@ class spectrum(object):
         # set value of missing values
         self.missingvalue = 1.11
 
-        # get maximum and norm from each spectrum
-        self.ymax = np.max(self.y, axis=1)
-        self.ynormed = self.y/self.ymax[:,None]
-
         # selected spectrum
         self.xreduced = None
         self.yreduced = None
@@ -224,7 +220,7 @@ class spectrum(object):
         else:
             # plot spectrum
             fig, ax = plt.subplots()
-            ax.plot(self.x[spectrum], self.ynormed[spectrum],
+            ax.plot(self.x[spectrum], self.y[spectrum],
                     'b.', label = 'Data')
             ax.set_title('Select the part of the spectrum you wish to consider\
                           by clicking into the plot.')
@@ -235,8 +231,8 @@ class spectrum(object):
             plt.legend(loc='upper right')
             plt.show()
 
-            self.yreduced = self.ynormed[:, (self.x[spectrum] > xregion[0]) &
-                                            (self.x[spectrum] < xregion[-1])]
+            self.yreduced = self.y[:, (self.x[spectrum] > xregion[0]) &
+                                      (self.x[spectrum] < xregion[-1])]
             self.xreduced = self.x[:, (self.x[spectrum] > xregion[0]) &
                                       (self.x[spectrum] < xregion[-1])]
             # save spectrum borders
@@ -376,6 +372,11 @@ class spectrum(object):
         for i in range(self.numberOfFiles):
             self.RemoveMuons(spectrum=i, prnt=prnt)
 
+    # Normalize all spectra
+    def NormalizeAll(self):
+        self.ymax = np.max(self.yreduced, axis=1)
+        self.yreduced = self.yreduced/self.ymax[:, None]
+
     # smooth spectrum by using wavelet transform and soft threshold
     def WaveletSmoothSpectrum(self, spectrum=0, wavelet='sym8', level=2,
                               sav=False):
@@ -441,11 +442,13 @@ class spectrum(object):
         plt.ylabel('Scattered light intensity (arb. u.)')
 
         # seve the figure
-        fig.savefig(self.folder + '/results/plot/denoised_l' + str(level) + '_' + self.labels[spectrum] + '.pdf')
-        fig.savefig(self.folder + '/results/plot/denoised_l' + str(level) + '_' + self.labels[spectrum] + '.png',
+        fig.savefig(self.folder + '/results/plot/denoised_' + self.labels[spectrum] + '.pdf')
+        fig.savefig(self.folder + '/results/plot/denoised_' + self.labels[spectrum] + '.png',
                     dpi=300)
 
         plt.close()
+
+        print('Spectrum ' + self.labels[spectrum] + ' smoothed')
 
     def PlotAllSmoothedSpectra(self, level=2):
         for i in range(self.numberOfFiles):
