@@ -412,6 +412,10 @@ class mapping(object):
             printstring += '.'
             folder += '/results/fitlines'
             type = 'dat'
+        elif self.decompose == 'denoised':
+            printstring += '.'
+            folder += '/results/denoised'
+            type = 'dat'
 
         print(printstring)
 
@@ -475,13 +479,13 @@ class mapping(object):
         fig.savefig(self.folder + '/results/plot/pca_analysis.pdf')
         fig.savefig(self.folder + '/results/plot/pca_analysis.png', dpi=150)
 
-    def PlotClusteredPCAMapping(self, colorlist, cluster='kmeans', n_clusters=3):
+    def PlotClusteredPCAMapping(self, colorlist, cluster='kmeans', n_clusters=3, decompose='raw'):
         """
         Plot a mapping PCA decomposed mapping clustered with a cluster
         algorithm.
         """
 
-        self.DecomposePCA()
+        self.DecomposePCA(decompose=decompose)
         self.ClusterPCA(cluster=cluster, n_clusters=n_clusters)
         self.PlotClusteredPCA(colorlist=colorlist)
         self.PlotMapping(clustered=True, colorlist=colorlist)

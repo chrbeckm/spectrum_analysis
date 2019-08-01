@@ -419,6 +419,38 @@ class spectrum(object):
             self.WaveletSmoothSpectrum(spectrum=i, level=level, sav=sav,
                                        wavelet=wavelet)
 
+    # plot the smoothed spectrum
+    def PlotSmoothed(self, spectrum=0, level=2):
+        # create figure
+        fig, ax = plt.subplots()
+
+        # plot the selected and the denoised data
+        ax.plot(self.xreduced[spectrum],
+                self.yreduced[spectrum] * self.ymax[spectrum],
+                'b.', alpha = 0.8, markersize = 1, zorder = 0,
+                label = 'Data')
+        ax.plot(self.xreduced[spectrum],
+                self.ydenoised[spectrum] * self.ymax[spectrum],
+                'r-', linewidth = 1, zorder = 0, label = 'Denoised')
+
+        # add legend, title and labels
+        fig.legend()
+        plt.title('Denoised data of ' + self.folder + ' spectrum '
+                  + str(spectrum + 1))
+        plt.xlabel('Raman shift (cm$^{-1}$)')
+        plt.ylabel('Scattered light intensity (arb. u.)')
+
+        # seve the figure
+        fig.savefig(self.folder + '/results/plot/denoised_l' + str(level) + '_' + self.labels[spectrum] + '.pdf')
+        fig.savefig(self.folder + '/results/plot/denoised_l' + str(level) + '_' + self.labels[spectrum] + '.png',
+                    dpi=300)
+
+        plt.close()
+
+    def PlotAllSmoothedSpectra(self, level=2):
+        for i in range(self.numberOfFiles):
+            self.PlotSmoothed(spectrum=i, level=level)
+
     #function to select the data that is relevent for the background
     def SelectBaseline(self, spectrum=0, label='', color='b'):
         """
