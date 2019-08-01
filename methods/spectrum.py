@@ -408,7 +408,7 @@ class spectrum(object):
             savefile = (self.folder + '/results/denoised/den_'
                         + self.labels[spectrum] + '.dat')
             np.savetxt(savefile, np.column_stack([self.xreduced[spectrum],
-                                                  self.ydenoised[spectrum]]))
+                                                  self.ydenoised[spectrum] * self.ymax[spectrum]]))
 
     # smooth all spectra
     def WaveletSmoothAllSpectra(self, level=2, sav=False, wavelet='sym8'):
@@ -441,7 +441,7 @@ class spectrum(object):
         plt.xlabel('Raman shift (cm$^{-1}$)')
         plt.ylabel('Scattered light intensity (arb. u.)')
 
-        # seve the figure
+        # save the figure
         fig.savefig(self.folder + '/results/plot/denoised_' + self.labels[spectrum] + '.pdf')
         fig.savefig(self.folder + '/results/plot/denoised_' + self.labels[spectrum] + '.png',
                     dpi=300)

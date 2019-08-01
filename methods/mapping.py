@@ -451,7 +451,7 @@ class mapping(object):
 
         self.clustered.fit(self.pca_analysis)
 
-    def PlotClusteredPCA(self, colorlist):
+    def PlotClusteredPCA(self, colorlist, annotate=False):
         """
         Plot the clustered data. And calculate the sum of each cluster.
         """
@@ -468,6 +468,8 @@ class mapping(object):
             # plot each pca point into a scatter plot
             ax.scatter(self.pca_analysis[point, 0], self.pca_analysis[point, 1],
                        color=colorlist[clust], alpha=.8)
+            if annotate:
+                ax.annotate(point + 1, (self.pca_analysis[point, 0], self.pca_analysis[point, 1]))
 
         # set the labels
         plt.title('PCA of ' + self.folder + ' with ' + self.clustered.init
@@ -479,7 +481,7 @@ class mapping(object):
         fig.savefig(self.folder + '/results/plot/pca_analysis.pdf')
         fig.savefig(self.folder + '/results/plot/pca_analysis.png', dpi=150)
 
-    def PlotClusteredPCAMapping(self, colorlist, cluster='kmeans', n_clusters=3, decompose='raw'):
+    def PlotClusteredPCAMapping(self, colorlist, annotate=False, cluster='kmeans', n_clusters=3, decompose='raw'):
         """
         Plot a mapping PCA decomposed mapping clustered with a cluster
         algorithm.
@@ -487,5 +489,5 @@ class mapping(object):
 
         self.DecomposePCA(decompose=decompose)
         self.ClusterPCA(cluster=cluster, n_clusters=n_clusters)
-        self.PlotClusteredPCA(colorlist=colorlist)
+        self.PlotClusteredPCA(annotate=annotate, colorlist=colorlist)
         self.PlotMapping(clustered=True, colorlist=colorlist)

@@ -34,4 +34,4 @@ map.PlotMapping(top='breit_wigner_p1_center.dat',
                 distance=True)
 
 # Use cluster algorithms to identify something in the mapping
-map.PlotClusteredPCAMapping(decompose='raw', colorlist=colorlist)
+map.PlotClusteredPCAMapping(annotate=True, decompose='denoised', colorlist=colorlist)
