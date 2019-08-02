@@ -9,7 +9,7 @@ uncertainties
 scipy
 lmfit
 statsmodels
-pywt
+PyWavelets (pywt) 1.0.3.
 
 ## How to use the methods for spectrum fit:
 
