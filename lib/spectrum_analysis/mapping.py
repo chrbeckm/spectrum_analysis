@@ -486,6 +486,19 @@ class mapping(spectrum):
             self.label = i
             self.PlotFit(x[i], y[i], ymax[i], fitresults[i], show=show)
 
+    def Save2nd(self, file, value, error):
+        # get values and update them
+        values, stderrs = np.genfromtxt(file, unpack = True)
+
+        values[self.indices[self.spectrum]] = value
+        stderrs[self.indices[self.spectrum]] = error
+
+        with open(file, 'w') as f:
+            for i in range(len(values)):
+                f.write('{:>13.5f}'.format(values[i])
+                        + '\t' + '{:>11.5f}'.format(stderrs[i])
+                        + '\n')
+
     def SavePeak(self, ymax, peak, params):
         # iterate through all fit parameters
         for name in params.keys():
@@ -507,17 +520,7 @@ class mapping(spectrum):
                                                     value, error)
 
                 if self.second_analysis == True:
-                    # get values and update them
-                    values, stderrs = np.genfromtxt(file, unpack = True)
-
-                    values[self.indices[self.spectrum]] = value
-                    stderrs[self.indices[self.spectrum]] = error
-
-                    with open(file, 'w') as f:
-                        for i in range(len(values)):
-                            f.write('{:>13.5f}'.format(values[i])
-                                    + '\t' + '{:>11.5f}'.format(stderrs[i])
-                                    + '\n')
+                    self.Save2nd(file, value, error)
                 else:
                     with open(file, 'a') as f:
                         f.write('{:>13.5f}'.format(value)
@@ -558,13 +561,40 @@ class mapping(spectrum):
                                          label=parameter, datatype='dat')
 
                 # open file and write missing values
-                with open(peakfile, 'a') as f:
-                    f.write('{:>13.5f}'.format(self.missingvalue)
-                            + '\t' + '{:>11.5f}'.format(self.missingvalue)
-                            + '\n')
+                if self.second_analysis == True:
+                    self.Save2nd(peakfile, self.missingvalue, self.missingvalue)
+                else:
+                    with open(peakfile, 'a') as f:
+                        f.write('{:>13.5f}'.format(self.missingvalue)
+                                + '\t' + '{:>11.5f}'.format(self.missingvalue)
+                                + '\n')
+
+    def UpdatePeaklist(self, usedpeaks):
+        # get all peaks that are used
+        list_of_files, number_of_files = self.GetFolderContent(
+                                            folder=self.pardir_peak,
+                                            filetype='dat',
+                                            quiet=True)
+        peaklist = []
+        for i, file in enumerate(list_of_files):
+            peak = list_of_files[i].split('/')[-1].split('_')[0]
+            number = list_of_files[i].split('/')[-1].split('_')[1]
+            peaklist.append(peak + '_' + number + '_')
+
+        # make a set of all peaks used
+        peaklist = list(set(peaklist))
+        for peak in peaklist:
+            usedpeaks.append(peak)
+
+        usedpeaks = list(set(peaklist))
+
+        return usedpeaks
 
     def SaveAllFitParams(self, ymax, fitresults, peaks):
         usedpeaks = self.GenerateUsedPeaks(fitresults)
+
+        if self.second_analysis == True:
+            usedpeaks = self.UpdatePeaklist(usedpeaks)
 
         for i, spectrum in enumerate(ymax):
             self.label = i
