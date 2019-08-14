@@ -1,6 +1,9 @@
 import glob
 import numpy as np
 
+import matplotlib
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 from spectrum_analysis.spectrum import *
 
 """
@@ -601,3 +604,168 @@ class mapping(spectrum):
             self.SaveFuncParams(self.SaveSpec, ymax[i][0], fitresults[i], peaks)
             self.SaveFuncParams(self.SavePeak, ymax[i][0], fitresults[i], peaks)
             self.SaveUnusedPeaks(peaks, usedpeaks, fitresults[i])
+
+    def LabelZ(self, plt, ax, label='Integrated Intensity\n(arb. u.)', nbins=5,
+               linear=False):
+        """
+        Function to label the z-axis of the Plot.
+        Parameters
+        ----------
+        plt : matplotlib.figure.Figure
+        Plot that should be labeled.
+        ax : matplotlib.axes.Axes
+        Axis of interest.
+        label : string
+        Label that should be used for the z-axis.
+        """
+        tick_locator = matplotlib.ticker.MaxNLocator(nbins=nbins)
+        if linear:
+            tick_locator = matplotlib.ticker.LinearLocator(numticks=nbins)
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        clb = plt.colorbar(cax=cax)
+        clb.set_label(label)
+        clb.locator = tick_locator
+        clb.update_ticks()
+
+    def CreatePlotValues(self, x, y, xmin, xmax, maptype):
+        """
+        Create plot values accordingly to the type specified
+        """
+        plot_value = np.empty(x.shape[0])
+        savefile = ''
+
+        if maptype == 'raw':
+            for i, spectrum in enumerate(y):
+                selectedvalues = spectrum[(x[0] > xmin) & (x[0] < xmax)]
+                plot_value[i] = sum(selectedvalues)
+
+            savefile = self.pltdir + '/map_raw'
+
+        return plot_value, savefile
+
+    def CorrectPlotValues(self, plot_value):
+        """
+        Check plot_values and replace them with mean value.
+        """
+        # check if any value in plot_value is a missing value or 1
+        missingindices = [i for i, x in enumerate(plot_value)
+                          if ((x == self.missingvalue) or (x == 1.0)
+                                                      or (x == 0.0))]
+        existingindices = [i for i, x in enumerate(plot_value)
+                           if (x != self.missingvalue) and (x != 1.0)
+                                                       and (x != 0.0)]
+        # calculate the mean of the existing values
+        fitmean = 0
+        for index in existingindices:
+            fitmean += plot_value[index]
+        fitmean = fitmean / len(existingindices)
+
+        # set the missing values as mean
+        for index in missingindices:
+            plot_value[index] = fitmean
+
+        return plot_value, fitmean
+
+    def CreatePlotMatrices(self, x, y, xdim, ydim, xmin, xmax, maptype):
+
+        plot_value, savefile = self.CreatePlotValues(x, y, xmin, xmax,
+                                                     maptype=maptype)
+
+        plot_value, fitmean = self.CorrectPlotValues(plot_value)
+
+        # create matrix for plotting
+        plot_matrix = np.reshape(plot_value, (ydim, xdim))
+        plot_matrix = np.flipud(plot_matrix)
+
+        # create matrix with missing values
+        missing_matrix = np.full_like(plot_matrix, False, dtype=bool)
+        missing_matrix = (plot_matrix == fitmean)
+
+        return plot_matrix, missing_matrix, savefile
+
+    def CreatePatchMask(self, xdim, ydim, fig, missing_matrix):
+        # Create list for all the missing values as missing patches
+        missingboxes = []
+
+        # find all fields not containing signals and append to
+        for iy in range(0,ydim):
+            for ix in range(0,xdim):
+                if missing_matrix[iy][ix]:
+                    # calculate position correction for the patches
+                    corr = 0.5
+                    linecorr = matplotlib.rcParams['axes.linewidth']/fig.dpi/4
+                    # create the missing patch and add to list
+                    rect = matplotlib.patches.Rectangle((ix - corr + linecorr,
+                                              iy - corr - linecorr), 1, 1)
+                    missingboxes.append(rect)
+
+        # Create patch collection with specified colour/alpha
+        pc = matplotlib.collections.PatchCollection(missingboxes,
+                                                    facecolor='black')
+        return pc
+
+    def ConfigureTicks(self, xdim, ydim, step, xticker, plt):
+        # create x and y ticks accordingly to the parameters of the mapping
+        x_ticks = np.arange(step, step * (xdim + 1), step=xticker*step)
+        y_ticks = np.arange(step, step * (ydim + 1), step=step)
+        y_ticks = y_ticks[::-1]
+
+        plt.xticks(np.arange(xdim, step=xticker), x_ticks, fontsize='small')
+        plt.yticks(np.arange(ydim), y_ticks, fontsize='small')
+
+    def ConfigurePlot(self, plt, ax):
+        # set title, label of x, y and z axis
+        plt.title('Mapping of ' + self.folder, fontsize='small')
+        plt.ylabel('y-Position ($\mathrm{\mu}$m)', fontsize='small')
+        plt.xlabel('x-Position ($\mathrm{\mu}$m)', fontsize='small')
+        self.LabelZ(plt, ax)
+
+        # have a tight layout
+        plt.tight_layout()
+
+    def PlotMapping(self, x, y, xdim, ydim, step,
+                    xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
+                    maptype='raw',            # maptypes accordingly to fitparameter/peakwise/*
+                    xticker=1, colormap='Reds'):
+        """
+        Method to plot different mappings.
+        Parameters
+        ----------
+        xmin : int
+            Lowest wavenumber that should be used for integrating a spectral
+            region.
+        xmax : int
+            Highest wavenumber that should be used for integrating a spectral
+            region.
+        maptype : string
+            Plot any of the parameters in fitparameter/peakwise/
+        xticker : int
+        colormap : string
+            Defines the coloring of the mapping according to the `matplotlib
+            colormaps <https://matplotlib.org/users/colormaps.html>`_
+        """
+        plot_matrix, missing_matrix, savefile = self.CreatePlotMatrices(x, y,
+                                                        xdim, ydim, xmin, xmax,
+                                                        maptype=maptype)
+
+        # create and configure figure for mapping
+        fig, ax = plt.subplots(figsize=(xdim,ydim))
+        ax.set_aspect('equal')
+        matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
+        matplotlib.rcParams.update({'font.size': 22})
+        self.ConfigureTicks(xdim, ydim, step, xticker, plt)
+
+        # plot mapping, create patch mask and plot it over map
+        plt.imshow(plot_matrix, cmap=colormap)
+        pc = self.CreatePatchMask(xdim, ydim, fig, missing_matrix)
+        ax.add_collection(pc)
+
+        # configure, save and show the plot
+        self.ConfigurePlot(plt, ax)
+        plt.savefig(savefile + '.pdf', format='pdf')
+        plt.savefig(savefile + '.png')
+        plt.close()
+
+        savefile = re.sub(self.folder + '/results/plot/map_', '', savefile)
+        print(savefile + ' map plotted')
