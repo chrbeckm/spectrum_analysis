@@ -2,7 +2,7 @@ from spectrum_analysis import mapping as mp
 
 import matplotlib.pyplot as plt
 
-peaks=['breit_wigner', 'lorentzian']
+peaks=['gaussian', 'lorentzian']
 
 map = mp.mapping(foldername='testdata')
 

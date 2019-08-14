@@ -48,7 +48,7 @@ class mapping(spectrum):
                                                         datatype)
         if os.path.exists(self.folder + '/results'):
             self.second_analysis = True
-            self.listOfFiles, self.numberOfFiles = self.Get2ndLabels()
+            self.listOfFiles, self.numberOfFiles, self.indices = self.Get2ndLabels()
 
         self.spectrum = 0
         self.spectra = []
@@ -120,11 +120,13 @@ class mapping(spectrum):
         Function to get a list of indices for the second analysis.
         """
         list_of_files = []
+        list_of_indices = []
         answer = input('These spectra have been analyzed already.\n'
                        'Do you want to analyze all of them again? (y/n)\n')
         if answer == 'y':
             list_of_files = self.listOfFiles
             number_of_files = self.numberOfFiles
+            list_of_indices = np.arange(self.numberOfFiles)
             pass
         elif answer == 'n':
             for i, label in enumerate(self.listOfFiles):
@@ -139,12 +141,13 @@ class mapping(spectrum):
                 if any(label in file for file in self.listOfFiles):
                     index = [i for i, file in enumerate(self.listOfFiles) if label in file]
                     list_of_files.append(self.listOfFiles[index[0]])
+                    list_of_indices.append(index[0])
                     print('Added ' + self.SplitLabel(self.listOfFiles[index[0]]))
                 else:
                     print('This spectrum does not exist.')
             number_of_files = len(list_of_files)
 
-        return list_of_files, number_of_files
+        return list_of_files, number_of_files, list_of_indices
 
     def Teller(self, number, kind, location='folder'):
         """
@@ -491,18 +494,33 @@ class mapping(spectrum):
                 file = self.get_file(dir=self.pardir_peak,
                                      prefix='', suffix='',
                                      datatype='dat', label=name)
-                with open(file, 'a') as g:
-                    # get parameters for saving
-                    peakparameter = name.replace(peak, '')
-                    value = params[name].value
-                    error = params[name].stderr
 
-                    value, error = self.ScaleParameters(ymax, peakparameter,
-                                                        value, error)
+                peakparameter = name.replace(peak, '')
 
-                    g.write('{:>13.5f}'.format(value)
-                            + '\t' + '{:>11.5f}'.format(error)
-                            + '\n')
+                # get parameters for saving
+                value = params[name].value
+                error = params[name].stderr
+
+                value, error = self.ScaleParameters(ymax, peakparameter,
+                                                    value, error)
+
+                if self.second_analysis == True:
+                    # get values and update them
+                    values, stderrs = np.genfromtxt(file, unpack = True)
+
+                    values[self.indices[self.spectrum]] = value
+                    stderrs[self.indices[self.spectrum]] = error
+
+                    with open(file, 'w') as f:
+                        for i in range(len(values)):
+                            f.write('{:>13.5f}'.format(values[i])
+                                    + '\t' + '{:>11.5f}'.format(stderrs[i])
+                                    + '\n')
+                else:
+                    with open(file, 'a') as f:
+                        f.write('{:>13.5f}'.format(value)
+                                + '\t' + '{:>11.5f}'.format(error)
+                                + '\n')
 
     def GenerateUsedPeaks(self, fitresults):
         # find all peaks that were fitted and generate a list
