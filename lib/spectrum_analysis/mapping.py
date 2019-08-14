@@ -121,19 +121,22 @@ class mapping(spectrum):
         """
         list_of_files = []
         list_of_indices = []
+
         answer = input('These spectra have been analyzed already.\n'
                        'Do you want to analyze all of them again? (y/n)\n')
+
         if answer == 'y':
             list_of_files = self.listOfFiles
             number_of_files = self.numberOfFiles
             list_of_indices = np.arange(self.numberOfFiles)
-            pass
         elif answer == 'n':
             for i, label in enumerate(self.listOfFiles):
                 print(f'{self.SplitLabel(label)} \n')
+
             print('Enter the spectra that you want to analyze again.\n'
                   'It is enough to enter the appendant four letter number.\n'
                   '(Finish the selection with x).')
+
             while True:
                 label = input()
                 if label == 'x':
@@ -495,9 +498,8 @@ class mapping(spectrum):
                                      prefix='', suffix='',
                                      datatype='dat', label=name)
 
-                peakparameter = name.replace(peak, '')
-
                 # get parameters for saving
+                peakparameter = name.replace(peak, '')
                 value = params[name].value
                 error = params[name].stderr
 
