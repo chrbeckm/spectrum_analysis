@@ -374,7 +374,7 @@ class mapping(object):
             for colormap in category[1]:
                 self.PlotMapping(maptype=map, label=category[0] + colormap, colormap=colormap)
 
-    def DecomposePCA(self, decompose='raw', n_components=2):
+    def DecomposePCA(self, decompose='raw', n_components=2, normalize=False, standarize=False):
         """
         Decompose the spectra of a given mapping.
 
@@ -423,6 +423,16 @@ class mapping(object):
         self.listOfFiles, self.numberOfFiles = GetFolderContent(folder, type,
                                                                 quiet=True)
         self.x, self.y = GetMonoData(self.listOfFiles)
+
+        # normalize
+        if normalize:
+            self.ymax = np.max(self.y, axis=1)
+            self.y = self.y/self.ymax[:, None]
+            self.decompose += '_normalized'
+        if standarize:
+            self.xmax = np.max(self.x, axis=1)
+            self.x = self.x/self.xmax[:, None]
+            self.decompose += 'standarized'
 
         # do the pca analysis
         self.pca_analysis = pipeline.fit(self.y).transform(self.y)
@@ -478,16 +488,16 @@ class mapping(object):
         plt.ylabel('principal component 2')
 
         # save the figures
-        fig.savefig(self.folder + '/results/plot/pca_analysis.pdf')
-        fig.savefig(self.folder + '/results/plot/pca_analysis.png', dpi=150)
+        fig.savefig(self.folder + '/results/plot/pca_analysis_' + self.decompose + '.pdf')
+        fig.savefig(self.folder + '/results/plot/pca_analysis_' + self.decompose + '.png', dpi=150)
 
-    def PlotClusteredPCAMapping(self, colorlist, annotate=False, cluster='kmeans', n_clusters=3, decompose='raw'):
+    def PlotClusteredPCAMapping(self, colorlist, normalize=False, standarize=False, annotate=False, cluster='kmeans', n_clusters=3, decompose='raw'):
         """
         Plot a mapping PCA decomposed mapping clustered with a cluster
         algorithm.
         """
 
-        self.DecomposePCA(decompose=decompose)
+        self.DecomposePCA(decompose=decompose, normalize=normalize, standarize=standarize)
         self.ClusterPCA(cluster=cluster, n_clusters=n_clusters)
         self.PlotClusteredPCA(annotate=annotate, colorlist=colorlist)
         self.PlotMapping(clustered=True, colorlist=colorlist)

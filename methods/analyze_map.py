@@ -3,7 +3,7 @@ from mapping import *
 # colors for clustering (add more if you use more than 10 clusters)
 colorlist = ['red', 'orange', 'yellow',
              'blue', 'lightblue', 'turquoise',
-             'green', 'lightgreen', 'white', 'purple']
+             'green', 'lightgreen', 'grey', 'purple']
 
 # xdim:     the number of Spectra in x direction
 # ydim:     the number of Spectra in y direction

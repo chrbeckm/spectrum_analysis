@@ -19,6 +19,9 @@ spec.RemoveAllMuons()
 # normalize all spectra
 spec.NormalizeAll()
 
+spec.SelectBaseline()
+spec.FitAllBaselines()
+
 # denoise all spectra and save them
 spec.WaveletSmoothAllSpectra(sav=True)
 spec.PlotAllSmoothedSpectra()

@@ -498,7 +498,7 @@ class spectrum(object):
             np.savetxt(self.fBaseline, np.array(xregion))
 
     # actual fit of the baseline
-    def FitBaseline(self, spectrum=0, show=False, degree=1):
+    def FitBaseline(self, spectrum=0, label='', show=False, degree=1):
         """
         Fit of the baseline by using the
         `PolynomalModel()
@@ -558,6 +558,12 @@ class spectrum(object):
                 plt.plot(self.xreduced[spectrum], self.baseline[spectrum],
                          'r-', label = 'Baseline')
                 plt.show()
+
+            # save the baseline
+            file = (self.folder + '/results/baselines/'
+                    + self.labels[spectrum] + '_baseline.dat')
+            np.savetxt(file, np.column_stack([self.xreduced[spectrum],
+                       self.baseline[spectrum] * self.ymax[spectrum]]))
 
     # fit all baselines
     def FitAllBaselines(self, show=False, degree=1):
@@ -1119,12 +1125,6 @@ class spectrum(object):
                         + label + '_fitline.dat')
             np.savetxt(file, np.column_stack([self.xreduced[spectrum],
                            self.fitline[spectrum] * self.ymax[spectrum]]))
-
-            # save the baseline
-            file = (self.folder + '/results/baselines/'
-                        + label + '_baseline.dat')
-            np.savetxt(file, np.column_stack([self.xreduced[spectrum],
-                           self.baseline[spectrum] * self.ymax[spectrum]]))
 
             # print which spectrum is saved
             print('Spectrum ' + label + ' saved')
