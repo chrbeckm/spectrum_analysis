@@ -516,19 +516,23 @@ class mapping(spectrum):
         clb.locator = tick_locator
         clb.update_ticks()
 
-    def CreatePlotValues(self, x, y, xmin, xmax, maptype):
+    def CreatePlotValues(self, maptype, y, **kwargs):
         """
         Create plot values accordingly to the type specified
         """
-        plot_value = np.empty(x.shape[0])
+        plot_value = np.empty(y.shape[0])
         savefile = ''
 
         if maptype == 'raw':
             for i, spectrum in enumerate(y):
-                selectedvalues = spectrum[(x[0] > xmin) & (x[0] < xmax)]
+                selectedvalues = spectrum[(kwargs['x'][0] > kwargs['xmin'])
+                                          & (kwargs['x'][0] < kwargs['xmax'])]
                 plot_value[i] = sum(selectedvalues)
 
             savefile = self.pltdir + '/map_raw'
+        elif maptype == 'params':
+            plot_value = y
+            savefile = self.pltdir + kwargs['name']
 
         return plot_value, savefile
 
@@ -555,15 +559,14 @@ class mapping(spectrum):
 
         return plot_value, fitmean
 
-    def CreatePlotMatrices(self, x, y, xdim, ydim, xmin, xmax, maptype):
+    def CreatePlotMatrices(self, maptype, y, mapdims, **kwargs):
 
-        plot_value, savefile = self.CreatePlotValues(x, y, xmin, xmax,
-                                                     maptype=maptype)
+        plot_value, savefile = self.CreatePlotValues(maptype, y, **kwargs)
 
         plot_value, fitmean = self.CorrectPlotValues(plot_value)
 
         # create matrix for plotting
-        plot_matrix = np.reshape(plot_value, (ydim, xdim))
+        plot_matrix = np.reshape(plot_value, mapdims)
         plot_matrix = np.flipud(plot_matrix)
 
         # create matrix with missing values
@@ -572,7 +575,9 @@ class mapping(spectrum):
 
         return plot_matrix, missing_matrix, savefile
 
-    def CreatePatchMask(self, xdim, ydim, fig, missing_matrix):
+    def CreatePatchMask(self, mapdims, fig, missing_matrix):
+        xdim = mapdims[0]
+        ydim = mapdims[1]
         # Create list for all the missing values as missing patches
         missingboxes = []
 
@@ -593,7 +598,9 @@ class mapping(spectrum):
                                                     facecolor='black')
         return pc
 
-    def ConfigureTicks(self, xdim, ydim, step, xticker, plt):
+    def ConfigureTicks(self, mapdims, step, xticker, plt):
+        xdim = mapdims[0]
+        ydim = mapdims[1]
         # create x and y ticks accordingly to the parameters of the mapping
         x_ticks = np.arange(step, step * (xdim + 1), step=xticker*step)
         y_ticks = np.arange(step, step * (ydim + 1), step=step)
@@ -612,10 +619,8 @@ class mapping(spectrum):
         # have a tight layout
         plt.tight_layout()
 
-    def PlotMapping(self, x, y, xdim, ydim, step,
-                    xmin=None, xmax=None,     # set x min and xmax if you want to integrate a region
-                    maptype='raw',            # maptypes accordingly to fitparameter/peakwise/*
-                    xticker=1, colormap='Reds'):
+    def PlotMapping(self, maptype, y, mapdims, step,
+                    xticker=1, colormap='Reds', **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -633,20 +638,19 @@ class mapping(spectrum):
             Defines the coloring of the mapping according to the `matplotlib
             colormaps <https://matplotlib.org/users/colormaps.html>`_
         """
-        plot_matrix, missing_matrix, savefile = self.CreatePlotMatrices(x, y,
-                                                        xdim, ydim, xmin, xmax,
-                                                        maptype=maptype)
+        plot_matrix, missing_matrix, savefile = self.CreatePlotMatrices(maptype,
+                                                        y, mapdims, **kwargs)
 
         # create and configure figure for mapping
-        fig, ax = plt.subplots(figsize=(xdim,ydim))
+        fig, ax = plt.subplots(figsize=mapdims)
         ax.set_aspect('equal')
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
         matplotlib.rcParams.update({'font.size': 22})
-        self.ConfigureTicks(xdim, ydim, step, xticker, plt)
+        self.ConfigureTicks(mapdims, step, xticker, plt)
 
         # plot mapping, create patch mask and plot it over map
         plt.imshow(plot_matrix, cmap=colormap)
-        pc = self.CreatePatchMask(xdim, ydim, fig, missing_matrix)
+        pc = self.CreatePatchMask(mapdims, fig, missing_matrix)
         ax.add_collection(pc)
 
         # configure, save and show the plot
@@ -655,5 +659,5 @@ class mapping(spectrum):
         plt.savefig(savefile + '.png')
         plt.close()
 
-        savefile = re.sub(self.folder + '/results/plot/map_', '', savefile)
-        print(savefile + ' map plotted')
+        savefile = re.sub(self.folder + '/results/plot/', '', savefile)
+        print(savefile + ' plotted')
