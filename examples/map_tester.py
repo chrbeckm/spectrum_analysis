@@ -1,4 +1,5 @@
 from spectrum_analysis import mapping as mp
+from spectrum_analysis import data
 
 import matplotlib.pyplot as plt
 
@@ -7,7 +8,7 @@ peaks=['gaussian', 'lorentzian']
 map = mp.mapping(foldername='testdata')
 
 # get x- and y-data
-x, y = map.GetAllData()
+x, y = data.GetAllData(map.spectra)
 
 # reduce the data to the region of interest
 x_red, y_red = map.ReduceAllRegions(x, y)

@@ -2,16 +2,13 @@ import os
 import shutil
 
 from spectrum_analysis import mapping as mp
+from spectrum_analysis import data
 
 folder='testdata'
 
-if os.path.exists(folder + '/results'):
-    shutil.rmtree(folder + '/results')
-    shutil.rmtree(folder + '/temp')
-
-map = mp.mapping(foldername=folder)
+map = mp.mapping(foldername=folder, plot=True)
 
 # get x- and y-data
-x, y = map.GetAllData()
+x, y = data.GetAllData(map.spectra)
 
 map.PlotMapping(x, y, 3, 3, 10, 1300, 1400)
