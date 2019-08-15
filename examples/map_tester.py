@@ -8,7 +8,7 @@ peaks=['gaussian', 'lorentzian']
 map = mp.mapping(foldername='testdata')
 
 # get x- and y-data
-x, y = data.GetAllData(map.spectra)
+x, y = data.GetAllData(map.listOfFiles)
 
 # reduce the data to the region of interest
 x_red, y_red = map.ReduceAllRegions(x, y)

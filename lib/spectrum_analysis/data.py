@@ -113,7 +113,7 @@ def VStack(i, x, xtemp):
             x = x.reshape(1,1)
     return x
 
-def GetAllData(spectra, measurement='', prnt=False):
+def GetAllData(listOfFiles, measurement='', prnt=False):
     """
     Get data of the mapping.
     Parameters
@@ -134,8 +134,8 @@ def GetAllData(spectra, measurement='', prnt=False):
     x = np.array([])
     y = np.array([])
 
-    for i, spec in enumerate(spectra):
-        xtemp, ytemp = GetData(spec.file, measurement=measurement,
+    for i, spec in enumerate(listOfFiles):
+        xtemp, ytemp = GetData(spec, measurement=measurement,
                                prnt=prnt)
         x = VStack(i, x, xtemp)
         y = VStack(i, y, ytemp)
