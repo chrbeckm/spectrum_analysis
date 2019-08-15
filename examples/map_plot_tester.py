@@ -9,12 +9,11 @@ map = mp.mapping(foldername='testdata', plot=True)
 mapdims = (3, 3)
 step = 10
 
-# get x- and y-data
+# get and plot raw data
 x, y = data.GetAllData(map.listOfFiles)
-
 map.PlotMapping('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
 
-# get fit data, one map per peak parameter
+# get fit data and plot one map per peak parameter
 peakList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak,
                                                     filetype='dat',
                                                     object='peakparameter')
