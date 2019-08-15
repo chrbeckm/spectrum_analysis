@@ -1,13 +1,15 @@
 from spectrum_analysis import spectrum as sp
+from spectrum_analysis import data
 
 import matplotlib.pyplot as plt
 
-peaks=['breit_wigner', 'lorentzian']
+peaks = ['breit_wigner', 'lorentzian']
+file = 'testdata/0005'
 
-spec = sp.spectrum(filename='testdata/0005')
+spec = sp.spectrum(filename=file)
 
 # get x- and y-data
-x, y = spec.GetData()
+x, y = data.GetData(file + '.txt')
 
 # reduce the data to the region of interest
 xmin, xmax = spec.SelectRegion(x, y)
