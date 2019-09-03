@@ -11,7 +11,8 @@ spec = sp.spectrum('testdata/0005')
 x, y = data.GetData(spec.file)
 
 # reduce the data to the region of interest
-xmin, xmax = spec.SelectRegion(x, y)
+region = spec.SelectRegion(x, y)
+xmin, xmax = spec.ExtractRegion(x, xregion)
 x_red, y_red = spec.ReduceRegion(x, y, xmin, xmax)
 
 # remove muons

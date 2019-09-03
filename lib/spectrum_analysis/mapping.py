@@ -176,7 +176,8 @@ class mapping(spectrum):
         yreduced : numpy.ndarray
             Reduced y-values of the spectrum.
         """
-        xmin, xmax = self.SelectRegion(x[self.spectrum], y[self.spectrum])
+        xregion = self.SelectRegion(x[self.spectrum], y[self.spectrum])
+        xmin, xmax = self.ExtractRegion(x[self.spectrum], xregion)
 
         xreduced = np.array([])
         yreduced = np.array([])

@@ -102,7 +102,7 @@ class spectrum(object):
             return (dir + '/' + prefix + '_' + suffix
                     + '_' + self.label + '.' + datatype)
 
-    def PlotVerticalLines(self, color, fig):
+    def PlotVerticalLines(self, color, fig, jupyter=False):
         """
         Function to select horizontal regions by clicking into the plot.
 
@@ -155,12 +155,15 @@ class spectrum(object):
 
         # actual execution of the defined function onclickbase
         cid = fig.canvas.mpl_connect('button_press_event', onclickbase)
-        figManager = plt.get_current_fig_manager()  # get current figure
-        figManager.window.showMaximized()           # show it maximized
+        if jupyter == True:
+            pass
+        else:
+            figManager = plt.get_current_fig_manager()  # get current figure
+            figManager.window.showMaximized()           # show it maximized
 
         return xregion
 
-    def SelectRegion(self, x, y):
+    def SelectRegion(self, x, y, **kwargs):
         """
         Function that lets the user select a region by running the
         method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
@@ -189,12 +192,25 @@ class spectrum(object):
                      + 'consider by clicking into the plot.')
 
         # select region of interest
-        xregion = self.PlotVerticalLines('green', fig)
+        xregion = self.PlotVerticalLines('green', fig, **kwargs)
 
         plt.legend(loc='upper right')
         plt.show()
 
-        return xregion[0], xregion[-1]
+        return xregion
+
+    def ExtractRegion(self, x, xregion):
+        """
+        Function to extract region.
+        """
+        xmin = x[0]
+        xmax = x[-1]
+
+        if xregion != []:
+            xmin = xregion[0]
+            xmax = xregion[-1]
+
+        return xmin, xmax
 
     def ReduceRegion(self, x, y, xmin, xmax):
         """
@@ -396,7 +412,7 @@ class spectrum(object):
 
         return y
 
-    def SelectBaseline(self, x, y, color='b', degree=1):
+    def SelectBaseline(self, x, y, color='b', degree=1, **kwargs):
         """
         Function that lets the user distinguish between the background
         and the signal. It runs the
@@ -434,7 +450,7 @@ class spectrum(object):
                      '({} degree polynomial assumed)'.format(degree))
 
         # choose the region
-        xregion = self.PlotVerticalLines('red', fig)
+        xregion = self.PlotVerticalLines('red', fig, **kwargs)
 
         plt.legend(loc = 'upper right')
         plt.show()
@@ -588,7 +604,7 @@ class spectrum(object):
 
         return ynormed, ymax
 
-    def PlotPeaks(self, fig, ax):
+    def PlotPeaks(self, fig, ax, jupyter=False):
         """
         Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running.
 
@@ -637,12 +653,15 @@ class spectrum(object):
 
         # actual execution of the defined function oneclickpeaks
         cid = fig.canvas.mpl_connect('button_press_event', onclickpeaks)
-        figManager = plt.get_current_fig_manager()  # get current figure
-        figManager.window.showMaximized()           # show it maximized
+        if jupyter == True:
+            pass
+        else:
+            figManager = plt.get_current_fig_manager()  # get current figure
+            figManager.window.showMaximized()           # show it maximized
 
         return xpeak, ypeak
 
-    def SelectPeaks(self, x, y, peaks):
+    def SelectPeaks(self, x, y, peaks, **kwargs):
         """
         Function that lets the user select the maxima of the peaks to fit
         according to their line shape (Voigt, Fano, Lorentzian, Gaussian).
@@ -680,7 +699,7 @@ class spectrum(object):
                          ' normalized spectrum\n Select the maxima of the '
                          + peaktype + '-PEAKS to fit.')
             # arrays of initial values for the fits
-            xpeak, ypeak = self.PlotPeaks(fig, ax)
+            xpeak, ypeak = self.PlotPeaks(fig, ax, **kwargs)
             plt.show()
 
             # store the chosen initial values
@@ -914,7 +933,7 @@ class spectrum(object):
                  color = 'r', linewidth = 1, alpha = 0.5, zorder = 1,
                  label = '3$\sigma$')
 
-    def PlotFit(self, x, y, ymax, fitresults, show=False):
+    def PlotFit(self, x, y, ymax, fitresults, show=False, jupyter=False):
         """
         Plot the fitresults of a fit with lmfit.
 
@@ -964,8 +983,11 @@ class spectrum(object):
                                   datatype='png'), dpi=300)
 
         if show:
-            figManager = plt.get_current_fig_manager()  # get current figure
-            figManager.window.showMaximized()           # show it maximized
+            if jupyter == True:
+                pass
+            else:
+                figManager = plt.get_current_fig_manager()  # get current figure
+                figManager.window.showMaximized()           # show it maximized
             plt.show()
 
         plt.close()
