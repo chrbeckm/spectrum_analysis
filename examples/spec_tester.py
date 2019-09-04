@@ -3,7 +3,7 @@ from spectrum_analysis import data
 
 import matplotlib.pyplot as plt
 
-peaks = ['breit_wigner', 'lorentzian']
+peaks = ['gaussian', 'lorentzian']
 
 spec = sp.spectrum('testdata/0005')
 
@@ -12,7 +12,7 @@ x, y = data.GetData(spec.file)
 
 # reduce the data to the region of interest
 region = spec.SelectRegion(x, y)
-xmin, xmax = spec.ExtractRegion(x, xregion)
+xmin, xmax = spec.ExtractRegion(x, region)
 x_red, y_red = spec.ReduceRegion(x, y, xmin, xmax)
 
 # remove muons
