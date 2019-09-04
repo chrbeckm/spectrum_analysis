@@ -541,8 +541,9 @@ class mapping(spectrum):
 
         clb.set_label(label
                       + '(10$^{:1.0f}$ '.format(max_exp)
-                      + unit + ')')
+                      + unit + ')', fontsize='small')
         clb.ax.set_yticklabels('{:1.2f}'.format(x) for x in tickvalues)
+        clb.ax.tick_params(labelsize='small')
 
     def CreatePlotValues(self, maptype, y, **kwargs):
         """
