@@ -494,8 +494,27 @@ class mapping(spectrum):
             self.SaveFuncParams(self.SavePeak, ymax[i][0], fitresults[i], peaks)
             self.SaveUnusedPeaks(peaks, usedpeaks, fitresults[i])
 
-    def LabelZ(self, plt, ax, label='Integrated Intensity\n(arb. u.)', nbins=5,
-               linear=False):
+    def ReduceDecimals(self, values):
+        """
+        Function that reduces the decimal places to one and returns the
+        values and the corresponding exponent.
+        """
+        # get exponents of the values and round them to smallest integer
+        exponents = np.log10(values)
+        exponents = np.floor(exponents)
+        # check if there is any number smaller than 1
+        if any(exponent < 0 for exponent in exponents):
+            # not implemented yet
+            pass
+        # divide tickvalues by biggest exponent
+        max_exp = np.max(exponents)
+        divisor = np.power(10, max_exp)
+        values = values / divisor
+
+        return values, max_exp
+
+    def LabelZ(self, plt, ax, label='Integrated Intensity\n', nbins=5,
+               linear=False, unit='arb. u.'):
         """
         Function to label the z-axis of the Plot.
         Parameters
@@ -513,9 +532,17 @@ class mapping(spectrum):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         clb = plt.colorbar(cax=cax)
-        clb.set_label(label)
         clb.locator = tick_locator
         clb.update_ticks()
+
+        # get tickvalues and reduce the decimals
+        tickvalues = clb.get_ticks()
+        tickvalues, max_exp = self.ReduceDecimals(tickvalues)
+
+        clb.set_label(label
+                      + '(10$^{:1.0f}$ '.format(max_exp)
+                      + unit + ')')
+        clb.ax.set_yticklabels('{:1.2f}'.format(x) for x in tickvalues)
 
     def CreatePlotValues(self, maptype, y, **kwargs):
         """
@@ -610,12 +637,12 @@ class mapping(spectrum):
         plt.xticks(np.arange(xdim, step=xticker), x_ticks, fontsize='small')
         plt.yticks(np.arange(ydim), y_ticks, fontsize='small')
 
-    def ConfigurePlot(self, plt, ax):
+    def ConfigurePlot(self, plt, ax, peak, **kwargs):
         # set title, label of x, y and z axis
-        plt.title('Mapping of ' + self.folder, fontsize='small')
+        plt.title('Mapping of ' + self.folder + ' ' + peak, fontsize='small')
         plt.ylabel('y-Position ($\mathrm{\mu}$m)', fontsize='small')
         plt.xlabel('x-Position ($\mathrm{\mu}$m)', fontsize='small')
-        self.LabelZ(plt, ax)
+        self.LabelZ(plt, ax, **kwargs)
 
         # have a tight layout
         plt.tight_layout()
@@ -643,10 +670,25 @@ class mapping(spectrum):
                                                         y, mapdims, **kwargs)
 
         # create and configure figure for mapping
-        fig, ax = plt.subplots(figsize=mapdims)
-        ax.set_aspect('equal')
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
         matplotlib.rcParams.update({'font.size': 22})
+
+        def set_size(mapdims, ax=None):
+            w = mapdims[0]
+            h = mapdims[1]
+            """ w, h: width, height in inches """
+            if not ax: ax=plt.gca()
+            left = ax.figure.subplotpars.left
+            right = ax.figure.subplotpars.right
+            top = ax.figure.subplotpars.top
+            bot = ax.figure.subplotpars.bottom
+            figw = float(w)/(right-left)
+            figh = float(h)/(top-bot)
+            ax.figure.set_size_inches(figw, figh)
+
+        fig, ax = plt.subplots(figsize=mapdims)
+        ax.set_aspect('equal')
+        set_size(mapdims)
         self.ConfigureTicks(mapdims, step, xticker, plt)
 
         # plot mapping, create patch mask and plot it over map
@@ -655,10 +697,18 @@ class mapping(spectrum):
         ax.add_collection(pc)
 
         # configure, save and show the plot
-        self.ConfigurePlot(plt, ax)
+        plotname = re.sub(self.folder + '/results/plot/', '', savefile)
+        parameter = plotname.split('_')[-1]
+        peaknumber = plotname.split('_')[-2]
+        peakshape = 'raw'
+        if parameter != 'raw':
+            peakshape = plotname.split('_')[-3]
+        self.ConfigurePlot(plt, ax,
+                           peak = peakshape[0:4] + ' ' + peaknumber,
+                           label = modelparameters[parameter] + '\n',
+                           unit = modelunits[parameter])
         plt.savefig(savefile + '.pdf', format='pdf')
         plt.savefig(savefile + '.png')
         plt.close()
 
-        savefile = re.sub(self.folder + '/results/plot/', '', savefile)
-        print(savefile + ' plotted')
+        print(plotname + ' plotted')

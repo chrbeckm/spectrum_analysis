@@ -12,6 +12,21 @@ def custom_formatwarning(message, category, filename, lineno, line=None):
 formatwarning_orig = warnings.formatwarning
 warnings.formatwarning = custom_formatwarning #change format of warning
 
+modelparameters = {'raw': 'integrated raw data',
+                   'amplitude': 'Area of peakfunction',
+                   'center': 'Raman shift',
+                   'fwhm': 'FWHM',
+                   'height': 'Intensity',
+                   'sigma': 'Standard deviation',
+                   'q': 'Fano parameter'}
+                   
+modelunits = {'raw': 'cps',
+              'amplitude': 'cps',
+              'center': 'cm$^{-1}$',
+              'fwhm': 'cm$^{-1}$',
+              'height': 'cps',
+              'sigma': 'cm$^{-1}$',
+              'q': 'arb. u.'}
 
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     """
