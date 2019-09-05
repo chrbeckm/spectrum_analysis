@@ -17,6 +17,7 @@ modelparameters = {'raw': 'integrated raw data',
                    'center': 'Raman shift',
                    'fwhm': 'FWHM',
                    'height': 'Intensity',
+                   'intensity': 'Intensity',
                    'sigma': 'Standard deviation',
                    'q': 'Fano parameter'}
 
@@ -25,6 +26,7 @@ modelunits = {'raw': 'cts',
               'center': 'cm$^{-1}$',
               'fwhm': 'cm$^{-1}$',
               'height': 'cts',
+              'intensity': 'cts',
               'sigma': 'cm$^{-1}$',
               'q': 'arb. u.'}
 

@@ -499,8 +499,10 @@ class mapping(spectrum):
         Function that reduces the decimal places to one and returns the
         values and the corresponding exponent.
         """
+        # look for zeros and replace them with negligible exponent
+        values[values == 0] = 1e-256
         # get exponents of the values and round them to smallest integer
-        exponents = np.log10(values)
+        exponents = np.log10(abs(values))
         exponents = np.floor(exponents)
         # check if there is any number smaller than 1
         if any(exponent < 0 for exponent in exponents):
