@@ -618,7 +618,7 @@ class mapping(spectrum):
                     corr = 0.5
                     linecorr = matplotlib.rcParams['axes.linewidth']/fig.dpi/4
                     # create the missing patch and add to list
-                    rect = matplotlib.patches.Rectangle((ix - corr + linecorr,
+                    rect = matplotlib.patches.Rectangle((ix - corr + linecorr*4,
                                               iy - corr - linecorr), 1, 1)
                     missingboxes.append(rect)
 
