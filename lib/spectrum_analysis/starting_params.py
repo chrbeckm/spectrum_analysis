@@ -19,12 +19,12 @@ modelparameters = {'raw': 'integrated raw data',
                    'height': 'Intensity',
                    'sigma': 'Standard deviation',
                    'q': 'Fano parameter'}
-                   
-modelunits = {'raw': 'cps',
-              'amplitude': 'cps',
+
+modelunits = {'raw': 'cts',
+              'amplitude': 'cts',
               'center': 'cm$^{-1}$',
               'fwhm': 'cm$^{-1}$',
-              'height': 'cps',
+              'height': 'cts',
               'sigma': 'cm$^{-1}$',
               'q': 'arb. u.'}
 
