@@ -6,7 +6,7 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 
 map = mp.mapping(foldername='testdata', plot=True)
-mapdims = (3, 3)
+mapdims = (4, 4)
 step = 10
 
 # get and plot raw data

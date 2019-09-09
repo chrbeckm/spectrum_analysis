@@ -670,7 +670,7 @@ class mapping(spectrum):
             colormaps <https://matplotlib.org/users/colormaps.html>`_
         """
         plot_matrix, missing_matrix, savefile = self.CreatePlotMatrices(maptype,
-                                                        y, mapdims, **kwargs)
+                                                        y, mapdims[::-1], **kwargs)
 
         # create and configure figure for mapping
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
@@ -687,6 +687,12 @@ class mapping(spectrum):
             bot = ax.figure.subplotpars.bottom
             figw = float(w)/(right-left)
             figh = float(h)/(top-bot)
+            # correct width and hight for non quadratic sizes
+            dims = [figw, figh]
+            dims.sort(reverse=True)
+            correction = dims[0]/dims[1]/10
+            figw = figw + correction*2
+            figh = figh + correction
             ax.figure.set_size_inches(figw, figh)
 
         fig, ax = plt.subplots(figsize=mapdims)
