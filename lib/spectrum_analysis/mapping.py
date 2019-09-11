@@ -469,9 +469,10 @@ class mapping(spectrum):
                                             quiet=True)
         peaklist = []
         for i, file in enumerate(list_of_files):
-            peak = list_of_files[i].split('/')[-1].split('_')[0]
-            number = list_of_files[i].split('/')[-1].split('_')[1]
-            peaklist.append(peak + '_' + number + '_')
+            peakfile = list_of_files[i].split('/')[-1]
+            parameter = peakfile.split('_')[-1]
+            peak = re.sub(parameter, '', peakfile)
+            peaklist.append(peak)
 
         # make a set of all peaks used
         peaklist = list(set(peaklist))
