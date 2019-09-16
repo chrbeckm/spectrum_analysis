@@ -49,6 +49,7 @@ class spectrum(object):
         self.pltdir = self.resdir + '/plot'
 
         self.tmploc ='locpeak'
+        self.tmpfft = 'fftpeak'
         self.pltname = 'fitplot'
 
         # set value of missing values
@@ -443,7 +444,7 @@ class spectrum(object):
         """
         # plot the reduced spectrum
         fig, ax = plt.subplots()
-        ax.plot(x, y, '.', label='Data', color=color)
+        ax.plot(x, y, label='Data', color=color)
         ax.set_title('Spectrum ' + self.label +
                      '\nSelect the area of the spectrum you wish to exclude'
                      'from the background by clicking into the plot\n'
@@ -604,6 +605,100 @@ class spectrum(object):
 
         return ynormed, ymax
 
+    def SelectFrequency(self, x, y):
+        """
+        Function that lets the user select an unwanted frequency in the
+        spectrum given.
+        It saves the selected positions to
+        self.tmpdir + '/' + self.tmpfft + '.dat'.
+        Parameters
+        ----------
+        """
+        # create plot
+        fig, ax = plt.subplots()
+        # fourier transform data
+        x_fft = np.fft.fftfreq(x.shape[-1])
+        y_fft = np.fft.fft(y)
+
+        # plot fourier transformed data
+        ax.plot(x_fft, abs(self.RemoveIndex(y_fft)), 'b-')
+        ax.set_title('Fourier transform of Spectrum ' + self.label
+                     + ' Select the maximum of the unwanted frequency.\n'
+                     + ' Frequencies close to 0 are removed for better'
+                     + ' visibility. Only one frequency selectable!')
+        # arrays of initial values for the fits
+        xpeak, ypeak = self.PlotPeaks(fig, ax)
+        plt.show()
+        # store the chosen values
+        if xpeak != []:
+            np.savetxt(self.get_file(dir=self.tmpdir, prefix=self.tmpfft,
+                                     datatype='dat'),
+                       np.transpose([np.array(xpeak),
+                                     np.array(ypeak)]))
+
+        return x_fft, y_fft
+
+    def RemoveIndex(self, y_fft, index=0, tolerance=40):
+        # calculate mean and replace unwanted frequencies
+        ymean = np.mean(y_fft)
+        modifiedSpec = y_fft.copy()
+
+        if index == 0:
+            indexmin = 1
+            indexmax = tolerance
+            modifiedSpec[0] = ymean
+            modifiedSpec[-1] = ymean
+        else:
+            indexmin = index - tolerance
+            indexmax = index + tolerance
+
+        # as fourier is symmetric the indices have
+        # to be removed symmetrically
+        modifiedSpec[indexmin:indexmax] = ymean
+        modifiedSpec[-indexmax:-indexmin] = ymean
+
+        return modifiedSpec
+
+    def RemoveFrequency(self, x_fft, y_fft, prnt=False, **kwargs):
+        """
+        Function that removes an unwanted frequency in the
+        spectrum given within a given tolerance
+        Parameters
+        ----------
+        tolerance : int, default : 6
+            tolerance times 2 defines the width of the unwanted frequency
+            (in number of values not in the frequency regieme)
+        prnt : bool, default : False
+            plots some more information to process the images. You might
+            want to check if the tolerance is set properly.
+        """
+        # get the selected peak position
+        peakfile = self.get_file(dir=self.tmpdir, prefix=self.tmpfft,
+                                 datatype='dat')
+        if os.path.exists(peakfile):
+            xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+            # search the closest index and generate min and max values
+            index = np.abs(x_fft - xpeak).argmin()
+            modifiedSpec = self.RemoveIndex(y_fft, index=index, **kwargs)
+
+            # calculate the inverse fft
+            yreduced = np.fft.ifft(modifiedSpec)
+
+            if prnt:
+                plt.plot(x_fft, abs(y_fft),
+                         label='Fourier frequencies')
+                plt.plot(x_fft, abs(modifiedSpec),
+                         label='Modified frequencies')
+                plt.title('Frequency spectrum of the selected spectrum.')
+                plt.legend()
+                figManager = plt.get_current_fig_manager()  # get current figure
+                figManager.window.showMaximized()           # show it maximized
+                plt.show()
+        else:
+            yreduced = np.fft.ifft(y_fft)
+
+        return yreduced
+
     def PlotPeaks(self, fig, ax, jupyter=False):
         """
         Plot the selected peaks while :func:`~spectrum.SelectPeaks` is running.
@@ -693,7 +788,7 @@ class spectrum(object):
             # create plot and baseline
             fig, ax = plt.subplots()
             # plot corrected data
-            ax.plot(x, y, 'b.')
+            ax.plot(x, y, 'b')
             ax.set_title('Spectrum ' + self.label +
                          '\nBackground substracted, smoothed,'
                          ' normalized spectrum\n Select the maxima of the '

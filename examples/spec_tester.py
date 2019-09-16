@@ -30,12 +30,16 @@ y_smooth = spec.WaveletSmooth(y_basefree)
 y_bfn, ymax = spec.Normalize(y_basefree)
 #y_sn, ignore = spec.Normalize(y_smooth, ymax=ymax)
 
+# remove frequency
+x_fft, y_fft = spec.SelectFrequency(x_red, y_bfn)
+y_freqfree = spec.RemoveFrequency(x_fft, y_fft, prnt=True)
+
 # select peaks for fitting
-spec.SelectPeaks(x_red, y_bfn, peaks=peaks)
+spec.SelectPeaks(x_red, y_freqfree, peaks=peaks)
 
 # fit the spectrum
-fitresults = spec.FitSpectrum(x_red, y_bfn, peaks=peaks)
+fitresults = spec.FitSpectrum(x_red, y_freqfree, peaks=peaks)
 
-spec.PlotFit(x_red, y_bfn, ymax, fitresults, show=True)
+spec.PlotFit(x_red, y_freqfree, ymax, fitresults, show=True)
 
 spec.SaveFitParams(ymax, fitresults, peaks=peaks)
