@@ -565,6 +565,9 @@ class mapping(spectrum):
         elif maptype == 'params':
             plot_value = y
             savefile = self.pltdir + kwargs['name']
+        elif maptype == 'errs':
+            plot_value = y
+            savefile = self.pltdir + '/err_' + kwargs['name'].split('/')[-1]
 
         return plot_value, savefile
 
@@ -711,11 +714,14 @@ class mapping(spectrum):
         parameter = plotname.split('_')[-1]
         peaknumber = plotname.split('_')[-2]
         peakshape = 'raw'
+        zlabel = modelparameters[parameter] + '\n'
         if parameter != 'raw':
             peakshape = plotname.split('_')[-3]
+        if maptype == 'errs':
+            zlabel = 'Relative error of ' + zlabel
         self.ConfigurePlot(plt, ax,
                            peak = peakshape[0:4] + ' ' + peaknumber,
-                           label = modelparameters[parameter] + '\n',
+                           label = zlabel,
                            unit = modelunits[parameter])
         plt.savefig(savefile + '.pdf', format='pdf')
         plt.savefig(savefile + '.png')
