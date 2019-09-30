@@ -375,6 +375,7 @@ class mapping(spectrum):
 
     def PlotAllFits(self, x, y, ymax, fitresults, show=False):
         for i, spectrum in enumerate(y):
+            print(self.label + ' plotted')
             self.label = i
             self.PlotFit(x[i], y[i], ymax[i], fitresults[i], show=show)
 
@@ -564,7 +565,7 @@ class mapping(spectrum):
             savefile = self.pltdir + '/map_raw'
         elif maptype == 'params':
             plot_value = y
-            savefile = self.pltdir + kwargs['name']
+            savefile = self.pltdir + '/map_' + kwargs['name'].split('/')[-1]
         elif maptype == 'errs':
             plot_value = y
             savefile = self.pltdir + '/err_' + kwargs['name'].split('/')[-1]
