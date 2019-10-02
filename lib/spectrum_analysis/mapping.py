@@ -656,7 +656,8 @@ class mapping(spectrum):
         plt.tight_layout()
 
     def PlotMapping(self, maptype, y, mapdims, step,
-                    xticker=1, colormap='Reds', fontsize_int=22, **kwargs):
+                    xticker=1, colormap='Reds', fontsize_int=22,
+                    numbered=False, **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -709,6 +710,20 @@ class mapping(spectrum):
         plt.imshow(plot_matrix, cmap=colormap)
         pc = self.CreatePatchMask(mapdims, fig, missing_matrix)
         ax.add_collection(pc)
+
+        # number the patches if numbered == True
+        def NumberMap(mapdims, ax):
+            for i in range(0, mapdims[0]):
+                for j in range(0, mapdims[1]):
+                    color = 'black'
+                    if missing_matrix[mapdims[0] - i-1][j]:
+                        color = 'white'
+                    text = ax.text(j, mapdims[0] - i-1, i * mapdims[0] + j+1,
+                                   ha='center', va='center',
+                                   color=color)
+        
+        if numbered:
+            NumberMap(mapdims, ax)
 
         # configure, save and show the plot
         plotname = re.sub(self.folder + '/results/plot/', '', savefile)
