@@ -13,6 +13,9 @@ step = 10
 x, y = data.GetAllData(map.listOfFiles)
 map.PlotMapping('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
 
+# plot all colormaps
+#map.PlotAllColormaps('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
+
 # get fit data and plot one map per peak parameter
 peakList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak,
                                                     filetype='dat',

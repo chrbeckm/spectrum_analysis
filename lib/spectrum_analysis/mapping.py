@@ -721,7 +721,7 @@ class mapping(spectrum):
                     text = ax.text(j, mapdims[0] - i-1, i * mapdims[0] + j+1,
                                    ha='center', va='center',
                                    color=color)
-        
+
         if numbered:
             NumberMap(mapdims, ax)
 
@@ -739,8 +739,38 @@ class mapping(spectrum):
                            peak = peakshape[0:4] + ' ' + peaknumber,
                            label = zlabel,
                            unit = modelunits[parameter])
-        plt.savefig(savefile + '.pdf', format='pdf')
-        plt.savefig(savefile + '.png')
+        plt.savefig(savefile + '_' + colormap + '.pdf', format='pdf')
+        plt.savefig(savefile + '_' + colormap + '.png')
         plt.close()
 
-        print(plotname + ' plotted')
+        print(plotname + ' ' + colormap + ' plotted')
+
+    def PlotAllColormaps(self, maptype, y, mapdims, step, **kwargs):
+        """
+        """
+        cmaps = [('Perceptually Uniform Sequential', [
+            'viridis', 'plasma', 'inferno', 'magma']),
+         ('Sequential', [
+            'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']),
+         ('Sequential (2)', [
+            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
+            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
+            'hot', 'afmhot', 'gist_heat', 'copper']),
+         ('Diverging', [
+            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']),
+         ('Qualitative', [
+            'Pastel1', 'Pastel2', 'Paired', 'Accent',
+            'Dark2', 'Set1', 'Set2', 'Set3',
+            'tab10', 'tab20', 'tab20b', 'tab20c']),
+         ('Miscellaneous', [
+            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
+            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg', 'hsv',
+            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar'])]
+        for category in cmaps:
+            print(category[0])
+            for colormap in category[1]:
+                self.PlotMapping(maptype=maptype, y=y, mapdims=mapdims, step=step,
+                                 colormap=colormap, **kwargs)
