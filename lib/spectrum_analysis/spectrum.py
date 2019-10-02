@@ -788,7 +788,7 @@ class spectrum(object):
             # create plot and baseline
             fig, ax = plt.subplots()
             # plot corrected data
-            ax.plot(x, y, 'b')
+            ax.plot(x, y, 'b.')
             ax.set_title('Spectrum ' + self.label +
                          '\nBackground substracted, smoothed,'
                          ' normalized spectrum\n Select the maxima of the '

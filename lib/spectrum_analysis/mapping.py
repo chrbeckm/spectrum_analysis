@@ -656,7 +656,7 @@ class mapping(spectrum):
         plt.tight_layout()
 
     def PlotMapping(self, maptype, y, mapdims, step,
-                    xticker=1, colormap='Reds', **kwargs):
+                    xticker=1, colormap='Reds', fontsize_int=22, **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -679,7 +679,7 @@ class mapping(spectrum):
 
         # create and configure figure for mapping
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
-        matplotlib.rcParams.update({'font.size': 22})
+        matplotlib.rcParams.update({'font.size': fontsize_int})
 
         def set_size(mapdims, ax=None):
             w = mapdims[0]
