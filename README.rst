@@ -45,7 +45,7 @@ Fitting
 
   spec = sp.spectrum('testdata/0005')
 
-|  For a mapping it should read
+   For a mapping it should read
 ::
 
   map = mp.mapping(foldername='testdata')
