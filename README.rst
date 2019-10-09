@@ -42,10 +42,12 @@ Fitting
    For a single spectrum it should read
 
 ::
+
   spec = sp.spectrum('testdata/0005')
 
 |  For a mapping it should read
 ::
+
   map = mp.mapping(foldername='testdata')
 
 4. Define which peaks you want to use in your analysis.
@@ -53,11 +55,13 @@ Fitting
    ``voigt``
 
 ::
+
   peaks = ['gaussian', 'lorentzian']
 
 5. run ``*_tester.py`` in your console (replace * with ``spec`` or ``map``)
 
 ::
+
   python *_tester.py
 
 6. A plot window opens. Select the spectral region you want to analyze.
