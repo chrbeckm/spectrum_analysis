@@ -1,7 +1,8 @@
 *.pdf
 0*/
 __pycache__/
-methods/smallmap/*/
-methods/smallmap2/*/
-doc/_build/*
-doc/modules/*
+build/
+dist/
+results/
+temp/
+*.egg-info
