@@ -40,20 +40,23 @@ Fitting
 
 3. Modify the ``*_tester.py`` accordingly to your data.
    For a single spectrum it should read
+
 ::
   spec = sp.spectrum('testdata/0005')
 
-For a mapping it should read::
+|  For a mapping it should read
 ::
   map = mp.mapping(foldername='testdata')
 
 4. Define which peaks you want to use in your analysis.
    Implemented are ``gaussian``, ``lorentzian``, ``breit_wigner`` and
    ``voigt``
+
 ::
   peaks = ['gaussian', 'lorentzian']
 
 5. run ``*_tester.py`` in your console (replace * with ``spec`` or ``map``)
+
 ::
   python *_tester.py
 
