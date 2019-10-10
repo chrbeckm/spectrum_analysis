@@ -563,11 +563,11 @@ class mapping(spectrum):
                 plot_value[i] = sum(selectedvalues)
 
             savefile = self.pltdir + '/map_raw'
-        elif maptype == 'params':
-            plot_value = y
+        elif maptype == 'params' or maptype == 'div':
+            plot_value = np.copy(y)
             savefile = self.pltdir + '/map_' + kwargs['name']
         elif maptype == 'errs':
-            plot_value = y
+            plot_value = np.copy(y)
             savefile = self.pltdir + '/err_' + kwargs['name']
 
         return plot_value, savefile
@@ -735,6 +735,14 @@ class mapping(spectrum):
             peakshape = plotname.split('_')[-3]
         if maptype == 'errs':
             zlabel = 'Relative error of ' + zlabel
+        elif maptype == 'div':
+            parameters = plotname.split('_div_')
+            shapeA = parameters[0].split('_')[-3]
+            shapeB = parameters[1].split('_')[-3]
+            parameterA = parameters[0].split('_')[-1]
+            parameterB = parameters[1].split('_')[-1]
+            zlabel = (shapeA + ' ' + modelparameters[parameterA] + ' / '
+                     + shapeB + ' ' + modelparameters[parameterB] + '\n')
         self.ConfigurePlot(plt, ax,
                            peak = peakshape[0:4] + ' ' + peaknumber,
                            label = zlabel,
@@ -786,3 +794,31 @@ class mapping(spectrum):
             mapping = re.sub('.' + filetype, '', mapping)
             peakList.append(mapping)
         return peakList
+
+    def ReplaceMissingValues(self, corrected, parameterArray):
+        """
+        Function that returns a corrected array, with missing indices
+        taken from parameterArray.
+        """
+        missingvalue = self.missingvalue
+        missingindices = [i for i, x in enumerate(parameterArray) if
+                                                 (x == missingvalue)]
+        for index in missingindices:
+            corrected[index] = missingvalue
+        return corrected
+
+    def ModifyValues(self, first, second, operation='div'):
+        """
+        Function that modifies two arrays with the selected operation.
+        It takes the missing values from both arrays and sets them as missing
+        values of the resulting array.
+        """
+        if operation == 'div':
+            result = first/second
+        elif operation == 'mult':
+            result = first * second
+        elif operation == 'add':
+            result = first + second
+        result = self.ReplaceMissingValues(result, first)
+        result = self.ReplaceMissingValues(result, second)
+        return result
