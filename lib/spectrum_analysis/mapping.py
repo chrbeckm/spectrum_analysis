@@ -563,7 +563,7 @@ class mapping(spectrum):
                 plot_value[i] = sum(selectedvalues)
 
             savefile = self.pltdir + '/map_raw'
-        elif maptype == 'params' or maptype == 'div':
+        elif maptype == 'params' or (maptype in mapoperators):
             plot_value = np.copy(y)
             savefile = self.pltdir + '/map_' + kwargs['name']
         elif maptype == 'errs':
@@ -735,13 +735,14 @@ class mapping(spectrum):
             peakshape = plotname.split('_')[-3]
         if maptype == 'errs':
             zlabel = 'Relative error of ' + zlabel
-        elif maptype == 'div':
-            parameters = plotname.split('_div_')
+        elif maptype in mapoperators:
+            parameters = plotname.split('_' + maptype + '_')
             shapeA = parameters[0].split('_')[-3]
             shapeB = parameters[1].split('_')[-3]
             parameterA = parameters[0].split('_')[-1]
             parameterB = parameters[1].split('_')[-1]
-            zlabel = (shapeA + ' ' + modelparameters[parameterA] + ' / '
+            zlabel = (shapeA + ' ' + modelparameters[parameterA] + ' '
+                     + mapoperators[maptype] + ' '
                      + shapeB + ' ' + modelparameters[parameterB] + '\n')
         self.ConfigurePlot(plt, ax,
                            peak = peakshape[0:4] + ' ' + peaknumber,
@@ -819,6 +820,8 @@ class mapping(spectrum):
             result = first * second
         elif operation == 'add':
             result = first + second
+        elif operation == 'sub':
+            result = first - second
         result = self.ReplaceMissingValues(result, first)
         result = self.ReplaceMissingValues(result, second)
         return result

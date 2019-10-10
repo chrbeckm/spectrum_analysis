@@ -43,6 +43,6 @@ def PlotParameterOperations(first, second, operation):
     b = peakList.index(second)
     ratio = map.ModifyValues(parameters[a], parameters[b], operation)
     filename = first + '_' + operation + '_' + second
-    map.PlotMapping('div', ratio, mapdims, step, name=filename,
+    map.PlotMapping(operation, ratio, mapdims, step, name=filename,
                     numbered=False)
 PlotParameterOperations(top, bot, div)

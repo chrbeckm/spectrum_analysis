@@ -30,6 +30,11 @@ modelunits = {'raw': 'cts',
               'sigma': 'cm$^{-1}$',
               'q': 'arb. u.'}
 
+mapoperators = {'div': '/',
+                'mult': '*',
+                'add': '+',
+                'sub': '-'}
+
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     """
     The initial values of the fit depend on the maxima of the peaks but also on their line shapes.
