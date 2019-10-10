@@ -565,10 +565,10 @@ class mapping(spectrum):
             savefile = self.pltdir + '/map_raw'
         elif maptype == 'params':
             plot_value = y
-            savefile = self.pltdir + '/map_' + kwargs['name'].split('/')[-1]
+            savefile = self.pltdir + '/map_' + kwargs['name']
         elif maptype == 'errs':
             plot_value = y
-            savefile = self.pltdir + '/err_' + kwargs['name'].split('/')[-1]
+            savefile = self.pltdir + '/err_' + kwargs['name']
 
         return plot_value, savefile
 
@@ -774,3 +774,15 @@ class mapping(spectrum):
             for colormap in category[1]:
                 self.PlotMapping(maptype=maptype, y=y, mapdims=mapdims, step=step,
                                  colormap=colormap, **kwargs)
+
+    def CreatePeakList(self, peakFileList, filetype='dat'):
+        """
+        Function that creates a list of peaks from a list of file paths
+        handed to it.
+        """
+        peakList = []
+        for mapping in peakFileList:
+            mapping = mapping.split('/')[-1]
+            mapping = re.sub('.' + filetype, '', mapping)
+            peakList.append(mapping)
+        return peakList
