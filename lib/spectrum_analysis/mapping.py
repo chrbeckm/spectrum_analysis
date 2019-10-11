@@ -46,6 +46,7 @@ class mapping(spectrum):
     def __init__(self, foldername, plot=False, datatype='txt'):
         self.folder = foldername
         self.second_analysis = False
+        self.answer = 'n'
         self.listOfFiles, self.numberOfFiles = data.GetFolderContent(
                                                         self.folder,
                                                         datatype)
@@ -125,14 +126,14 @@ class mapping(spectrum):
         list_of_files = []
         list_of_indices = []
 
-        answer = input('These spectra have been analyzed already.\n'
-                       'Do you want to analyze all of them again? (y/n)\n')
+        self.answer = input('These spectra have been analyzed already.\n'
+                            'Do you want to fit all of them again? (y/n)\n')
 
-        if answer == 'y':
+        if self.answer == 'y':
             list_of_files = self.listOfFiles
             number_of_files = self.numberOfFiles
             list_of_indices = np.arange(self.numberOfFiles)
-        elif answer == 'n':
+        elif self.answer == 'n':
             for i, label in enumerate(self.listOfFiles):
                 print(f'{self.SplitLabel(label)} \n')
 
@@ -359,9 +360,18 @@ class mapping(spectrum):
         y : numpy.ndarray
             y-values of the mapping
         """
-        for i, spectrum in enumerate(y):
-            self.label = i
-            self.SelectPeaks(x[i], y[i], peaks)
+        select = True
+        if self.answer == 'y':
+            answer = input('Do you want to select all peaks again? (y/n)\n')
+            if answer == 'y':
+                select = True
+            else:
+                select = False
+
+        if select:
+            for i, spectrum in enumerate(y):
+                self.label = i
+                self.SelectPeaks(x[i], y[i], peaks)
 
     def FitAllSpectra(self, x, y, peaks):
         results = []
