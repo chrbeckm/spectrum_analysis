@@ -10,6 +10,7 @@ from scipy.optimize import curve_fit    # for interpolating muons
 from lmfit.models import *
 
 from spectrum_analysis.starting_params import *
+from spectrum_analysis.customwarnings import *
 
 """
 This module contains the spectrum class to work with any x, y structured
@@ -803,6 +804,42 @@ class spectrum(object):
                        np.transpose([np.array(xpeak),
                                      np.array(ypeak)]))
 
+    def ChoosePeakType(self, peaktype, i):
+        """
+        This function helps to create the `CompositeModel() <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_ .
+        Implemented models are:
+        `GaussianModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.GaussianModel>`_  ,
+        `LorentzianModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.LorentzianModel>`_  ,
+        `VoigtModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.VoigtModel>`_  ,
+        `BreitWignerModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.BreitWignerModel>`_  .
+
+        Parameters
+        ----------
+        peaktype : string
+            Possible line shapes of the peaks to fit are
+            'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
+        i : int
+            Integer between 0 and (N-1) to distinguish between N peaks of the
+            same peaktype. It is used in the prefix.
+
+        Returns
+        -------
+        lmfit.models.* : class
+            Returns either VoigtModel(), BreitWignerModel(), LorentzianModel(),
+            or GaussianModel() depending on the peaktype with
+            *Model(prefix = prefix, nan_policy = 'omit').
+            The prefix contains the peaktype and i.
+        """
+        prefix = peaktype + '_p'+ str(i + 1) + '_'
+        if peaktype == 'voigt':
+            return VoigtModel(prefix = prefix, nan_policy = 'omit')
+        elif peaktype == 'breit_wigner':
+            return BreitWignerModel(prefix = prefix, nan_policy = 'omit')
+        elif peaktype == 'lorentzian':
+            return LorentzianModel(prefix = prefix, nan_policy = 'omit')
+        elif peaktype == 'gaussian':
+            return GaussianModel(prefix = prefix, nan_policy = 'omit')
+
     def GenerateModel(self, peaks):
         """
         Generates a fit Model using lmfit.
@@ -837,7 +874,7 @@ class spectrum(object):
                 #define starting values for the fit
                 for i in range(0, len(xpeak)):
                     # prefix for the different peaks from one model
-                    temp = ChoosePeakType(peaktype, i)
+                    temp = self.ChoosePeakType(peaktype, i)
                     temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
                     model += temp # add the models to 'model'
 
