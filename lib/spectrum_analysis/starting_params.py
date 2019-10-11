@@ -1,39 +1,5 @@
 import re
 import lmfit
-import warnings
-from warnings import warn
-
-class ParameterWarning(UserWarning):
-    pass
-
-def custom_formatwarning(message, category, filename, lineno, line=None):
-    return formatwarning_orig(message, category, filename, lineno, line='') #don't show line in warning
-
-formatwarning_orig = warnings.formatwarning
-warnings.formatwarning = custom_formatwarning #change format of warning
-
-modelparameters = {'raw': 'integrated raw data',
-                   'amplitude': 'Area of peakfunction',
-                   'center': 'Raman shift',
-                   'fwhm': 'FWHM',
-                   'height': 'Intensity',
-                   'intensity': 'Intensity',
-                   'sigma': 'Standard deviation',
-                   'q': 'Fano parameter'}
-
-modelunits = {'raw': 'cts',
-              'amplitude': 'cts',
-              'center': 'cm$^{-1}$',
-              'fwhm': 'cm$^{-1}$',
-              'height': 'cts',
-              'intensity': 'cts',
-              'sigma': 'cm$^{-1}$',
-              'q': 'arb. u.'}
-
-mapoperators = {'div': '/',
-                'mult': '*',
-                'add': '+',
-                'sub': '-'}
 
 def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
     """
@@ -152,39 +118,3 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
         print('Used ' + model + ' model is not in List')
 
     return fitmodel
-
-def ChoosePeakType(peaktype, i):
-    """
-    This function helps to create the `CompositeModel() <https://lmfit.github.io/lmfit-py/model.html#lmfit.model.CompositeModel>`_ .
-    Implemented models are:
-    `GaussianModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.GaussianModel>`_  ,
-    `LorentzianModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.LorentzianModel>`_  ,
-    `VoigtModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.VoigtModel>`_  ,
-    `BreitWignerModel() <https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.BreitWignerModel>`_  .
-
-    Parameters
-    ----------
-    peaktype : string
-        Possible line shapes of the peaks to fit are
-        'breit_wigner', 'lorentzian', 'gaussian', and 'voigt'.
-    i : int
-        Integer between 0 and (N-1) to distinguish between N peaks of the
-        same peaktype. It is used in the prefix.
-
-    Returns
-    -------
-    lmfit.models.* : class
-        Returns either VoigtModel(), BreitWignerModel(), LorentzianModel(),
-        or GaussianModel() depending on the peaktype with
-        *Model(prefix = prefix, nan_policy = 'omit').
-        The prefix contains the peaktype and i.
-    """
-    prefix = peaktype + '_p'+ str(i + 1) + '_'
-    if peaktype == 'voigt':
-        return lmfit.models.VoigtModel(prefix = prefix, nan_policy = 'omit')
-    elif peaktype == 'breit_wigner':
-        return lmfit.models.BreitWignerModel(prefix = prefix, nan_policy = 'omit')
-    elif peaktype == 'lorentzian':
-        return lmfit.models.LorentzianModel(prefix = prefix, nan_policy = 'omit')
-    elif peaktype == 'gaussian':
-        return lmfit.models.GaussianModel(prefix = prefix, nan_policy = 'omit')
