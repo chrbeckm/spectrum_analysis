@@ -10,8 +10,8 @@ mapdims = (4, 4)
 step = 10
 
 # plot ratios
-top = 'breit_wigner_p1_height'
-bot = 'lorentzian_p1_height'
+top = 'lorentzian_p1_height'
+bot = 'breit_wigner_p1_height'
 div = 'div'
 
 # get and plot raw data

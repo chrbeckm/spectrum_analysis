@@ -725,12 +725,14 @@ class mapping(spectrum):
 
         # number the patches if numbered == True
         def NumberMap(mapdims, ax):
+            product = mapdims[0] * mapdims[1]
             for i in range(0, mapdims[0]):
                 for j in range(0, mapdims[1]):
                     color = 'black'
-                    if missing_matrix[mapdims[0] - i-1][j]:
+                    if missing_matrix[j][mapdims[0] - i-1]:
                         color = 'white'
-                    text = ax.text(j, mapdims[0] - i-1, i * mapdims[0] + j+1,
+                    text = ax.text(mapdims[0] - i-1, j,
+                                   product - (j * mapdims[0] + i),
                                    ha='center', va='center',
                                    color=color)
 
