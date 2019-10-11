@@ -748,7 +748,7 @@ class mapping(spectrum):
         if parameter != 'raw':
             peakshape = plotname.split('_')[-3]
         if maptype == 'errs':
-            zlabel = 'Relative error of ' + zlabel
+            zlabel = 'Relative error of\n' + zlabel
         elif maptype in mapoperators:
             parameters = plotname.split('_' + maptype + '_')
             shapeA = parameters[0].split('_')[-3]
@@ -756,7 +756,7 @@ class mapping(spectrum):
             parameterA = parameters[0].split('_')[-1]
             parameterB = parameters[1].split('_')[-1]
             zlabel = (shapeA + ' ' + modelparameters[parameterA] + ' '
-                     + mapoperators[maptype] + ' '
+                     + mapoperators[maptype] + '\n'
                      + shapeB + ' ' + modelparameters[parameterB] + '\n')
         self.ConfigurePlot(plt, ax,
                            peak = peakshape[0:4] + ' ' + peaknumber,
