@@ -7,7 +7,9 @@ import numpy as np
 from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 
-mapFolderList = ['testdata']
+mapFolderList = ['testdata/1',
+#                 'testdata/2'
+                 ]
 mapdims = (4, 4)
 step = 10
 
@@ -17,6 +19,8 @@ bot = 'breit_wigner_p1_height'
 opt = 'div'
 
 dict_minmax = {}
+
+linebreaker ='============================================================'
 
 def PlotParameterMappings(params, peakList, name='', dict=None):
     """
@@ -94,7 +98,6 @@ for folder in mapFolderList:
     # operation (opt=['div', 'mult', 'add', 'sub']).
     PlotParameterOperations(parameters, parameterList, top, bot, opt)
 
-    linebreaker ='============================================================'
     print(linebreaker + '\n' + linebreaker)
 
 if len(mapFolderList) > 1:
@@ -112,5 +115,4 @@ if len(mapFolderList) > 1:
                               name='scaled_',
                               dict=dict_minmax)
 
-        linebreaker ='============================================================'
         print(linebreaker + '\n' + linebreaker)

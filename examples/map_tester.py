@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 peaks=['breit_wigner', 'lorentzian']
 
-map = mp.mapping(foldername='testdata')
+map = mp.mapping(foldername='testdata/1')
 
 # get x- and y-data
 x, y = data.GetAllData(map.listOfFiles)
