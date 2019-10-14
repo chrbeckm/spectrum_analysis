@@ -669,7 +669,7 @@ class mapping(spectrum):
 
     def PlotMapping(self, maptype, y, mapdims, step,
                     xticker=1, colormap='Reds', fontsize_int=22,
-                    numbered=False, **kwargs):
+                    numbered=False, vmin=None, vmax=None, **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -719,7 +719,7 @@ class mapping(spectrum):
         self.ConfigureTicks(mapdims, step, xticker, plt)
 
         # plot mapping, create patch mask and plot it over map
-        plt.imshow(plot_matrix, cmap=colormap)
+        plt.imshow(plot_matrix, cmap=colormap, vmin=vmin, vmax=vmax)
         pc = self.CreatePatchMask(mapdims, fig, missing_matrix)
         ax.add_collection(pc)
 
