@@ -10,7 +10,9 @@ from spectrum_analysis import data
 mapFolderList = ['testdata/1',
 #                 'testdata/2'
                  ]
-mapdims = (4, 4)
+dims = [(4, 4),
+#        (8, 2)
+        ]
 step = 10
 
 # plot ratios
@@ -22,7 +24,7 @@ dict_minmax = {}
 
 linebreaker ='============================================================'
 
-def PlotParameterMappings(params, peakList, name='', dict=None):
+def PlotParameterMappings(params, peakList, mapdims, name='', dict=None):
     """
     Plot all parameters of a mapping.
     """
@@ -35,7 +37,7 @@ def PlotParameterMappings(params, peakList, name='', dict=None):
         map.PlotMapping('params', params[i], mapdims, step, name=name + mapping,
                         vmin=vmin, vmax=vmax)
 
-def PlotErrorMappings(params, errors, peakList):
+def PlotErrorMappings(params, errors, peakList, mapdims):
     """
     Plot all relative errors of a mapping.
     """
@@ -45,7 +47,8 @@ def PlotErrorMappings(params, errors, peakList):
         map.PlotMapping('errs', relative_error, mapdims, step, name=mapping,
                         numbered=True)
 
-def PlotParameterOperations(params, peakList, first, second, operation):
+def PlotParameterOperations(params, peakList, mapdims,
+                            first, second, operation):
     """
     Plot a mapping calculated from two parameters (like height_a/height_b).
     """
@@ -74,6 +77,7 @@ def CreateMinMaxDict(params, paramList):
 
 for folder in mapFolderList:
     print(folder + ' mappings are plotted now.')
+    mapdims = dims[mapFolderList.index(folder)]
     map = mp.mapping(foldername=folder, plot=True)
 
     # get and plot raw data
@@ -89,20 +93,21 @@ for folder in mapFolderList:
                                                         object='peakparameter')
     parameters, errors = data.GetAllData(peakFileList)
     parameterList = map.CreatePeakList(peakFileList)
-    PlotParameterMappings(parameters, parameterList)
-    PlotErrorMappings(parameters, errors, parameterList)
+    PlotParameterMappings(parameters, parameterList, mapdims)
+    PlotErrorMappings(parameters, errors, parameterList, mapdims)
 
     CreateMinMaxDict(parameters, parameterList)
 
     # plot one mapping calculated from two parameters linked by selected
     # operation (opt=['div', 'mult', 'add', 'sub']).
-    PlotParameterOperations(parameters, parameterList, top, bot, opt)
+    PlotParameterOperations(parameters, parameterList, mapdims, top, bot, opt)
 
     print(linebreaker + '\n' + linebreaker)
 
 if len(mapFolderList) > 1:
     for folder in mapFolderList:
         print(folder + ' mappings with same scale are plotted now.')
+        mapdims = dims[mapFolderList.index(folder)]
         map = mp.mapping(foldername=folder, plot=True)
 
         # get fit data and plot one map per peak parameter
@@ -111,7 +116,7 @@ if len(mapFolderList) > 1:
                                                         object='peakparameter')
         parameters, errors = data.GetAllData(peakFileList)
         parameterList = map.CreatePeakList(peakFileList)
-        PlotParameterMappings(parameters, parameterList,
+        PlotParameterMappings(parameters, parameterList, mapdims,
                               name='scaled_',
                               dict=dict_minmax)
 
