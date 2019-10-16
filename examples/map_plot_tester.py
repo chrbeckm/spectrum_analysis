@@ -101,6 +101,7 @@ for folder in mapFolderList:
     # plot one mapping calculated from two parameters linked by selected
     # operation (opt=['div', 'mult', 'add', 'sub']).
     PlotParameterOperations(parameters, parameterList, mapdims, top, bot, opt)
+    PlotParameterOperations(parameters, parameterList, mapdims, bot, top, opt)
 
     print(linebreaker + '\n' + linebreaker)
 
