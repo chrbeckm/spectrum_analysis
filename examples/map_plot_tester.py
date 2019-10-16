@@ -59,20 +59,33 @@ def PlotParameterOperations(params, peakList, mapdims,
     map.PlotMapping(operation, ratio, mapdims, step, name=filename,
                     numbered=False)
 
-def CreateMinMaxDict(params, paramList):
+def CreateMinMaxDict(params, paramList, mapping):
     """
     Create a dictionary containing all parameters with the global min and max.
     """
+    # go through all parameters
     for param in paramList:
+        # get index of parameter and corresponding min and max
         i = paramList.index(param)
         min = np.min(params[i])
         max = np.max(params[i])
+        # check if parameter already in dictionary
         if param in dict_minmax:
+            # check if parameter smaller/bigger than current value
+            # and update values and mappings
             if dict_minmax[param][0] < min:
                 min = dict_minmax[param][0]
+                minfile = mapping
+                maxfile = dict_minmax[param][3]
             if dict_minmax[param][1] > max:
                 max = dict_minmax[param][1]
-        content = {param : (min, max)}
+                minfile = dict_minmax[param][2]
+                maxfile = mapping
+        else:
+            minfile = mapping
+            maxfile = mapping
+        # create content and update dictionary
+        content = {param : (min, max, minfile, maxfile)}
         dict_minmax.update(content)
 
 for folder in mapFolderList:
@@ -96,7 +109,7 @@ for folder in mapFolderList:
     PlotParameterMappings(parameters, parameterList, mapdims)
     PlotErrorMappings(parameters, errors, parameterList, mapdims)
 
-    CreateMinMaxDict(parameters, parameterList)
+    CreateMinMaxDict(parameters, parameterList, folder)
 
     # plot one mapping calculated from two parameters linked by selected
     # operation (opt=['div', 'mult', 'add', 'sub']).
@@ -104,6 +117,16 @@ for folder in mapFolderList:
     PlotParameterOperations(parameters, parameterList, mapdims, bot, top, opt)
 
     print(linebreaker + '\n' + linebreaker)
+
+print('List of minima and maxima and the mappings they are taken from.')
+for key in dict_minmax.keys():
+    print(key + '\n'
+              + '\tMin: ' + str(dict_minmax[key][0])
+              + ' ({})'.format(dict_minmax[key][2]) + '\n'
+              + '\tMax: ' + str(dict_minmax[key][1])
+              + '({})'.format(dict_minmax[key][3]))
+
+print(linebreaker + '\n' + linebreaker)
 
 if len(mapFolderList) > 1:
     for folder in mapFolderList:
