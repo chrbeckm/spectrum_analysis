@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 peaks = ['gaussian', 'lorentzian']
 
-spec = sp.spectrum('testdata/0005')
+spec = sp.spectrum('testdata/1/0005')
 
 # get x- and y-data
 x, y = data.GetData(spec.file)
