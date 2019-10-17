@@ -69,21 +69,23 @@ def CreateMinMaxDict(params, paramList, mapping):
     for param in paramList:
         # get index of parameter and corresponding min and max
         i = paramList.index(param)
-        min = np.min(params[i])
-        max = np.max(params[i])
+        nonMissing = [x for x in params[i] if not (x == map.missingvalue)]
+        min = np.min(nonMissing)
+        max = np.max(nonMissing)
         # check if parameter already in dictionary
         if param in dict_minmax:
             # check if parameter smaller/bigger than current value
             # and update values and mappings
-            if dict_minmax[param][0] < min:
-                min = dict_minmax[param][0]
+            if ((dict_minmax[param][0] > min)
+            and not (dict_minmax[param][0] == map.missingvalue)):
                 minfile = mapping
             else:
+                min = dict_minmax[param][0]
                 minfile = dict_minmax[param][2]
-            if dict_minmax[param][1] > max:
-                max = dict_minmax[param][1]
+            if dict_minmax[param][1] < max:
                 maxfile = mapping
             else:
+                max = dict_minmax[param][1]
                 maxfile = dict_minmax[param][3]
         else:
             minfile = mapping

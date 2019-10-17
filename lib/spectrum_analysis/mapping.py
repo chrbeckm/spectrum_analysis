@@ -808,13 +808,13 @@ class mapping(spectrum):
         values of the resulting array.
         """
         if operation == 'div':
-            result = first/second
+            result = np.divide(first, second)
         elif operation == 'mult':
-            result = first * second
+            result = np.multiply(first, second)
         elif operation == 'add':
-            result = first + second
+            result = np.add(first, second)
         elif operation == 'sub':
-            result = first - second
+            result = np.subtract(first, second)
         result = self.ReplaceMissingValues(result, first)
         result = self.ReplaceMissingValues(result, second)
         return result
