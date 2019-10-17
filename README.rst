@@ -139,5 +139,5 @@ your xy pattern).
 
 You can also adjust which two peak parameters (``top`` and ``bot``) should
 be linked by a specified operation (``opt``). Operations possible are
-opt=['div', 'mult', 'add', 'sub']. You can take any of the peakparameters
-found in ``results/fitparameter/peakwise/`` of your mapping.
+``'div'``, ``'mult'``, ``'add'`` and ``'sub'``. You can take any of the
+peakparameters found in ``results/fitparameter/peakwise/`` of your mapping.
