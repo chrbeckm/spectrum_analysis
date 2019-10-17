@@ -78,11 +78,13 @@ def CreateMinMaxDict(params, paramList, mapping):
             if dict_minmax[param][0] < min:
                 min = dict_minmax[param][0]
                 minfile = mapping
-                maxfile = dict_minmax[param][3]
+            else:
+                minfile = dict_minmax[param][2]
             if dict_minmax[param][1] > max:
                 max = dict_minmax[param][1]
-                minfile = dict_minmax[param][2]
                 maxfile = mapping
+            else:
+                maxfile = dict_minmax[param][3]
         else:
             minfile = mapping
             maxfile = mapping
