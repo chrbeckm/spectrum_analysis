@@ -97,7 +97,6 @@ Fitting
     everything (data, results and plots) inside the newly created ``results``
     inside your data folder.
 
-==========
 Plot Mappings
 ----------
 
