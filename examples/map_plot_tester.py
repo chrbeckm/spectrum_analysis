@@ -93,6 +93,8 @@ def CreateMinMaxDict(params, paramList, mapping):
         dict_minmax.update(content)
 
 for folder in mapFolderList:
+    print('Mapping ' + str(mapFolderList.index(folder) + 1) + ' of '
+        + str(len(mapFolderList)) + '\n')
     print(folder + ' mappings are plotted now.')
     mapdims = dims[mapFolderList.index(folder)]
     step = stepsize[mapFolderList.index(folder)]
@@ -137,6 +139,8 @@ print(linebreaker + '\n' + linebreaker)
 
 if len(mapFolderList) > 1:
     for folder in mapFolderList:
+        print('Scaled mapping ' + str(mapFolderList.index(folder) + 1) + ' of '
+            + str(len(mapFolderList)) + '\n')
         print(folder + ' mappings with same scale are plotted now.')
         mapdims = dims[mapFolderList.index(folder)]
         step = stepsize[mapFolderList.index(folder)]
