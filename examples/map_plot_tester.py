@@ -13,7 +13,9 @@ mapFolderList = ['testdata/1',
 dims = [(4, 4),
 #        (8, 2)
         ]
-step = 10
+stepsize = [10,
+#           10
+            ]
 
 # plot ratios
 top = 'lorentzian_p1_height'
@@ -24,7 +26,7 @@ dict_minmax = {}
 
 linebreaker ='============================================================'
 
-def PlotParameterMappings(params, peakList, mapdims, name='', dict=None):
+def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None):
     """
     Plot all parameters of a mapping.
     """
@@ -37,7 +39,7 @@ def PlotParameterMappings(params, peakList, mapdims, name='', dict=None):
         map.PlotMapping('params', params[i], mapdims, step, name=name + mapping,
                         vmin=vmin, vmax=vmax)
 
-def PlotErrorMappings(params, errors, peakList, mapdims):
+def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
     Plot all relative errors of a mapping.
     """
@@ -47,7 +49,7 @@ def PlotErrorMappings(params, errors, peakList, mapdims):
         map.PlotMapping('errs', relative_error, mapdims, step, name=mapping,
                         numbered=True)
 
-def PlotParameterOperations(params, peakList, mapdims,
+def PlotParameterOperations(params, peakList, mapdims, step,
                             first, second, operation):
     """
     Plot a mapping calculated from two parameters (like height_a/height_b).
@@ -59,25 +61,39 @@ def PlotParameterOperations(params, peakList, mapdims,
     map.PlotMapping(operation, ratio, mapdims, step, name=filename,
                     numbered=False)
 
-def CreateMinMaxDict(params, paramList):
+def CreateMinMaxDict(params, paramList, mapping):
     """
     Create a dictionary containing all parameters with the global min and max.
     """
+    # go through all parameters
     for param in paramList:
+        # get index of parameter and corresponding min and max
         i = paramList.index(param)
         min = np.min(params[i])
         max = np.max(params[i])
+        # check if parameter already in dictionary
         if param in dict_minmax:
+            # check if parameter smaller/bigger than current value
+            # and update values and mappings
             if dict_minmax[param][0] < min:
                 min = dict_minmax[param][0]
+                minfile = mapping
+                maxfile = dict_minmax[param][3]
             if dict_minmax[param][1] > max:
                 max = dict_minmax[param][1]
-        content = {param : (min, max)}
+                minfile = dict_minmax[param][2]
+                maxfile = mapping
+        else:
+            minfile = mapping
+            maxfile = mapping
+        # create content and update dictionary
+        content = {param : (min, max, minfile, maxfile)}
         dict_minmax.update(content)
 
 for folder in mapFolderList:
     print(folder + ' mappings are plotted now.')
     mapdims = dims[mapFolderList.index(folder)]
+    step = stepsize[mapFolderList.index(folder)]
     map = mp.mapping(foldername=folder, plot=True)
 
     # get and plot raw data
@@ -93,22 +109,35 @@ for folder in mapFolderList:
                                                         object='peakparameter')
     parameters, errors = data.GetAllData(peakFileList)
     parameterList = map.CreatePeakList(peakFileList)
-    PlotParameterMappings(parameters, parameterList, mapdims)
-    PlotErrorMappings(parameters, errors, parameterList, mapdims)
+    PlotParameterMappings(parameters, parameterList, mapdims, step)
+    PlotErrorMappings(parameters, errors, parameterList, mapdims, step)
 
-    CreateMinMaxDict(parameters, parameterList)
+    CreateMinMaxDict(parameters, parameterList, folder)
 
     # plot one mapping calculated from two parameters linked by selected
     # operation (opt=['div', 'mult', 'add', 'sub']).
-    PlotParameterOperations(parameters, parameterList, mapdims, top, bot, opt)
-    PlotParameterOperations(parameters, parameterList, mapdims, bot, top, opt)
+    PlotParameterOperations(parameters, parameterList, mapdims, step,
+                            top, bot, opt)
+    PlotParameterOperations(parameters, parameterList, mapdims, step,
+                            bot, top, opt)
 
     print(linebreaker + '\n' + linebreaker)
+
+print('List of minima and maxima and the mappings they are taken from.')
+for key in dict_minmax.keys():
+    print(key + '\n'
+              + '\tMin: ' + str(dict_minmax[key][0])
+              + ' ({})'.format(dict_minmax[key][2]) + '\n'
+              + '\tMax: ' + str(dict_minmax[key][1])
+              + '({})'.format(dict_minmax[key][3]))
+
+print(linebreaker + '\n' + linebreaker)
 
 if len(mapFolderList) > 1:
     for folder in mapFolderList:
         print(folder + ' mappings with same scale are plotted now.')
         mapdims = dims[mapFolderList.index(folder)]
+        step = stepsize[mapFolderList.index(folder)]
         map = mp.mapping(foldername=folder, plot=True)
 
         # get fit data and plot one map per peak parameter
@@ -117,7 +146,7 @@ if len(mapFolderList) > 1:
                                                         object='peakparameter')
         parameters, errors = data.GetAllData(peakFileList)
         parameterList = map.CreatePeakList(peakFileList)
-        PlotParameterMappings(parameters, parameterList, mapdims,
+        PlotParameterMappings(parameters, parameterList, mapdims, step,
                               name='scaled_',
                               dict=dict_minmax)
 
