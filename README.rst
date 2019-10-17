@@ -104,10 +104,11 @@ If you fitted a mapping you can now plot it using
 
 ::
 
-  python -u map_plot_tester.py | tee log.txt
+  python -u map_plot_tester.py 2>&1 | tee log.txt
 
 The ``-u`` option forces python to print the output streams unbuffered.
 Using ``tee log.txt`` a log file will be written to keep your console output.
+Using ``2>&1`` also prints errors to the log file.
 This might be important to debugging if you scale multiple mappings to
 the same color scale. **The list of the origins of the color scale minima and
 maxima is not printed elsewhere!**
