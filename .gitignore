@@ -6,3 +6,4 @@ dist/
 results/
 temp/
 *.egg-info
+log.txt

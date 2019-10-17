@@ -96,3 +96,45 @@ Fitting
     You have to wait some time. When the programm is finished you should find
     everything (data, results and plots) inside the newly created ``results``
     inside your data folder.
+
+==========
+Plot Mappings
+----------
+
+If you fitted a mapping you can now plot it using
+
+::
+
+  python -u map_plot_tester.py | tee log.txt
+
+The ``-u`` option forces python print the output streams unbuffered.
+Using ``tee log.txt`` a log file will be written to keep your console output.
+
+The first lines of ``map_plot_tester.py`` should read
+
+::
+
+  mapFolderList = ['testdata/1',
+  #                 'testdata/2'
+                   ]
+  dims = [(4, 4),
+  #        (8, 2)
+          ]
+  stepsize = [10,
+  #           10
+              ]
+
+  # plot ratios
+  top = 'lorentzian_p1_height'
+  bot = 'breit_wigner_p1_height'
+  opt = 'div'
+
+In case you want to analyze multiple mappings, just add more lines to
+``mapFolderList`` (folder with fitted mapping data), ``dims`` (x and y
+dimensions of the corresponding mapping) and ``stepsize`` (step size of
+your xy pattern).
+
+You can also adjust which two peak parameters (``top`` and ``bot``) should
+be linked by a specified operation (``opt``). Operations possible are
+opt=['div', 'mult', 'add', 'sub']. You can take any of the peakparameters
+found in ``results/fitparameter/peakwise/`` of your mapping.
