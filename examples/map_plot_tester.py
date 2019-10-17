@@ -76,16 +76,16 @@ def CreateMinMaxDict(params, paramList, mapping):
         if param in dict_minmax:
             # check if parameter smaller/bigger than current value
             # and update values and mappings
-            if ((dict_minmax[param][0] < min)
+            if ((dict_minmax[param][0] > min)
             and not (dict_minmax[param][0] == map.missingvalue)):
-                min = dict_minmax[param][0]
                 minfile = mapping
             else:
+                min = dict_minmax[param][0]
                 minfile = dict_minmax[param][2]
-            if dict_minmax[param][1] > max:
-                max = dict_minmax[param][1]
+            if dict_minmax[param][1] < max:
                 maxfile = mapping
             else:
+                max = dict_minmax[param][1]
                 maxfile = dict_minmax[param][3]
         else:
             minfile = mapping
