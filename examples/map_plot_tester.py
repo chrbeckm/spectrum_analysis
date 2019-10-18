@@ -26,6 +26,12 @@ dict_minmax = {}
 
 linebreaker ='============================================================'
 
+def CalculateSpectraNumber(dimensions):
+    sum = 0
+    for spectrum in dimensions:
+        sum += spectrum[0] * spectrum[1]
+    return sum
+
 def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None):
     """
     Plot all parameters of a mapping.
@@ -93,6 +99,9 @@ def CreateMinMaxDict(params, paramList, mapping):
         # create content and update dictionary
         content = {param : (min, max, minfile, maxfile)}
         dict_minmax.update(content)
+
+print('There are ' + str(CalculateSpectraNumber(dims)) + ' spectra at all.')
+print(linebreaker + '\n' + linebreaker)
 
 for folder in mapFolderList:
     print('Mapping ' + str(mapFolderList.index(folder) + 1) + ' of '
