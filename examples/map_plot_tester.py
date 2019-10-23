@@ -22,7 +22,7 @@ top = 'lorentzian_p1_height'
 bot = 'breit_wigner_p1_height'
 opt = 'div'
 
-dict_minmax = {}
+dict_minmax_global = {}
 
 linebreaker ='============================================================'
 
@@ -71,6 +71,7 @@ def CreateMinMaxDict(params, paramList, mapping):
     """
     Create a dictionary containing all parameters with the global min and max.
     """
+    dict = {}
     # go through all parameters
     for param in paramList:
         # get index of parameter and corresponding min and max
@@ -78,27 +79,37 @@ def CreateMinMaxDict(params, paramList, mapping):
         nonMissing = [x for x in params[i] if not (x == map.missingvalue)]
         min = np.min(nonMissing)
         max = np.max(nonMissing)
-        # check if parameter already in dictionary
-        if param in dict_minmax:
-            # check if parameter smaller/bigger than current value
-            # and update values and mappings
-            if ((dict_minmax[param][0] > min)
-            and not (dict_minmax[param][0] == map.missingvalue)):
-                minfile = mapping
-            else:
-                min = dict_minmax[param][0]
-                minfile = dict_minmax[param][2]
-            if dict_minmax[param][1] < max:
-                maxfile = mapping
-            else:
-                max = dict_minmax[param][1]
-                maxfile = dict_minmax[param][3]
-        else:
-            minfile = mapping
-            maxfile = mapping
+        minfile = mapping
+        maxfile = mapping
         # create content and update dictionary
         content = {param : (min, max, minfile, maxfile)}
-        dict_minmax.update(content)
+        dict.update(content)
+    return dict
+
+def UpdateGlobalDict(globaldict, dict):
+    for param in dict.keys():
+        min = dict[param][0]
+        max = dict[param][1]
+        minfile = dict[param][2]
+        maxfile = dict[param][3]
+        # check if parameter already in dictionary
+        if param in globaldict:
+            # check if parameter smaller/bigger than current value
+            # and update values and mappings
+            if ((globaldict[param][0] > min)
+            and not (globaldict[param][0] == map.missingvalue)):
+                pass
+            else:
+                min = globaldict[param][0]
+                minfile = globaldict[param][2]
+            if globaldict[param][1] < max:
+                pass
+            else:
+                max = globaldict[param][1]
+                maxfile = globaldict[param][3]
+        content = {param : (min, max, minfile, maxfile)}
+        globaldict.update(content)
+    return globaldict
 
 def PrintMinMax(dict, list):
     for param in list:
@@ -135,7 +146,8 @@ for folder in mapFolderList:
     PlotParameterMappings(parameters, parameterList, mapdims, step)
     PlotErrorMappings(parameters, errors, parameterList, mapdims, step)
 
-    CreateMinMaxDict(parameters, parameterList, folder)
+    dict_minmax = CreateMinMaxDict(parameters, parameterList, folder)
+    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_minmax)
 
     # plot one mapping calculated from two parameters linked by selected
     # operation (opt=['div', 'mult', 'add', 'sub']).
@@ -152,7 +164,7 @@ for folder in mapFolderList:
 if len(mapFolderList) > 1:
     print('List of global minima and maxima '
         + 'and the mappings they are taken from.')
-    PrintMinMax(dict_minmax, dict_minmax.keys())
+    PrintMinMax(dict_minmax_global, dict_minmax.keys())
     print(linebreaker + '\n' + linebreaker)
 
     for folder in mapFolderList:
@@ -171,6 +183,6 @@ if len(mapFolderList) > 1:
         parameterList = map.CreatePeakList(peakFileList)
         PlotParameterMappings(parameters, parameterList, mapdims, step,
                               name='scaled_',
-                              dict=dict_minmax)
+                              dict=dict_minmax_global)
 
         print(linebreaker + '\n' + linebreaker)
