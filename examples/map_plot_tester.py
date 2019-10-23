@@ -100,6 +100,14 @@ def CreateMinMaxDict(params, paramList, mapping):
         content = {param : (min, max, minfile, maxfile)}
         dict_minmax.update(content)
 
+def PrintMinMax(dict, list):
+    for param in list:
+        print(param + '\n'
+                    + '\tMin: ' + str(dict[param][0])
+                    + ' ({})'.format(dict[param][2]) + '\n'
+                    + '\tMax: ' + str(dict[param][1])
+                    + '({})'.format(dict[param][3]))
+
 print('There are ' + str(CalculateSpectraNumber(dims)) + ' spectra at all.')
 print(linebreaker + '\n' + linebreaker)
 
@@ -136,19 +144,17 @@ for folder in mapFolderList:
     PlotParameterOperations(parameters, parameterList, mapdims, step,
                             bot, top, opt)
 
+    print('\nList of minima and maxima.')
+    PrintMinMax(dict_minmax, parameterList)
+
     print(linebreaker + '\n' + linebreaker)
 
-print('List of minima and maxima and the mappings they are taken from.')
-for key in dict_minmax.keys():
-    print(key + '\n'
-              + '\tMin: ' + str(dict_minmax[key][0])
-              + ' ({})'.format(dict_minmax[key][2]) + '\n'
-              + '\tMax: ' + str(dict_minmax[key][1])
-              + '({})'.format(dict_minmax[key][3]))
-
-print(linebreaker + '\n' + linebreaker)
-
 if len(mapFolderList) > 1:
+    print('List of global minima and maxima '
+        + 'and the mappings they are taken from.')
+    PrintMinMax(dict_minmax, dict_minmax.keys())
+    print(linebreaker + '\n' + linebreaker)
+
     for folder in mapFolderList:
         print('Scaled mapping ' + str(mapFolderList.index(folder) + 1) + ' of '
             + str(len(mapFolderList)) + '\n')
