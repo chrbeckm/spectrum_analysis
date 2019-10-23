@@ -117,7 +117,7 @@ def PrintMinMax(dict, list):
                     + '\tMin: ' + str(dict[param][0])
                     + ' ({})'.format(dict[param][2]) + '\n'
                     + '\tMax: ' + str(dict[param][1])
-                    + '({})'.format(dict[param][3]))
+                    + ' ({})'.format(dict[param][3]))
 
 print('There are ' + str(CalculateSpectraNumber(dims)) + ' spectra at all.')
 print(linebreaker + '\n' + linebreaker)
