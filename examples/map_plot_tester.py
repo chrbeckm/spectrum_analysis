@@ -164,7 +164,7 @@ for folder in mapFolderList:
 if len(mapFolderList) > 1:
     print('List of global minima and maxima '
         + 'and the mappings they are taken from.')
-    PrintMinMax(dict_minmax_global, dict_minmax.keys())
+    PrintMinMax(dict_minmax_global, dict_minmax_global.keys())
     print(linebreaker + '\n' + linebreaker)
 
     for folder in mapFolderList:
