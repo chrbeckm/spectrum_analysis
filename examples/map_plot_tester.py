@@ -82,8 +82,8 @@ def CreateMinMaxDict(params, paramList, mapping):
         minfile = mapping
         maxfile = mapping
         # get index and correct to get the correct spectrum number
-        min_idx = np.where(nonMissing == min)
-        max_idx = np.where(nonMissing == max)
+        min_idx = np.where(params[i] == min)
+        max_idx = np.where(params[i] == max)
         min_idx = [i + 1 for i in min_idx[0]]
         max_idx = [i + 1 for i in max_idx[0]]
         # create content and update dictionary
