@@ -81,8 +81,13 @@ def CreateMinMaxDict(params, paramList, mapping):
         max = np.max(nonMissing)
         minfile = mapping
         maxfile = mapping
+        # get index and correct to get the correct spectrum number
+        min_idx = np.where(nonMissing == min)
+        max_idx = np.where(nonMissing == max)
+        min_idx = [i + 1 for i in min_idx[0]]
+        max_idx = [i + 1 for i in max_idx[0]]
         # create content and update dictionary
-        content = {param : (min, max, minfile, maxfile)}
+        content = {param : (min, max, minfile, maxfile, min_idx, max_idx)}
         dict.update(content)
     return dict
 
@@ -92,6 +97,8 @@ def UpdateGlobalDict(globaldict, dict):
         max = dict[param][1]
         minfile = dict[param][2]
         maxfile = dict[param][3]
+        min_idx = dict[param][4]
+        max_idx = dict[param][5]
         # check if parameter already in dictionary
         if param in globaldict:
             # check if parameter smaller/bigger than current value
@@ -102,12 +109,14 @@ def UpdateGlobalDict(globaldict, dict):
             else:
                 min = globaldict[param][0]
                 minfile = globaldict[param][2]
+                min_idx = globaldict[param][4]
             if globaldict[param][1] < max:
                 pass
             else:
                 max = globaldict[param][1]
                 maxfile = globaldict[param][3]
-        content = {param : (min, max, minfile, maxfile)}
+                max_idx = globaldict[param][5]
+        content = {param : (min, max, minfile, maxfile, min_idx, max_idx)}
         globaldict.update(content)
     return globaldict
 
@@ -115,9 +124,11 @@ def PrintMinMax(dict, list):
     for param in list:
         print(param + '\n'
                     + '\tMin: ' + str(dict[param][0])
-                    + ' ({})'.format(dict[param][2]) + '\n'
+                    + ' ({})'.format(dict[param][2])
+                    + '\tSpectra: ' + str(dict[param][4]) + '\n'
                     + '\tMax: ' + str(dict[param][1])
-                    + ' ({})'.format(dict[param][3]))
+                    + ' ({})'.format(dict[param][3])
+                    + '\tSpectra: ' + str(dict[param][5]))
 
 print('There are ' + str(CalculateSpectraNumber(dims)) + ' spectra at all.')
 print(linebreaker + '\n' + linebreaker)
