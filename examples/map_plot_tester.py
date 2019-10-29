@@ -8,13 +8,13 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 
 mapFolderList = ['testdata/1',
-#                 'testdata/2'
+                 'testdata/2'
                  ]
 dims = [(4, 4),
-#        (8, 2)
+        (8, 2)
         ]
 stepsize = [10,
-#           10
+           10
             ]
 
 # plot ratios
@@ -32,8 +32,7 @@ def CalculateSpectraNumber(dimensions):
         sum += spectrum[0] * spectrum[1]
     return sum
 
-def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None,
-                          grid=False):
+def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None):
     """
     Plot all parameters of a mapping.
     """
@@ -43,8 +42,12 @@ def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None,
         if dict is not None:
             vmin = dict[mapping][0]
             vmax = dict[mapping][1]
-        map.PlotMapping('params', params[i], mapdims, step, name=name + mapping,
-                        vmin=vmin, vmax=vmax, grid=grid)
+        map.PlotMapping('params', params[i], mapdims, step,
+                        name=name + mapping,
+                        vmin=vmin, vmax=vmax, grid=False)
+        map.PlotMapping('params', params[i], mapdims, step,
+                        name=name + 'grid_' + mapping,
+                        vmin=vmin, vmax=vmax, grid=True)
 
 def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
@@ -57,7 +60,7 @@ def PlotErrorMappings(params, errors, peakList, mapdims, step):
                         numbered=True)
 
 def PlotParameterOperations(params, peakList, mapdims, step,
-                            first, second, operation):
+                            first, second, operation, name='', dict=None):
     """
     Plot a mapping calculated from two parameters (like height_a/height_b).
     """
@@ -65,8 +68,18 @@ def PlotParameterOperations(params, peakList, mapdims, step,
     b = peakList.index(second)
     ratio = map.ModifyValues(params[a], params[b], operation)
     filename = first + '_' + operation + '_' + second
-    map.PlotMapping(operation, ratio, mapdims, step, name=filename,
-                    numbered=False)
+    vmin = None
+    vmax = None
+    if dict is not None:
+        vmin = dict[filename][0]
+        vmax = dict[filename][1]
+    map.PlotMapping(operation, ratio, mapdims, step,
+                    name=name + filename,
+                    numbered=False, vmin=vmin, vmax=vmax, grid=False)
+    map.PlotMapping(operation, ratio, mapdims, step,
+                    name=name + 'grid_' + filename,
+                    numbered=False, vmin=vmin, vmax=vmax, grid=True)
+    return filename, ratio
 
 def CreateMinMaxDict(params, paramList, mapping):
     """
@@ -156,8 +169,6 @@ for folder in mapFolderList:
     parameters, errors = data.GetAllData(peakFileList)
     parameterList = map.CreatePeakList(peakFileList)
     PlotParameterMappings(parameters, parameterList, mapdims, step)
-    PlotParameterMappings(parameters, parameterList, mapdims, step,
-                          name='grid_', grid=True)
     PlotErrorMappings(parameters, errors, parameterList, mapdims, step)
 
     dict_minmax = CreateMinMaxDict(parameters, parameterList, folder)
@@ -165,10 +176,17 @@ for folder in mapFolderList:
 
     # plot one mapping calculated from two parameters linked by selected
     # operation (opt=['div', 'mult', 'add', 'sub']).
-    PlotParameterOperations(parameters, parameterList, mapdims, step,
-                            top, bot, opt)
-    PlotParameterOperations(parameters, parameterList, mapdims, step,
-                            bot, top, opt)
+    parameter_name, values = PlotParameterOperations(parameters, parameterList,
+                                                     mapdims, step,
+                                                     top, bot, opt)
+    dict_topbot = CreateMinMaxDict([values], [parameter_name], folder)
+    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_topbot)
+
+    parameter_name, values = PlotParameterOperations(parameters, parameterList,
+                                                     mapdims, step,
+                                                     bot, top, opt)
+    dict_bottop = CreateMinMaxDict([values], [parameter_name], folder)
+    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bottop)
 
     print('\nList of minima and maxima.')
     PrintMinMax(dict_minmax, parameterList)
@@ -198,8 +216,9 @@ if len(mapFolderList) > 1:
         PlotParameterMappings(parameters, parameterList, mapdims, step,
                               name='scaled_',
                               dict=dict_minmax_global)
-        PlotParameterMappings(parameters, parameterList, mapdims, step,
-                              name='scaled_grid_', grid=True,
-                              dict=dict_minmax_global)
+        PlotParameterOperations(parameters, parameterList, mapdims, step,
+                                top, bot, opt,
+                                name='scaled_',
+                                dict=dict_minmax_global)
 
         print(linebreaker + '\n' + linebreaker)
