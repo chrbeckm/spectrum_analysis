@@ -32,7 +32,8 @@ def CalculateSpectraNumber(dimensions):
         sum += spectrum[0] * spectrum[1]
     return sum
 
-def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None):
+def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None,
+                          grid=False):
     """
     Plot all parameters of a mapping.
     """
@@ -43,7 +44,7 @@ def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None):
             vmin = dict[mapping][0]
             vmax = dict[mapping][1]
         map.PlotMapping('params', params[i], mapdims, step, name=name + mapping,
-                        vmin=vmin, vmax=vmax)
+                        vmin=vmin, vmax=vmax, grid=grid)
 
 def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
@@ -155,6 +156,8 @@ for folder in mapFolderList:
     parameters, errors = data.GetAllData(peakFileList)
     parameterList = map.CreatePeakList(peakFileList)
     PlotParameterMappings(parameters, parameterList, mapdims, step)
+    PlotParameterMappings(parameters, parameterList, mapdims, step,
+                          name='grid_', grid=True)
     PlotErrorMappings(parameters, errors, parameterList, mapdims, step)
 
     dict_minmax = CreateMinMaxDict(parameters, parameterList, folder)
@@ -194,6 +197,9 @@ if len(mapFolderList) > 1:
         parameterList = map.CreatePeakList(peakFileList)
         PlotParameterMappings(parameters, parameterList, mapdims, step,
                               name='scaled_',
+                              dict=dict_minmax_global)
+        PlotParameterMappings(parameters, parameterList, mapdims, step,
+                              name='scaled_grid_', grid=True,
                               dict=dict_minmax_global)
 
         print(linebreaker + '\n' + linebreaker)

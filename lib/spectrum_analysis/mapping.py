@@ -7,6 +7,8 @@ from spectrum_analysis.spectrum import *
 from spectrum_analysis.dictionaries import *
 from spectrum_analysis import data
 
+from PIL import Image
+
 
 """
 This module contains the mapping class to work multiple x, y structured
@@ -623,27 +625,32 @@ class mapping(spectrum):
 
         return plot_matrix, missing_matrix, savefile
 
-    def CreatePatchMask(self, mapdims, fig, missing_matrix):
+    def CreatePatchMask(self, mapdims, fig, missing_matrix, size=1.0):
         xdim = mapdims[0]
         ydim = mapdims[1]
         # Create list for all the missing values as missing patches
         missingboxes = []
+        facecolor = []
 
         # find all fields not containing signals and append to
         for iy in range(0,ydim):
             for ix in range(0,xdim):
                 if missing_matrix[iy][ix]:
                     # calculate position correction for the patches
-                    corr = 0.5
+                    corr = size / 2.0
                     linecorr = matplotlib.rcParams['axes.linewidth']/fig.dpi/4
                     # create the missing patch and add to list
                     rect = matplotlib.patches.Rectangle((ix - corr + linecorr*4,
-                                              iy - corr - linecorr), 1, 1)
+                                              iy - corr - linecorr), size, size)
                     missingboxes.append(rect)
+                if size == 1.0:
+                    facecolor.append('black')
+                else:
+                    facecolor.append('white')
 
         # Create patch collection with specified colour/alpha
         pc = matplotlib.collections.PatchCollection(missingboxes,
-                                                    facecolor='black')
+                                                    facecolor=facecolor)
         return pc
 
     def ConfigureTicks(self, mapdims, step, xticker, plt):
@@ -669,7 +676,7 @@ class mapping(spectrum):
 
     def PlotMapping(self, maptype, y, mapdims, step,
                     xticker=1, colormap='Reds', fontsize_int=22,
-                    numbered=False, vmin=None, vmax=None, **kwargs):
+                    numbered=False, vmin=None, vmax=None, grid=False, **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -722,6 +729,9 @@ class mapping(spectrum):
         plt.imshow(plot_matrix, cmap=colormap, vmin=vmin, vmax=vmax)
         pc = self.CreatePatchMask(mapdims, fig, missing_matrix)
         ax.add_collection(pc)
+        if grid:
+            patches = self.CreatePatchMask(mapdims, fig, plot_matrix, size=0.75)
+            ax.add_collection(patches)
 
         # number the patches if numbered == True
         def NumberMap(mapdims, ax):
@@ -765,6 +775,27 @@ class mapping(spectrum):
         plt.savefig(savefile + '_' + colormap + '.pdf', format='pdf')
         plt.savefig(savefile + '_' + colormap + '.png')
         plt.close()
+
+        # function removes color from image and sets it to transparent
+        def removeColor(filename, color):
+            with Image.open(filename) as img:
+                img = img.convert('RGBA')
+                datas = img.getdata()
+
+                newData = []
+                for item in datas:
+                    if (item[0] == color[0]
+                    and item[1] == color[1]
+                    and item[2] == color[2]):
+                        newData.append((color[0], color[1], color[2], 0))
+                    else:
+                        newData.append(item)
+
+                img.putdata(newData)
+                img.save(filename, 'png')
+
+        if grid:
+            removeColor(savefile + '_' + colormap + '.png', (255, 255, 255))
 
         print(plotname + ' ' + colormap + ' plotted')
 
