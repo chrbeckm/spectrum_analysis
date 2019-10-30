@@ -644,7 +644,7 @@ class mapping(spectrum):
                                               iy - corr - linecorr), size, size)
                     missingboxes.append(rect)
                 if size == 1.0:
-                    facecolor.append('black')
+                    facecolor.append((0.05, 0.05, 0.05, 1))
                 else:
                     facecolor.append('white')
 
@@ -675,7 +675,7 @@ class mapping(spectrum):
         plt.tight_layout()
 
     def PlotMapping(self, maptype, y, mapdims, step,
-                    xticker=1, colormap='Reds',
+                    xticker=1, colormap='Reds', alpha=1.0,
                     numbered=False, vmin=None, vmax=None, grid=False, **kwargs):
         """
         Method to plot different mappings.
@@ -745,7 +745,7 @@ class mapping(spectrum):
                     text = ax.text(mapdims[0] - i-1, j,
                                    product - (j * mapdims[0] + i),
                                    ha='center', va='center',
-                                   color=color)
+                                   color=color, fontsize=fontsize_int*0.8)
 
         if numbered:
             NumberMap(mapdims, ax)
@@ -778,7 +778,7 @@ class mapping(spectrum):
         plt.close()
 
         # function removes color from image and sets it to transparent
-        def removeColor(filename, color):
+        def setColorAlpha(filename, color, alpha):
             with Image.open(filename) as img:
                 img = img.convert('RGBA')
                 datas = img.getdata()
@@ -788,7 +788,28 @@ class mapping(spectrum):
                     if (item[0] == color[0]
                     and item[1] == color[1]
                     and item[2] == color[2]):
-                        newData.append((color[0], color[1], color[2], 0))
+                        newData.append((color[0], color[1], color[2], alpha))
+                    else:
+                        newData.append(item)
+
+                img.putdata(newData)
+                img.save(filename, 'png')
+
+        # function that sets transparency of all colors but one
+        def setAllToAlpha(filename, color, alpha):
+            alpha = int(alpha * 255)
+            with Image.open(filename) as img:
+                img = img.convert('RGBA')
+                datas = img.getdata()
+
+                newData = []
+                for item in datas:
+                    if (item[0] == color[0]
+                    and item[1] == color[1]
+                    and item[2] == color[2]):
+                        newData.append((color[0], color[1], color[2], 255))
+                    elif item[3] == 255:
+                        newData.append((item[0], item[1], item[2], alpha))
                     else:
                         newData.append(item)
 
@@ -796,7 +817,12 @@ class mapping(spectrum):
                 img.save(filename, 'png')
 
         if grid:
-            removeColor(savefile + '_' + colormap + '.png', (255, 255, 255))
+            # set white to transparent
+            setColorAlpha(savefile + '_' + colormap + '.png',
+                         (255, 255, 255), 0)
+            # set alpha of all but black
+            setAllToAlpha(savefile + '_' + colormap + '.png',
+                         (0, 0, 0), alpha)
 
         print(plotname + ' ' + colormap + ' plotted')
 

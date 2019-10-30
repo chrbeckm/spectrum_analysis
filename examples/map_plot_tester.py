@@ -46,7 +46,7 @@ def PlotParameterMappings(params, peakList, mapdims, step, name='', dict=None):
                         name=name + mapping,
                         vmin=vmin, vmax=vmax, grid=False)
         map.PlotMapping('params', params[i], mapdims, step,
-                        name=name + 'grid_' + mapping,
+                        name=name + 'grid_' + mapping, alpha=0.75,
                         vmin=vmin, vmax=vmax, grid=True)
 
 def PlotErrorMappings(params, errors, peakList, mapdims, step):
@@ -77,7 +77,7 @@ def PlotParameterOperations(params, peakList, mapdims, step,
                     name=name + filename,
                     numbered=False, vmin=vmin, vmax=vmax, grid=False)
     map.PlotMapping(operation, ratio, mapdims, step,
-                    name=name + 'grid_' + filename,
+                    name=name + 'grid_' + filename, alpha=0.75,
                     numbered=False, vmin=vmin, vmax=vmax, grid=True)
     return filename, ratio
 
