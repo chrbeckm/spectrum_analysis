@@ -8,6 +8,7 @@ from spectrum_analysis.dictionaries import *
 from spectrum_analysis import data
 
 from PIL import Image
+from skimage import io
 
 
 """
@@ -816,13 +817,24 @@ class mapping(spectrum):
                 img.putdata(newData)
                 img.save(filename, 'png')
 
+        def setColorAlphaFast(filename, color, alpha):
+            alpha = int(alpha * 255)
+            img = io.imread(filename)
+            white = np.where(img[:,:,0:3] == color)
+            rest = np.where(img[:,:,0:3] != color)
+            black = np.where(img[:,:,0:3] == [0, 0, 0])
+            img[white[0], white[1], 3] = 0
+            img[rest[0], rest[1], 3] = alpha
+            img[black[0], black[1], 3] = 255
+            io.imsave(filename, img)
+
         if grid:
             # set white to transparent
-            setColorAlpha(savefile + '_' + colormap + '.png',
-                         (255, 255, 255), 0)
+            setColorAlphaFast(savefile + '_' + colormap + '.png',
+                         [255, 255, 255], alpha)
             # set alpha of all but black
-            setAllToAlpha(savefile + '_' + colormap + '.png',
-                         (0, 0, 0), alpha)
+            #setAllToAlpha(savefile + '_' + colormap + '.png',
+            #             (0, 0, 0), alpha)
 
         print(plotname + ' ' + colormap + ' plotted')
 

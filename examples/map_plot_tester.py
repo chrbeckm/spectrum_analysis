@@ -8,13 +8,13 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 
 mapFolderList = ['testdata/1',
-                 'testdata/2'
+#                 'testdata/2'
                  ]
 dims = [(4, 4),
-        (8, 2)
+#        (8, 2)
         ]
 stepsize = [10,
-           10
+#           10
             ]
 
 # plot ratios
