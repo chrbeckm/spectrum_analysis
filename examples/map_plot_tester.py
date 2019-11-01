@@ -11,14 +11,15 @@ mapFolderList = ['testdata/1',
 #                 'testdata/2'
                  ]
 dims = [(4, 4),
-#        (4, 4)
+#        (8, 2)
         ]
 stepsize = [10,
 #            10
             ]
 
-backgrounds = ['testdata/bg_test.png',
-#               'testdata/bg_test.png',
+# images need to be in folders specified in mapFolderList
+backgrounds = ['bg_test.png',
+#               'bg_test.png',
               ]
 
 msizes = [2.0,
@@ -166,7 +167,7 @@ for folder in mapFolderList:
     print(folder + ' mappings are plotted now.')
     mapdims = dims[index]
     step = stepsize[index]
-    background = backgrounds[index]
+    background = folder + '/' + backgrounds[index]
     msize = msizes[index]
 
     map = mp.mapping(foldername=folder, plot=True)
@@ -227,7 +228,7 @@ if len(mapFolderList) > 1:
         print(folder + ' mappings with same scale are plotted now.')
         mapdims = dims[index]
         step = stepsize[index]
-        background = backgrounds[index]
+        background = folder + '/' + backgrounds[index]
         msize = msizes[index]
 
         map = mp.mapping(foldername=folder, plot=True)
