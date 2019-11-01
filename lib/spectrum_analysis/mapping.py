@@ -10,11 +10,51 @@ from spectrum_analysis import data
 from PIL import Image
 from skimage import io
 
+from svgpath2mpl import parse_path
+from mpl_toolkits import axes_grid1
+
 
 """
 This module contains the mapping class to work multiple x, y structured
 data sets.
 """
+
+# create frame like marker
+linewidth = 5
+size = 50
+rest = size - 2 * linewidth
+markerstring = ('m 0,0 v 0 %(size)s h %(size)s v -%(size)s '
+                'z m %(linewidth)s,%(linewidth)s '
+                'h %(rest)s v %(rest)s h -%(rest)s z') % locals()
+frame = parse_path(markerstring)
+
+
+class scatter():
+    def __init__(self,x,y,ax,size=2.1,**kwargs):
+        self.n = len(x)
+        self.ax = ax
+        self.ax.figure.canvas.draw()
+        self.size_data=size
+        self.size = size
+        self.sc = ax.scatter(x,y,s=self.size, marker=frame, **kwargs)
+        self._resize()
+        self.cid = ax.figure.canvas.mpl_connect('draw_event', self._resize)
+
+    def _resize(self,event=None):
+        ppd=72./self.ax.figure.dpi
+        trans = self.ax.transData.transform
+        s =  ((trans((1,self.size_data))-trans((0,0)))*ppd)[1]
+        s1 =  ((trans((1,self.size_data)))*ppd)[1]
+        if s != self.size:
+            self.sc.set_sizes(s**2*np.ones(self.n))
+            self.size = s
+            self._redraw_later()
+
+    def _redraw_later(self):
+        self.timer = self.ax.figure.canvas.new_timer(interval=10)
+        self.timer.single_shot = True
+        self.timer.add_callback(lambda : self.ax.figure.canvas.draw_idle())
+        self.timer.start()
 
 class mapping(spectrum):
     """
@@ -532,7 +572,7 @@ class mapping(spectrum):
 
         return values, max_exp
 
-    def LabelZ(self, plt, ax, label='Integrated Intensity\n', nbins=5,
+    def LabelZ(self, clb, label='Integrated Intensity\n', nbins=5,
                linear=False, unit='arb. u.'):
         """
         Function to label the z-axis of the Plot.
@@ -548,9 +588,6 @@ class mapping(spectrum):
         tick_locator = matplotlib.ticker.MaxNLocator(nbins=nbins)
         if linear:
             tick_locator = matplotlib.ticker.LinearLocator(numticks=nbins)
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
-        clb = plt.colorbar(cax=cax)
         clb.locator = tick_locator
         clb.update_ticks()
 
@@ -624,7 +661,7 @@ class mapping(spectrum):
         missing_matrix = np.full_like(plot_matrix, False, dtype=bool)
         missing_matrix = (plot_matrix == fitmean)
 
-        return plot_matrix, missing_matrix, savefile
+        return plot_matrix, missing_matrix, savefile, fitmean
 
     def CreatePatchMask(self, mapdims, fig, missing_matrix, size=1.0):
         xdim = mapdims[0]
@@ -665,12 +702,12 @@ class mapping(spectrum):
         plt.xticks(np.arange(xdim, step=xticker), x_ticks, fontsize='small')
         plt.yticks(np.arange(ydim), y_ticks, fontsize='small')
 
-    def ConfigurePlot(self, plt, ax, peak, **kwargs):
+    def ConfigurePlot(self, clb, peak, **kwargs):
         # set title, label of x, y and z axis
-        plt.title('Mapping of ' + self.folder + ' ' + peak, fontsize='small')
+        #plt.title('Mapping of ' + self.folder + ' ' + peak, fontsize='small')
         plt.ylabel('y-Position ($\mathrm{\mu}$m)', fontsize='small')
         plt.xlabel('x-Position ($\mathrm{\mu}$m)', fontsize='small')
-        self.LabelZ(plt, ax, **kwargs)
+        self.LabelZ(clb, **kwargs)
 
         # have a tight layout
         plt.tight_layout()
@@ -695,7 +732,7 @@ class mapping(spectrum):
             Defines the coloring of the mapping according to the `matplotlib
             colormaps <https://matplotlib.org/users/colormaps.html>`_
         """
-        plot_matrix, missing_matrix, savefile = self.CreatePlotMatrices(maptype,
+        plot_matrix, missing_matrix, savefile, fitmean = self.CreatePlotMatrices(maptype,
                                                         y, mapdims[::-1], **kwargs)
 
         # create and configure figure for mapping
@@ -728,12 +765,68 @@ class mapping(spectrum):
         self.ConfigureTicks(mapdims, step, xticker, plt)
 
         # plot mapping, create patch mask and plot it over map
-        plt.imshow(plot_matrix, cmap=colormap, vmin=vmin, vmax=vmax)
-        pc = self.CreatePatchMask(mapdims, fig, missing_matrix)
-        ax.add_collection(pc)
         if grid:
-            patches = self.CreatePatchMask(mapdims, fig, plot_matrix, size=0.75)
-            ax.add_collection(patches)
+            # create data for plotting
+            x = []
+            y = []
+            x_missing = []
+            y_missing = []
+            plot_matrix = np.flipud(plot_matrix)
+            plot_vector = list(plot_matrix.flatten())
+            missing_vector = np.full_like(plot_vector, False, dtype=bool)
+            missing_vector = (plot_matrix == fitmean)
+            missing_vector = missing_vector.flatten()
+
+            cor = 1.5
+            for i in range(1, mapdims[1]+1):
+                for j in range(1, mapdims[0]+1):
+                    x.append(j-cor)
+                    y.append(i-cor)
+
+            deletelist = []
+            for i, missing in enumerate(missing_vector):
+                if missing:
+                    deletelist.append(i)
+            deleted = 0
+            for i in deletelist:
+                x_missing.append(x[i-deleted])
+                y_missing.append(y[i-deleted])
+                del(x[i-deleted])
+                del(y[i-deleted])
+                del(plot_vector[i-deleted])
+                deleted += 1
+
+            ax.set_xlim(min(x), max(x)+1)
+            ax.set_ylim(min(y), max(y)+1)
+
+            img = io.imread('testdata/bg_test.png')
+            pos = cor - 2
+            plt.imshow(img, zorder=0, cmap=colormap,
+                       extent=[0+pos, mapdims[0]+pos, 0+pos, mapdims[1]+pos])
+
+            missng_col = scatter(x_missing, y_missing, ax,
+                                 color='black', linewidth=0.5, alpha=alpha)
+
+            sclb = scatter(x, y, ax, c=plot_vector,
+                           cmap='Reds', linewidth=0.5, alpha=alpha)
+            im = sclb.sc
+        else:
+            im = plt.imshow(plot_matrix, cmap=colormap, vmin=vmin, vmax=vmax)
+
+            pc = self.CreatePatchMask(mapdims, fig, missing_matrix)
+            ax.add_collection(pc)
+
+        def add_colorbar(im, aspect=20, pad_fraction=0.5, **kwargs):
+            """Add a vertical color bar to an image plot."""
+            divider = axes_grid1.make_axes_locatable(im.axes)
+            #width = axes_grid1.axes_size.AxesY(im.axes, aspect=1./aspect)
+            #pad = axes_grid1.axes_size.Fraction(pad_fraction, width)
+            current_ax = plt.gca()
+            cax = divider.append_axes("right", size='5%', pad=0.05)
+            plt.sca(current_ax)
+            return im.axes.figure.colorbar(im, cax=cax, **kwargs)
+
+        clb = add_colorbar(im)
 
         # number the patches if numbered == True
         def NumberMap(mapdims, ax):
@@ -770,71 +863,13 @@ class mapping(spectrum):
             zlabel = (shapeA + ' ' + modelparameters[parameterA] + ' '
                      + mapoperators[maptype] + '\n'
                      + shapeB + ' ' + modelparameters[parameterB] + '\n')
-        self.ConfigurePlot(plt, ax,
+        self.ConfigurePlot(clb,
                            peak = peakshape[0:4] + ' ' + peaknumber,
                            label = zlabel,
                            unit = modelunits[parameter])
         plt.savefig(savefile + '_' + colormap + '.pdf', format='pdf')
         plt.savefig(savefile + '_' + colormap + '.png')
         plt.close()
-
-        # function removes color from image and sets it to transparent
-        def setColorAlpha(filename, color, alpha):
-            with Image.open(filename) as img:
-                img = img.convert('RGBA')
-                datas = img.getdata()
-
-                newData = []
-                for item in datas:
-                    if (item[0] == color[0]
-                    and item[1] == color[1]
-                    and item[2] == color[2]):
-                        newData.append((color[0], color[1], color[2], alpha))
-                    else:
-                        newData.append(item)
-
-                img.putdata(newData)
-                img.save(filename, 'png')
-
-        # function that sets transparency of all colors but one
-        def setAllToAlpha(filename, color, alpha):
-            alpha = int(alpha * 255)
-            with Image.open(filename) as img:
-                img = img.convert('RGBA')
-                datas = img.getdata()
-
-                newData = []
-                for item in datas:
-                    if (item[0] == color[0]
-                    and item[1] == color[1]
-                    and item[2] == color[2]):
-                        newData.append((color[0], color[1], color[2], 255))
-                    elif item[3] == 255:
-                        newData.append((item[0], item[1], item[2], alpha))
-                    else:
-                        newData.append(item)
-
-                img.putdata(newData)
-                img.save(filename, 'png')
-
-        def setColorAlphaFast(filename, color, alpha):
-            alpha = int(alpha * 255)
-            img = io.imread(filename)
-            white = np.where(img[:,:,0:3] == color)
-            rest = np.where(img[:,:,0:3] != color)
-            black = np.where(img[:,:,0:3] == [0, 0, 0])
-            img[white[0], white[1], 3] = 0
-            img[rest[0], rest[1], 3] = alpha
-            img[black[0], black[1], 3] = 255
-            io.imsave(filename, img)
-
-        if grid:
-            # set white to transparent
-            setColorAlphaFast(savefile + '_' + colormap + '.png',
-                         [255, 255, 255], alpha)
-            # set alpha of all but black
-            #setAllToAlpha(savefile + '_' + colormap + '.png',
-            #             (0, 0, 0), alpha)
 
         print(plotname + ' ' + colormap + ' plotted')
 

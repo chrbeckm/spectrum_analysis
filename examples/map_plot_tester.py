@@ -11,7 +11,7 @@ mapFolderList = ['testdata/1',
 #                 'testdata/2'
                  ]
 dims = [(4, 4),
-#        (8, 2)
+#        (4, 4)
         ]
 stepsize = [10,
 #           10
