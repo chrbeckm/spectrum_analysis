@@ -855,7 +855,7 @@ class mapping(spectrum):
                     text = ax.text(mapdims[0] - i-1, j,
                                    product - (j * mapdims[0] + i),
                                    ha='center', va='center',
-                                   color=color, fontsize=fontsize_int*0.8)
+                                   color=color, fontsize=fontsize_int*0.4)
 
         if numbered:
             NumberMap(mapdims, ax)
