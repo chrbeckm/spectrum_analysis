@@ -10,6 +10,8 @@ from spectrum_analysis import data
 from PIL import Image
 from skimage import io
 
+import traceback
+
 from svgpath2mpl import parse_path
 from mpl_toolkits import axes_grid1
 
@@ -30,23 +32,22 @@ frame = parse_path(markerstring)
 
 
 class scatter():
-    def __init__(self,x,y,ax,size=2.1,**kwargs):
+    def __init__(self, x, y, ax, size=2, **kwargs):
         self.n = len(x)
         self.ax = ax
         self.ax.figure.canvas.draw()
         self.size_data=size
         self.size = size
-        self.sc = ax.scatter(x,y,s=self.size, marker=frame, **kwargs)
+        self.sc = ax.scatter(x, y, s=self.size, marker=frame, **kwargs)
         self._resize()
         self.cid = ax.figure.canvas.mpl_connect('draw_event', self._resize)
 
     def _resize(self,event=None):
         ppd=72./self.ax.figure.dpi
         trans = self.ax.transData.transform
-        s =  ((trans((1,self.size_data))-trans((0,0)))*ppd)[1]
-        s1 =  ((trans((1,self.size_data)))*ppd)[1]
+        s =  ((trans((1, self.size_data)) - trans((0, 0))) * ppd)[1]
         if s != self.size:
-            self.sc.set_sizes(s**2*np.ones(self.n))
+            self.sc.set_sizes(s**2 * np.ones(self.n))
             self.size = s
             self._redraw_later()
 
@@ -714,7 +715,8 @@ class mapping(spectrum):
 
     def PlotMapping(self, maptype, y, mapdims, step,
                     xticker=1, colormap='Reds', alpha=1.0,
-                    numbered=False, vmin=None, vmax=None, grid=False, **kwargs):
+                    numbered=False, vmin=None, vmax=None, grid=False,
+                    background='', **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -799,10 +801,16 @@ class mapping(spectrum):
             ax.set_xlim(min(x), max(x)+1)
             ax.set_ylim(min(y), max(y)+1)
 
-            img = io.imread('testdata/bg_test.png')
-            pos = cor - 2
-            plt.imshow(img, zorder=0, cmap=colormap,
-                       extent=[0+pos, mapdims[0]+pos, 0+pos, mapdims[1]+pos])
+            try:
+                img = io.imread(background)
+                pos = cor - 2
+                plt.imshow(img, zorder=0, cmap=colormap,
+                           extent=[0+pos, mapdims[0]+pos,
+                                   0+pos, mapdims[1]+pos])
+            except ValueError:
+                #traceback.print_exc()
+                print('No background given.')
+
 
             missng_col = scatter(x_missing, y_missing, ax,
                                  color='black', linewidth=0.5, alpha=alpha)
