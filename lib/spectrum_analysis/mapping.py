@@ -32,12 +32,12 @@ frame = parse_path(markerstring)
 
 
 class scatter():
-    def __init__(self, x, y, ax, size=2, **kwargs):
+    def __init__(self, x, y, ax, msize=2, **kwargs):
         self.n = len(x)
         self.ax = ax
         self.ax.figure.canvas.draw()
-        self.size_data=size
-        self.size = size
+        self.size_data=msize
+        self.size = msize
         self.sc = ax.scatter(x, y, s=self.size, marker=frame, **kwargs)
         self._resize()
         self.cid = ax.figure.canvas.mpl_connect('draw_event', self._resize)
@@ -692,16 +692,25 @@ class mapping(spectrum):
                                                     facecolor=facecolor)
         return pc
 
-    def ConfigureTicks(self, mapdims, step, xticker, plt):
+    def ConfigureTicks(self, mapdims, step, xticker, plt, grid, remove=2):
         xdim = mapdims[0]
         ydim = mapdims[1]
         # create x and y ticks accordingly to the parameters of the mapping
         x_ticks = np.arange(step, step * (xdim + 1), step=xticker*step)
         y_ticks = np.arange(step, step * (ydim + 1), step=step)
-        y_ticks = y_ticks[::-1]
+        if not grid:
+            y_ticks = y_ticks[::-1]
+
 
         plt.xticks(np.arange(xdim, step=xticker), x_ticks, fontsize='small')
         plt.yticks(np.arange(ydim), y_ticks, fontsize='small')
+
+        ax = plt.gca()
+        plt.setp(ax.xaxis.get_ticklabels()[1::remove], visible=False)
+        if grid:
+            plt.setp(ax.yaxis.get_ticklabels()[1::remove], visible=False)
+        else:
+            plt.setp(ax.yaxis.get_ticklabels()[0::remove], visible=False)
 
     def ConfigurePlot(self, clb, peak, **kwargs):
         # set title, label of x, y and z axis
@@ -716,7 +725,7 @@ class mapping(spectrum):
     def PlotMapping(self, maptype, y, mapdims, step,
                     xticker=1, colormap='Reds', alpha=1.0,
                     numbered=False, vmin=None, vmax=None, grid=False,
-                    background='', **kwargs):
+                    background='', msize=2.1, **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -764,7 +773,7 @@ class mapping(spectrum):
         fig, ax = plt.subplots(figsize=mapdims)
         ax.set_aspect('equal')
         set_size(mapdims)
-        self.ConfigureTicks(mapdims, step, xticker, plt)
+        self.ConfigureTicks(mapdims, step, xticker, plt, grid)
 
         # plot mapping, create patch mask and plot it over map
         if grid:
@@ -811,11 +820,10 @@ class mapping(spectrum):
                 #traceback.print_exc()
                 print('No background given.')
 
-
-            missng_col = scatter(x_missing, y_missing, ax,
+            missng_col = scatter(x_missing, y_missing, ax, msize=msize,
                                  color='black', linewidth=0.5, alpha=alpha)
 
-            sclb = scatter(x, y, ax, c=plot_vector,
+            sclb = scatter(x, y, ax, c=plot_vector, msize=msize,
                            cmap='Reds', linewidth=0.5, alpha=alpha)
             im = sclb.sc
         else:
