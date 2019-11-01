@@ -748,7 +748,7 @@ class mapping(spectrum):
 
         # create and configure figure for mapping
         matplotlib.rcParams['font.sans-serif'] = "Liberation Sans"
-        fontsize_int = 20 + np.sqrt(mapdims[0] * mapdims[1])
+        fontsize_int = 14 + 3 * np.sqrt(mapdims[0] * mapdims[1])
         matplotlib.rcParams.update({'font.size': fontsize_int})
 
         def set_size(mapdims, ax=None):
