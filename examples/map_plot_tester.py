@@ -18,8 +18,9 @@ stepsize = [10,
             ]
 
 # images need to be in folders specified in mapFolderList
+# best is to use png backgrounds, but jpgs work as well
 backgrounds = ['bg_test.png',
-#               'bg_test.png',
+#               'bg_test.jpg'
               ]
 
 msizes = [2.0,

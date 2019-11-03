@@ -813,7 +813,7 @@ class mapping(spectrum):
             try:
                 img = io.imread(background)
                 pos = cor - 2
-                plt.imshow(img, zorder=0, cmap=colormap,
+                plt.imshow(img, zorder=0, cmap='Greys_r',
                            extent=[0+pos, mapdims[0]+pos,
                                    0+pos, mapdims[1]+pos])
             except ValueError:
