@@ -710,7 +710,10 @@ class mapping(spectrum):
         if grid:
             plt.setp(ax.yaxis.get_ticklabels()[1::remove], visible=False)
         else:
-            plt.setp(ax.yaxis.get_ticklabels()[0::remove], visible=False)
+            if mapdims[1] % 2 == 0:
+                plt.setp(ax.yaxis.get_ticklabels()[0::remove], visible=False)
+            else:
+                plt.setp(ax.yaxis.get_ticklabels()[1::remove], visible=False)
 
     def ConfigurePlot(self, clb, peak, **kwargs):
         # set title, label of x, y and z axis
@@ -794,6 +797,9 @@ class mapping(spectrum):
                     x.append(j-cor)
                     y.append(i-cor)
 
+            ax.set_xlim(min(x), max(x)+1)
+            ax.set_ylim(min(y), max(y)+1)
+
             deletelist = []
             for i, missing in enumerate(missing_vector):
                 if missing:
@@ -806,9 +812,6 @@ class mapping(spectrum):
                 del(y[i-deleted])
                 del(plot_vector[i-deleted])
                 deleted += 1
-
-            ax.set_xlim(min(x), max(x)+1)
-            ax.set_ylim(min(y), max(y)+1)
 
             try:
                 img = io.imread(background)
