@@ -32,7 +32,7 @@ frame = parse_path(markerstring)
 
 
 class scatter():
-    def __init__(self, x, y, ax, msize=2, **kwargs):
+    def __init__(self, x, y, ax, msize=1, **kwargs):
         self.n = len(x)
         self.ax = ax
         self.ax.figure.canvas.draw()
@@ -728,7 +728,7 @@ class mapping(spectrum):
     def PlotMapping(self, maptype, y, mapdims, step,
                     xticker=1, colormap='Reds', alpha=1.0,
                     numbered=False, vmin=None, vmax=None, grid=False,
-                    background='', msize=2.1, **kwargs):
+                    background='', msize=1, **kwargs):
         """
         Method to plot different mappings.
         Parameters
