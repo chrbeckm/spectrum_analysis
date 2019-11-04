@@ -21,18 +21,19 @@ This module contains the mapping class to work multiple x, y structured
 data sets.
 """
 
-# create frame like marker
-linewidth = 5
-size = 50
-rest = size - 2 * linewidth
-markerstring = ('m 0,0 v 0 %(size)s h %(size)s v -%(size)s '
-                'z m %(linewidth)s,%(linewidth)s '
-                'h %(rest)s v %(rest)s h -%(rest)s z') % locals()
-frame = parse_path(markerstring)
-
-
 class scatter():
     def __init__(self, x, y, ax, msize=1, **kwargs):
+        # create frame like marker
+        marker_linewidth = 5
+        marker_size = 50
+        marker_rest = marker_size - 2 * marker_linewidth
+        markerstring = ('m 0,0 v 0 %(marker_size)s h %(marker_size)s '
+                        'v -%(marker_size)s '
+                        'z m %(marker_linewidth)s,%(marker_linewidth)s '
+                        'h %(marker_rest)s v %(marker_rest)s '
+                        'h -%(marker_rest)s z') % locals()
+        frame = parse_path(markerstring)
+
         self.n = len(x)
         self.ax = ax
         self.ax.figure.canvas.draw()
