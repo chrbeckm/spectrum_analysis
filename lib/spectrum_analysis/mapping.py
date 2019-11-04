@@ -728,7 +728,7 @@ class mapping(spectrum):
     def PlotMapping(self, maptype, y, mapdims, step,
                     xticker=1, colormap='Reds', alpha=1.0,
                     numbered=False, vmin=None, vmax=None, grid=False,
-                    background='', msize=1, **kwargs):
+                    background='', msize=1, plot_missing=True, **kwargs):
         """
         Method to plot different mappings.
         Parameters
@@ -823,8 +823,9 @@ class mapping(spectrum):
                 #traceback.print_exc()
                 print('No background given.')
 
-            missng_col = scatter(x_missing, y_missing, ax, msize=msize,
-                                 color='black', linewidth=0.5, alpha=alpha)
+            if plot_missing:
+                missng_col = scatter(x_missing, y_missing, ax, msize=msize,
+                                     color='black', linewidth=0.5, alpha=alpha)
 
             sclb = scatter(x, y, ax, c=plot_vector, msize=msize,
                            cmap='Reds', linewidth=0.5, alpha=alpha)

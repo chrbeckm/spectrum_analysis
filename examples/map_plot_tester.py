@@ -59,7 +59,8 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
         map.PlotMapping('params', params[i], mapdims, step,
                         name=name + 'grid_' + mapping, alpha=0.75,
                         vmin=vmin, vmax=vmax, grid=True,
-                        background=background, msize=msize)
+                        background=background, msize=msize,
+                        plot_missing=False)
 
 def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
@@ -92,7 +93,8 @@ def PlotParameterOperations(params, peakList, mapdims, step,
     map.PlotMapping(operation, ratio, mapdims, step,
                     name=name + 'grid_' + filename, alpha=0.75,
                     numbered=False, vmin=vmin, vmax=vmax, grid=True,
-                    background=background, msize=msize)
+                    background=background, msize=msize,
+                    plot_missing=False)
     return filename, ratio
 
 def CreateMinMaxDict(params, paramList, mapping):
