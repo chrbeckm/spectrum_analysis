@@ -870,11 +870,19 @@ class mapping(spectrum):
         # configure, save and show the plot
         plotname = re.sub(self.folder + '/results/plot/', '', savefile)
         try:
+            # remove grid prefix
             if grid:
                 gridname = kwargs['name'].split('_')[0]
                 peakparameter = re.sub(gridname, '', kwargs['name'])[1:]
             else:
                 peakparameter = kwargs['name']
+
+            # remove scaled prefix
+            if vmin is not None:
+                scalename = peakparameter.split('_')[0]
+                peakparameter = re.sub(scalename, '', peakparameter)[1:]
+
+            # define peak shape and parameter
             peakshape = peakparameter
             peakparameter = peakparameter.split('_')[-1]
             peakshape = re.sub('_' + peakparameter, '', peakshape)
