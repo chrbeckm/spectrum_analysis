@@ -6,6 +6,7 @@ import numpy as np
 
 from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
+from peaknames import *
 
 mapFolderList = ['testdata/1',
 #                 'testdata/2'
@@ -173,7 +174,7 @@ for folder in mapFolderList:
     background = folder + '/' + backgrounds[index]
     msize = msizes[index]
 
-    map = mp.mapping(foldername=folder, plot=True)
+    map = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
     # get and plot raw data
     x, y = data.GetAllData(map.listOfFiles)
@@ -234,7 +235,7 @@ if len(mapFolderList) > 1:
         background = folder + '/' + backgrounds[index]
         msize = msizes[index]
 
-        map = mp.mapping(foldername=folder, plot=True)
+        map = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
         # get fit data and plot one map per peak parameter
         peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak,

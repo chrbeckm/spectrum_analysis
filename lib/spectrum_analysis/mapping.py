@@ -90,7 +90,8 @@ class mapping(spectrum):
         or 'dat'
     """
 
-    def __init__(self, foldername, plot=False, datatype='txt'):
+    def __init__(self, foldername, plot=False, datatype='txt',
+                 peaknames={}):
         self.folder = foldername
         self.second_analysis = False
         self.answer = 'n'
@@ -107,6 +108,7 @@ class mapping(spectrum):
             self.spectra.append(spectrum(spec.split('.')[-2]))
 
         self.pardir_peak = self.pardir + '/peakwise'
+        self.peaknames = peaknames
 
         if not os.path.exists(self.pardir_peak):
             os.makedirs(self.pardir_peak)
@@ -867,27 +869,29 @@ class mapping(spectrum):
 
         # configure, save and show the plot
         plotname = re.sub(self.folder + '/results/plot/', '', savefile)
-        parameter = plotname.split('_')[-1]
-        peaknumber = plotname.split('_')[-2]
-        peakshape = 'raw'
-        zlabel = modelparameters[parameter] + '\n'
-        if parameter != 'raw':
-            peakshape = plotname.split('_')[-3]
+        try:
+            if grid:
+                gridname = kwargs['name'].split('_')[0]
+                peakparameter = re.sub(gridname, '', kwargs['name'])[1:]
+            else:
+                peakparameter = kwargs['name']
+            peakshape = peakparameter
+            peakparameter = peakparameter.split('_')[-1]
+            peakshape = re.sub('_' + peakparameter, '', peakshape)
+        except KeyError:
+            peakshape = 'raw'
+            peakparameter = peakshape
+
+        zlabel = self.peaknames[peakshape][peakparameter]['name'] + '\n'
+        unit = self.peaknames[peakshape][peakparameter]['unit']
+
         if maptype == 'errs':
             zlabel = 'Relative error of\n' + zlabel
-        elif maptype in mapoperators:
-            parameters = plotname.split('_' + maptype + '_')
-            shapeA = parameters[0].split('_')[-3]
-            shapeB = parameters[1].split('_')[-3]
-            parameterA = parameters[0].split('_')[-1]
-            parameterB = parameters[1].split('_')[-1]
-            zlabel = (shapeA + ' ' + modelparameters[parameterA] + ' '
-                     + mapoperators[maptype] + '\n'
-                     + shapeB + ' ' + modelparameters[parameterB] + '\n')
+
         self.ConfigurePlot(clb,
-                           peak = peakshape[0:4] + ' ' + peaknumber,
+                           peak = peakshape,
                            label = zlabel,
-                           unit = modelunits[parameter])
+                           unit = unit)
         plt.savefig(savefile + '_' + colormap + '.pdf', format='pdf')
         plt.savefig(savefile + '_' + colormap + '.png')
         plt.close()
