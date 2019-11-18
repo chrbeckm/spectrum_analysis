@@ -1,21 +1,3 @@
-modelparameters = {'raw': 'integrated raw data',
-                   'amplitude': 'Area of peakfunction',
-                   'center': 'Raman shift',
-                   'fwhm': 'FWHM',
-                   'height': 'Intensity',
-                   'intensity': 'Intensity',
-                   'sigma': 'Standard deviation',
-                   'q': 'Fano parameter'}
-
-modelunits = {'raw': 'cts',
-              'amplitude': 'cts',
-              'center': 'cm$^{-1}$',
-              'fwhm': 'cm$^{-1}$',
-              'height': 'cts',
-              'intensity': 'cts',
-              'sigma': 'cm$^{-1}$',
-              'q': 'arb. u.'}
-
 mapoperators = {'div': '/',
                 'mult': '*',
                 'add': '+',

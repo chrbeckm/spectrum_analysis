@@ -7,3 +7,4 @@ results/
 temp/
 *.egg-info
 log.txt
+*.ipynb*
