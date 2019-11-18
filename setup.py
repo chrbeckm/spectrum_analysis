@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from zipfile import ZipFile
 setup(
         name="spectrum_analysis",
-        version="0.1",
+        version="0.2",
         description="Python package for spectrum analysis",
         author="stefangri, hmoldenhauer",
         url="https://github.com/hmoldenhauer/spectrum_analysis",
@@ -21,6 +21,7 @@ setup(
             "PyWavelets>=1.0.1",
             "scipy>=1.3.0",
             "statsmodels>=0.9.0",
+            "pandas>=0.24.0",
         ],
 
         # matplotlib has C/C++ extensions, so it's not zip safe.
