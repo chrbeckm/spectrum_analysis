@@ -9,12 +9,28 @@ def GetData(file, measurement='', prnt=False, xdata='', ydata=''):
 
     Parameters
     ----------
+    file : string
+        Filename of the data to be read in.
+
     measurement : string, default : ''
-        Type of measurement. Supported are '' for simple x, y data
-        and 'xps' for XPS-Data from BL11 at DELTA.
+        Type of measurement. Supported are '' for simple x, y data,
+        'xps' for XPS-Data from BL11 at DELTA and 'tribo' for tribometer
+        data from LWT.
 
     prnt : boolean, default : False
         Print what data was read.
+
+    xdata : string, default : ''
+        Only needed for 'tribo' measurements. Possible keywords are 'Time',
+        'Distance', 'laps', 'Sequence ID', 'Cycle ID', 'Max linear speed',
+        'Nominal Load', 'µ' or 'Normal force'. The selected column will be
+        taken as data for the x-axis.
+
+    ydata : string, default : ''
+        Only needed for 'tribo' measurements. Possible keywords are 'Time',
+        'Distance', 'laps', 'Sequence ID', 'Cycle ID', 'Max linear speed',
+        'Nominal Load', 'µ' or 'Normal force'. The selected column will be
+        taken as data for the y-axis.
 
     Returns
     -------
