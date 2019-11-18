@@ -1,8 +1,9 @@
 import os
 import glob
 import numpy as np
+import pandas as pd
 
-def GetData(file, measurement='', prnt=False):
+def GetData(file, measurement='', prnt=False, xdata='', ydata=''):
     """
     Get data of one specified spectrum.
 
@@ -35,6 +36,15 @@ def GetData(file, measurement='', prnt=False):
                                        usecols=(0,10))
             if prnt:
                 print('XPS Data from DELTA was read.')
+        if measurement == 'tribo':
+            dataframe = pd.read_csv(file, skiprows=54,
+                                    delimiter='\t', decimal=',')
+            labels = dataframe.columns
+            xlabel = [s for s in labels if xdata in s]
+            ylabel = [s for s in labels if ydata in s]
+            x = dataframe[xlabel[0]].to_numpy(copy=True)
+            y = dataframe[ylabel[0]].to_numpy(copy=True)
+
         return x, y
 
     else:
