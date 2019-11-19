@@ -52,28 +52,31 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
                                 value = 10,
                                 min = 0,
                                 max = 100)
-            fitmodel.set_param_hint('gamma', #starting value lorentzian-width (== gauß-width by default)
-                                value = 5,
+            fitmodel.set_param_hint('gamma', # starting value lorentzian-width
+                                value = 5,   # (== gauß-width by default)
                                 min = 0,
                                 max = 100,
                                 vary = True, expr = '') #vary gamma independently
-            fitmodel.set_param_hint('amplitude', # starting value amplitude ist approxamitaly 11*height (my guess)
-                                value = ypeak[i]*20,
-                                min = 0)
+            fitmodel.set_param_hint('amplitude', # starting value amplitude is
+                                value = ypeak[i]*20, # approxamitaly 11*height
+                                min = 0)             # (guess)
             #parameters calculated based on the fit-parameters
             fitmodel.set_param_hint('height',
                                 value = ypeak[i])
             fitmodel.set_param_hint('fwhm_g',
-                                expr = '2 *' + fitmodel.prefix + 'sigma * sqrt(2 * log(2))')
+                                expr = (f'2 * {fitmodel.prefix}sigma'
+                                         '* sqrt(2 * log(2))'))
             fitmodel.set_param_hint('fwhm_l',
-                                expr = '2 *' + fitmodel.prefix + 'gamma')
-            # precise FWHM approximation by Olivero and Longbothum (doi:10.1016/0022-4073(77)90161-3)
-            # it is not possible to take the fwhm form lmfit for an independently varying gamma
+                                expr = f'2 * {fitmodel.prefix}gamma')
+            # precise FWHM approximation by Olivero and Longbothum
+            # (doi:10.1016/0022-4073(77)90161-3)
+            # it is not possible to take the fwhm form lmfit for an
+            # independently varying gamma
             fitmodel.set_param_hint('fwhm',
-                                expr = '0.5346 *' + fitmodel.prefix +
-                                       'fwhm_l + sqrt(0.2166 *' + fitmodel.prefix +
-                                       'fwhm_l**2 +' + fitmodel.prefix +
-                                       'fwhm_g**2 )')
+                                expr = (f'0.5346 * {fitmodel.prefix}fwhm_l'
+                                         '+ sqrt(0.2166'
+                                        f'* {fitmodel.prefix}fwhm_l**2'
+                                        f'+ {fitmodel.prefix}fwhm_g**2 )'))
 
         if model == 'breit_wigner': # should be BreitWignerModel!
             #fit-parameter
@@ -90,15 +93,14 @@ def StartingParameters(fitmodel, peaks, xpeak=[0], ypeak=[0], i=0):
                                                  # (guess)
                                 value = ypeak[i]/50,
                                 min = 0)
-            fitmodel.set_param_hint('height', # maximum calculated to be at A(q^2+1)
-                                expr = (fitmodel.prefix +'amplitude * (('
-                                       +fitmodel.prefix + 'q )**2+1)'))
+            fitmodel.set_param_hint('height', # max calculated to be at A(q^2+1)
+                                expr = (f'{fitmodel.prefix}amplitude'
+                                        f'* (({fitmodel.prefix}q )**2+1)'))
             fitmodel.set_param_hint('intensity', # intensity is A*q^2
                                                  # (compared to the used
                                                  # expression in the paper)
-                                expr = (fitmodel.prefix +'amplitude * ('
-                                       +fitmodel.prefix + 'q )**2'))
-
+                                expr = (f'{fitmodel.prefix}amplitude'
+                                        f'* ({fitmodel.prefix}q )**2'))
 
         if model == 'lorentzian':
             fitmodel.set_param_hint('sigma', #starting value gaussian-width
