@@ -5,7 +5,8 @@ import numpy as np
 
 from spectrum_analysis.data import GetData, GetFolderContent
 
-datafiles, datasets = GetFolderContent('testdata/tribo', 'txt')
+tribofolder = 'testdata/tribo'
+datafiles, datasets = GetFolderContent(tribofolder, 'txt')
 running_in = 100
 running_out = 10
 datapoints = 100
@@ -15,7 +16,7 @@ linebreaker ='============================================================'
 start = []
 stop = []
 
-folder = 'testdata/tribo/results/tribo'
+folder = f'{tribofolder}/results/tribo'
 if not os.path.exists(folder):
     os.makedirs(folder)
 
