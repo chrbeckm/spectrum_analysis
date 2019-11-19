@@ -66,7 +66,7 @@ for datafile in datafiles:
     update_dict(start, savename, y_temp)
 
     l_idx = find_nearest_index(abs(laps - laps[-1]), running_out)
-    y_temp = y[-l_idx : -running_out]
+    y_temp = y[(l_idx - datapoints) : l_idx]
     update_dict(stop, savename, y_temp)
 
     print(f'Median of the first {datapoints} points after running in '
