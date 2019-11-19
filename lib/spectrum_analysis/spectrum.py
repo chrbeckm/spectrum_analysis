@@ -1196,7 +1196,7 @@ class spectrum(object):
             savefunc(ymax, peak, fitresults.params)
 
         # print which spectrum is saved
-        print(f'Spectrum {self.label}'
+        print(f'Spectrum {self.label} '
               f'{str(savefunc).split("Save")[-1].split(" ")[0]}s saved')
 
     def SaveFitParams(self, ymax, fitresults, peaks):
