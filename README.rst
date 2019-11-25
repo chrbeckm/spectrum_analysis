@@ -18,6 +18,7 @@ Needed packages are
 * PyWavelets>=1.0.1
 * scipy>=1.3.0
 * statsmodels>=0.9.0
+* pandas>=0.24.0
 
 ==========
 Installing

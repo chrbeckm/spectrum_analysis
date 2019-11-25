@@ -1,19 +1,36 @@
 import os
 import glob
 import numpy as np
+import pandas as pd
 
-def GetData(file, measurement='', prnt=False):
+def GetData(file, measurement='', prnt=False, xdata='', ydata=''):
     """
     Get data of one specified spectrum.
 
     Parameters
     ----------
+    file : string
+        Filename of the data to be read in.
+
     measurement : string, default : ''
-        Type of measurement. Supported are '' for simple x, y data
-        and 'xps' for XPS-Data from BL11 at DELTA.
+        Type of measurement. Supported are '' for simple x, y data,
+        'xps' for XPS-Data from BL11 at DELTA and 'tribo' for tribometer
+        data from LWT.
 
     prnt : boolean, default : False
         Print what data was read.
+
+    xdata : string, default : ''
+        Only needed for 'tribo' measurements. Possible keywords are 'Time',
+        'Distance', 'laps', 'Sequence ID', 'Cycle ID', 'Max linear speed',
+        'Nominal Load', 'µ' or 'Normal force'. The selected column will be
+        taken as data for the x-axis.
+
+    ydata : string, default : ''
+        Only needed for 'tribo' measurements. Possible keywords are 'Time',
+        'Distance', 'laps', 'Sequence ID', 'Cycle ID', 'Max linear speed',
+        'Nominal Load', 'µ' or 'Normal force'. The selected column will be
+        taken as data for the y-axis.
 
     Returns
     -------
@@ -35,6 +52,15 @@ def GetData(file, measurement='', prnt=False):
                                        usecols=(0,10))
             if prnt:
                 print('XPS Data from DELTA was read.')
+        if measurement == 'tribo':
+            dataframe = pd.read_csv(file, skiprows=54,
+                                    delimiter='\t', decimal=',')
+            labels = dataframe.columns
+            xlabel = [s for s in labels if xdata in s]
+            ylabel = [s for s in labels if ydata in s]
+            x = dataframe[xlabel[0]].to_numpy(copy=True)
+            y = dataframe[ylabel[0]].to_numpy(copy=True)
+
         return x, y
 
     else:
