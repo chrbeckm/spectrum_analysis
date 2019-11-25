@@ -1063,6 +1063,27 @@ class spectrum(object):
                  color = 'r', linewidth = 1, alpha = 0.5, zorder = 1,
                  label = '3$\sigma$')
 
+    def ReduceDecimals(self, values):
+        """
+        Function that reduces the decimal places to one and returns the
+        values and the corresponding exponent.
+        """
+        # look for zeros and replace them with negligible exponent
+        values[values == 0] = 1e-256
+        # get exponents of the values and round them to smallest integer
+        exponents = np.log10(abs(values))
+        exponents = np.floor(exponents)
+        # check if there is any number smaller than 1
+        if any(exponent < 0 for exponent in exponents):
+            # not implemented yet
+            pass
+        # divide tickvalues by biggest exponent
+        max_exp = np.max(exponents)
+        divisor = np.power(10, max_exp)
+        values = values / divisor
+
+        return values, max_exp
+
     def PlotFit(self, x, y, ymax, fitresults, show=False, jupyter=False):
         """
         Plot the fitresults of a fit with lmfit.
@@ -1093,17 +1114,24 @@ class spectrum(object):
         # the different components and the confidence interval
         fig, ax = plt.subplots()
         ax.plot(x, y * ymax,
-                'b.', alpha = 0.8, markersize = 1, zorder = 0, label = 'Data')
+                'b.', alpha=0.8, markersize=1, zorder=0, label='Data')
         ax.plot(x, np.ones_like(y) * comps['constant'] * ymax,
-                'k-', linewidth = 1, zorder = 0, label = 'Background')
+                'k-', linewidth=1, zorder=0, label='Background')
         ax.plot(x, fitline * ymax,
-                'r-', linewidth = 0.5, zorder = 1, label = 'Fit')
+                'r-', linewidth=0.5, zorder=1, label='Fit')
         self.PlotComponents(x, ax, ymax, comps)
         self.PlotConfidence(x, ax, ymax, fitresults, fitline)
 
         fig.legend(loc = 'upper right')
         plt.title(f'Fit to spectrum {self.label}')
-        plt.ylabel('Scattered light intensity (arb. u.)')
+
+        # get tickvalues and reduce the decimals
+        tickvalues, ticklabels = plt.yticks()
+        newvalues, max_exp = self.ReduceDecimals(tickvalues)
+        ticklabels = [f'{x:1.2f}' for x in newvalues]
+
+        plt.ylabel(f'Scattered light intensity (10$^{max_exp:1.0f}$ arb. u.)')
+        plt.yticks(tickvalues, ticklabels)
         plt.xlabel('Raman shift (cm$^{-1}$)')
 
         # save figures

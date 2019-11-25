@@ -555,27 +555,6 @@ class mapping(spectrum):
             self.SaveFuncParams(self.SavePeak, ymax[i][0], fitresults[i], peaks)
             self.SaveUnusedPeaks(peaks, usedpeaks, fitresults[i])
 
-    def ReduceDecimals(self, values):
-        """
-        Function that reduces the decimal places to one and returns the
-        values and the corresponding exponent.
-        """
-        # look for zeros and replace them with negligible exponent
-        values[values == 0] = 1e-256
-        # get exponents of the values and round them to smallest integer
-        exponents = np.log10(abs(values))
-        exponents = np.floor(exponents)
-        # check if there is any number smaller than 1
-        if any(exponent < 0 for exponent in exponents):
-            # not implemented yet
-            pass
-        # divide tickvalues by biggest exponent
-        max_exp = np.max(exponents)
-        divisor = np.power(10, max_exp)
-        values = values / divisor
-
-        return values, max_exp
-
     def LabelZ(self, clb, label='Integrated Intensity\n', nbins=5,
                linear=False, unit='arb. u.'):
         """
