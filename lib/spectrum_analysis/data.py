@@ -82,12 +82,10 @@ def Teller(number, kind, location='folder'):
         Location where the instance can be found.
     """
     if number > 1:
-        print('There are {} {}s in this {}.'.format(number, kind,
-                                                    location))
+        print(f'There are {number} {kind}s in this {location}.')
         print()
     else:
-        print('There is {} {} in this {}.'.format(number, kind,
-                                                  location))
+        print(f'There is {number} {kind} in this {location}.')
         print()
 
 def GetFolderContent(folder, filetype,

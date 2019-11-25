@@ -38,16 +38,16 @@ class spectrum(object):
     """
 
     def __init__(self, filename, datatype='txt'):
-        self.file = filename + '.' + datatype
+        self.file = f'{filename}.{datatype}'
         self.folder = self.file[:-(len(self.label) + len(datatype) + 2)]
 
-        self.tmpdir = self.folder + '/temp'
-        self.resdir = self.folder + '/results'
-        self.basdir = self.resdir + '/baselines'
-        self.fitdir = self.resdir + '/fitlines'
-        self.pardir = self.resdir + '/fitparameter'
-        self.pardir_spec = self.pardir + '/spectra'
-        self.pltdir = self.resdir + '/plot'
+        self.tmpdir = f'{self.folder}/temp'
+        self.resdir = f'{self.folder}/results'
+        self.basdir = f'{self.resdir}/baselines'
+        self.fitdir = f'{self.resdir}/fitlines'
+        self.pardir = f'{self.resdir}/fitparameter'
+        self.pardir_spec = f'{self.pardir}/spectra'
+        self.pltdir = f'{self.resdir}/plot'
 
         self.tmploc ='locpeak'
         self.tmpfft = 'fftpeak'
@@ -94,15 +94,13 @@ class spectrum(object):
             Retruns a string constructed as defined by the function.
         """
         if (suffix == '') and (prefix != ''):
-            return (dir + '/' + prefix
-                    + '_' + self.label + '.' + datatype)
+            return f'{dir}/{prefix}_{self.label}.{datatype}'
         elif (prefix == '') and (suffix != ''):
-            return (dir + '/' + self.label + '_' + suffix + '.' + datatype)
+            return f'{dir}/{self.label}_{suffix}.{datatype}'
         elif label != '':
-            return (dir + '/' + label + '.' + datatype)
+            return f'{dir}/{label}.{datatype}'
         else:
-            return (dir + '/' + prefix + '_' + suffix
-                    + '_' + self.label + '.' + datatype)
+            return f'{dir}/{prefix}_{suffix}_{self.label}.{datatype}'
 
     def PlotVerticalLines(self, color, fig, jupyter=False):
         """
@@ -189,9 +187,9 @@ class spectrum(object):
         # plot spectrum
         fig, ax = plt.subplots()
         ax.plot(x, y, 'b.', label='Data')
-        ax.set_title('Spectrum ' + self.label
-                     + '\nSelect the part of the spectrum you wish to '
-                     + 'consider by clicking into the plot.')
+        ax.set_title(f'Spectrum {self.label} '
+                      '\nSelect the part of the spectrum you wish to '
+                      'consider by clicking into the plot.')
 
         # select region of interest
         xregion = self.PlotVerticalLines('green', fig, **kwargs)
@@ -282,7 +280,7 @@ class spectrum(object):
             grouped_array[muons].append(indices[-1])
             # print the number of muons found
             if prnt:
-                print(str(muons + 1) + ' muons have been found.')
+                print(f'{muons + 1} muons have been found.')
 
         return grouped_array
 
@@ -446,10 +444,10 @@ class spectrum(object):
         # plot the reduced spectrum
         fig, ax = plt.subplots()
         ax.plot(x, y, label='Data', color=color)
-        ax.set_title('Spectrum ' + self.label +
-                     '\nSelect the area of the spectrum you wish to exclude'
-                     'from the background by clicking into the plot\n'
-                     '({} degree polynomial assumed)'.format(degree))
+        ax.set_title(f'Spectrum {self.label}'
+                      '\nSelect the area of the spectrum you wish to exclude'
+                      'from the background by clicking into the plot\n'
+                     f'({degree} degree polynomial assumed)')
 
         # choose the region
         xregion = self.PlotVerticalLines('red', fig, **kwargs)
@@ -527,8 +525,8 @@ class spectrum(object):
 
         # plot the fitted function in the selected range
         if show:
-            plt.plot(x, y, 'b.', label = 'Data')
-            plt.plot(x, baseline, 'r-', label = 'Baseline')
+            plt.plot(x, y, 'b.', label='Data')
+            plt.plot(x, baseline, 'r-', label='Baseline')
             plt.show()
 
         # save the baseline
@@ -623,10 +621,10 @@ class spectrum(object):
 
         # plot fourier transformed data
         ax.plot(x_fft, abs(self.RemoveIndex(y_fft)), 'b-')
-        ax.set_title('Fourier transform of Spectrum ' + self.label
-                     + ' Select the maximum of the unwanted frequency.\n'
-                     + ' Frequencies close to 0 are removed for better'
-                     + ' visibility. Only one frequency selectable!')
+        ax.set_title(f'Fourier transform of Spectrum {self.label}'
+                      ' Select the maximum of the unwanted frequency.\n'
+                      ' Frequencies close to 0 are removed for better'
+                      ' visibility. Only one frequency selectable!')
         # arrays of initial values for the fits
         xpeak, ypeak = self.PlotPeaks(fig, ax)
         plt.show()
@@ -790,10 +788,10 @@ class spectrum(object):
             fig, ax = plt.subplots()
             # plot corrected data
             ax.plot(x, y, 'b.')
-            ax.set_title('Spectrum ' + self.label +
-                         '\nBackground substracted, smoothed,'
-                         ' normalized spectrum\n Select the maxima of the '
-                         + peaktype + '-PEAKS to fit.')
+            ax.set_title(f'Spectrum {self.label}'
+                          '\nBackground substracted, smoothed,'
+                          ' normalized spectrum\n Select the maxima of the '
+                         f'{peaktype}-PEAKS to fit.')
             # arrays of initial values for the fits
             xpeak, ypeak = self.PlotPeaks(fig, ax, **kwargs)
             plt.show()
@@ -911,13 +909,13 @@ class spectrum(object):
         # warn if one of the parameters has reached the lower bound
         if True in low_mask:
             warn(f'The parameter(s) {(names[inf_mask])[low_mask]} of '
-                  'spectrum {self.label} are close to chosen low limits.',
+                 f'spectrum {self.label} are close to chosen low limits.',
                   ParameterWarning)
 
         # warn if one of the parameters has reached the upper bound
         if True in hig_mask:
             warn(f'The parameter(s) {(names[inf_mask])[hig_mask]} of '
-                  'spectrum {self.label} are close to chosen high limits.',
+                 f'spectrum {self.label} are close to chosen high limits.',
                   ParameterWarning)
 
     def FitSpectrum(self, x, y, peaks):
@@ -1005,14 +1003,14 @@ class spectrum(object):
         # create the fit parameters and fit
         pars = model.make_params()
         fitresults = model.fit(y, pars, x=x,
-                                    method = 'leastsq',
-                                    scale_covar = True)
+                                    method='leastsq',
+                                    scale_covar=True)
 
         # test if any starting limits were reached and print to console
         self.TestLimits(pars, fitresults)
 
         # print which fit is conducted
-        print('Spectrum ' + self.label + ' fitted')
+        print(f'Spectrum {self.label} fitted')
 
         return fitresults
 
@@ -1104,7 +1102,7 @@ class spectrum(object):
         self.PlotConfidence(x, ax, ymax, fitresults, fitline)
 
         fig.legend(loc = 'upper right')
-        plt.title('Fit to spectrum ' + self.label)
+        plt.title(f'Fit to spectrum {self.label}')
         plt.ylabel('Scattered light intensity (arb. u.)')
         plt.xlabel('Raman shift (cm$^{-1}$)')
 
@@ -1164,10 +1162,8 @@ class spectrum(object):
                                                         value, error)
 
                     # write to file
-                    f.write(peakparameter.ljust(12)
-                            + '{:>13.5f}'.format(value)
-                            + ' +/- ' + '{:>11.5f}'.format(error)
-                            + '\n')
+                    f.write(f'{peakparameter.ljust(12)}'
+                            f'{value:>13.5f} +/- {error:>11.5f}\n')
 
     def SaveFuncParams(self, savefunc, ymax, fitresults, peaks):
         """
@@ -1200,10 +1196,8 @@ class spectrum(object):
             savefunc(ymax, peak, fitresults.params)
 
         # print which spectrum is saved
-        print('Spectrum '
-              + self.label + ' '
-              + str(savefunc).split('Save')[-1].split(' ')[0]
-              + 's saved')
+        print(f'Spectrum {self.label} '
+              f'{str(savefunc).split("Save")[-1].split(" ")[0]}s saved')
 
     def SaveFitParams(self, ymax, fitresults, peaks):
         self.SaveFuncParams(self.SaveSpec, ymax, fitresults, peaks)
