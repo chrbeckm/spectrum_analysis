@@ -227,6 +227,18 @@ for folder in mapFolderList:
     dict_topbot = CreateMinMaxDict([values], [parameter_name], folder)
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_topbot)
 
+    # plot background values from fits
+    peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak_bg,
+                                                        filetype='dat',
+                                                        quiet=True)
+    parameters, errors = data.GetAllData(peakFileList)
+    parameterList_bg = map.CreatePeakList(peakFileList)
+    PlotParameterMappings(parameters, parameterList_bg, mapdims, step,
+                          background=background, msize=msize)
+
+    dict_bg = CreateMinMaxDict(parameters, parameterList_bg, folder)
+    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bg)
+
     print('\nList of minima and maxima.')
     PrintMinMax(dict_minmax, parameterList)
 
