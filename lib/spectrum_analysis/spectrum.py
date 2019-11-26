@@ -520,14 +520,12 @@ class spectrum(object):
         pars = background.guess(y[relevant], x=x[relevant])
         fitresult = background.fit(y[relevant], pars, x=x[relevant])
 
-        # create baseline
-        baseline = background.eval(fitresult.params, x=x)
+        return fitresult
 
-        # plot the fitted function in the selected range
-        if show:
-            plt.plot(x, y, 'b.', label='Data')
-            plt.plot(x, baseline, 'r-', label='Baseline')
-            plt.show()
+    def EvaluateBaseline(self, x, fitresult):
+
+        # create baseline
+        baseline = fitresult.eval(fitresult.params, x=x)
 
         # save the baseline
         file = self.get_file(self.basdir, prefix='',
@@ -1172,8 +1170,12 @@ class spectrum(object):
         return value, error
 
     def SaveSpec(self, ymax, peak, params):
+        if peak[-1] == '_':
+            suffix = peak[:-1]
+        else:
+            suffix = peak
         file = self.get_file(dir=self.pardir_spec, prefix='',
-                             suffix=peak[:-1], datatype='dat')
+                             suffix=suffix, datatype='dat')
         with open(file, 'w') as f:
             # iterate through all fit parameters
             for name in params.keys():
@@ -1220,8 +1222,12 @@ class spectrum(object):
         modelpeaks = re.findall('prefix=\'(.*?)\'', fitresults.model.name)
 
         # iterate through all peaks used in the current model
-        for peak in modelpeaks:
-            savefunc(ymax, peak, fitresults.params)
+        if modelpeaks == []:
+            for parameter in fitresults.params:
+                savefunc(ymax, parameter, fitresults.params)
+        else:
+            for peak in modelpeaks:
+                savefunc(ymax, peak, fitresults.params)
 
         # print which spectrum is saved
         print(f'Spectrum {self.label} '

@@ -338,6 +338,15 @@ class mapping(spectrum):
 
         return baselines
 
+    def EvaluateAllBaselines(self, x, baselinefits):
+        baselines = np.array([])
+        for i, spectrum in enumerate(x):
+            self.label = i
+            baseline = self.EvaluateBaseline(x[i], baselinefits[i][0])
+            baselines = data.VStack(i, baselines, baseline)
+
+        return baselines
+
     def WaveletSmoothAll(self, y, wavelet='sym8', level=2):
         """
         Smooth arrays by using wavelet transformation and soft threshold.
