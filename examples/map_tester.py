@@ -38,3 +38,4 @@ fitresults = map.FitAllSpectra(x_red, y_bfn, peaks=peaks)
 map.PlotAllFits(x_red, y_bfn, ymax, fitresults)
 
 map.SaveAllFitParams(ymax, fitresults, peaks=peaks)
+map.SaveAllBackgrounds(basefits, fitresults, ymax, peaks=peaks)

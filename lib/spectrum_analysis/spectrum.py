@@ -93,12 +93,14 @@ class spectrum(object):
         : string
             Retruns a string constructed as defined by the function.
         """
-        if (suffix == '') and (prefix != ''):
+        if (suffix == '') and (prefix != '') and (label == ''):
             return f'{dir}/{prefix}_{self.label}.{datatype}'
-        elif (prefix == '') and (suffix != ''):
+        elif (prefix == '') and (suffix != '') and (label == ''):
             return f'{dir}/{self.label}_{suffix}.{datatype}'
-        elif label != '':
+        elif (label != '') and (prefix == ''):
             return f'{dir}/{label}.{datatype}'
+        elif (label != '') and (prefix != ''):
+            return f'{dir}/{prefix}_{label}.{datatype}'
         else:
             return f'{dir}/{prefix}_{suffix}_{self.label}.{datatype}'
 
@@ -1158,7 +1160,8 @@ class spectrum(object):
         # it has to be scaled properly as the fit was normalized
         if ((peakparameter == 'amplitude')
             or (peakparameter == 'height')
-            or (peakparameter == 'intensity')):
+            or (peakparameter == 'intensity')
+            or (peakparameter == 'c')):
             value = value * ymax
             if error is not None:
                 error = error * ymax
@@ -1170,12 +1173,8 @@ class spectrum(object):
         return value, error
 
     def SaveSpec(self, ymax, peak, params):
-        if peak[-1] == '_':
-            suffix = peak[:-1]
-        else:
-            suffix = peak
         file = self.get_file(dir=self.pardir_spec, prefix='',
-                             suffix=suffix, datatype='dat')
+                             suffix=peak[:-1], datatype='dat')
         with open(file, 'w') as f:
             # iterate through all fit parameters
             for name in params.keys():
@@ -1194,6 +1193,32 @@ class spectrum(object):
                     # write to file
                     f.write(f'{peakparameter.ljust(12)}'
                             f'{value:>13.5f} +/- {error:>11.5f}\n')
+
+    def SaveBackground(self, bgfit, fit, ymax):
+        bgparams = bgfit.params
+        fitparams = fit.params
+
+        file = self.get_file(dir=self.pardir_spec, prefix='',
+                             suffix='background', datatype='dat')
+        with open(file, 'w') as f:
+            # save constant from fitmodel
+            value = fitparams['c'].value
+            error = fitparams['c'].stderr
+            value, error = self.ScaleParameters(ymax, 'c', value, error)
+
+            f.write(f'{fitparams["c"].name.ljust(12)}'
+                    f'{value:>13.5f} +/- {error:>11.5f}\n')
+
+            # save all parameters from the background model
+            for parameter in bgparams.keys():
+                value = bgparams[parameter].value
+                error = bgparams[parameter].stderr
+                f.write(f'{parameter.ljust(12)}'
+                        f'{value:>13.5f} +/- {error:>11.5f}\n')
+
+        # print which spectrum is saved
+        print(f'Spectrum {self.label} '
+               'Backgrounds saved')
 
     def SaveFuncParams(self, savefunc, ymax, fitresults, peaks):
         """
@@ -1222,12 +1247,8 @@ class spectrum(object):
         modelpeaks = re.findall('prefix=\'(.*?)\'', fitresults.model.name)
 
         # iterate through all peaks used in the current model
-        if modelpeaks == []:
-            for parameter in fitresults.params:
-                savefunc(ymax, parameter, fitresults.params)
-        else:
-            for peak in modelpeaks:
-                savefunc(ymax, peak, fitresults.params)
+        for peak in modelpeaks:
+            savefunc(ymax, peak, fitresults.params)
 
         # print which spectrum is saved
         print(f'Spectrum {self.label} '

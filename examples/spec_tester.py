@@ -44,3 +44,4 @@ fitresults = spec.FitSpectrum(x_red, y_freqfree, peaks=peaks)
 spec.PlotFit(x_red, y_freqfree, ymax, fitresults, show=True)
 
 spec.SaveFitParams(ymax, fitresults, peaks=peaks)
+spec.SaveBackground(basefit, fitresults, ymax)
