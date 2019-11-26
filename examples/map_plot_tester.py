@@ -33,6 +33,11 @@ top = 'lorentzian_p1_height'
 bot = 'breit_wigner_p1_height'
 opt = 'div'
 
+# plot peak distance
+dist1 = 'breit_wigner_p1_center'
+dist2 = 'lorentzian_p1_center'
+subst = 'sub'
+
 dict_minmax_global = {}
 
 linebreaker ='============================================================'
@@ -213,6 +218,14 @@ for folder in mapFolderList:
                                                      msize=msize)
     dict_bottop = CreateMinMaxDict([values], [parameter_name], folder)
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bottop)
+
+    parameter_name, values = PlotParameterOperations(parameters, parameterList,
+                                                     mapdims, step,
+                                                     dist1, dist2, subst,
+                                                     background=background,
+                                                     msize=msize)
+    dict_topbot = CreateMinMaxDict([values], [parameter_name], folder)
+    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_topbot)
 
     print('\nList of minima and maxima.')
     PrintMinMax(dict_minmax, parameterList)
