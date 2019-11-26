@@ -44,7 +44,7 @@ def CalculateSpectraNumber(dimensions):
     return sum
 
 def PlotParameterMappings(params, peakList, mapdims, step, background='',
-                          msize=2.1, name='', dict=None):
+                          msize=2.1, name='', dict=None, area=None):
     """
     Plot all parameters of a mapping.
     """
@@ -61,7 +61,7 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
                         name=name + 'grid_' + mapping, alpha=0.75,
                         vmin=vmin, vmax=vmax, grid=True,
                         background=background, msize=msize,
-                        plot_missing=False)
+                        plot_missing=False, area=area)
 
 def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
@@ -189,8 +189,17 @@ for folder in mapFolderList:
                                                         object='peakparameter')
     parameters, errors = data.GetAllData(peakFileList)
     parameterList = map.CreatePeakList(peakFileList)
+
+    # calculate area under the curve
+    # area is used to scale the linewidth of the grid marker
+    area = 0
+    for i, parameter in enumerate(parameterList):
+        test = re.findall('amplitude', parameter)
+        if test:
+            area += parameters[i]
+
     PlotParameterMappings(parameters, parameterList, mapdims, step,
-                          background=background, msize=msize)
+                          background=background, msize=msize, area=area)
     PlotErrorMappings(parameters, errors, parameterList, mapdims, step)
 
     dict_minmax = CreateMinMaxDict(parameters, parameterList, folder)

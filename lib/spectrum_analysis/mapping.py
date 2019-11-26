@@ -22,24 +22,47 @@ data sets.
 """
 
 class scatter():
-    def __init__(self, x, y, ax, msize=1, **kwargs):
-        # create frame like marker
-        marker_linewidth = 5
+    def __init__(self, x, y, ax, msize=1, area=None, **kwargs):
         marker_size = 50
-        marker_rest = marker_size - 2 * marker_linewidth
-        markerstring = ('m 0,0 v 0 %(marker_size)s h %(marker_size)s '
-                        'v -%(marker_size)s '
-                        'z m %(marker_linewidth)s,%(marker_linewidth)s '
-                        'h %(marker_rest)s v %(marker_rest)s '
-                        'h -%(marker_rest)s z') % locals()
-        frame = parse_path(markerstring)
+
+        # change markers if area is defined.
+        # solution taken from here:
+        # https://stackoverflow.com/questions/52303660/iterating-markers-in-plots/52303895#52303895
+        # create array for linewidth corresponding to intensity
+        if area is not None:
+            area_sub = (area - area.min())
+            area_norm = area_sub/area_sub.max()
+            marker_linewidth = 5 + 20 * (1 - area_norm)
+
+            # create all paths
+            frames = []
+            for marker_lw in marker_linewidth:
+                marker_rest = marker_size - 2 * marker_lw
+                markerstring = (f'm 0,0 v 0 {marker_size} h {marker_size} '
+                                f'v -{marker_size} '
+                                f'z m {marker_lw},{marker_lw} '
+                                f'h {marker_rest} v {marker_rest} '
+                                f'h -{marker_rest} z')
+                frame = parse_path(markerstring)
+                frames.append(frame)
+        else:
+            # create frame like marker
+            marker_linewidth = 5
+            marker_rest = marker_size - 2 * marker_linewidth
+
+            markerstring = (f'm 0,0 v 0 {marker_size} h {marker_size} '
+                            f'v -{marker_size} '
+                            f'z m {marker_linewidth},{marker_linewidth} '
+                            f'h {marker_rest} v {marker_rest} '
+                            f'h -{marker_rest} z')
+            frames = parse_path(markerstring)
 
         self.n = len(x)
         self.ax = ax
         self.ax.figure.canvas.draw()
         self.size_data=msize
         self.size = msize
-        self.sc = ax.scatter(x, y, s=self.size, marker=frame, **kwargs)
+        self.sc = self.mscatter(x, y, s=self.size, m=frames, **kwargs)
         self._resize()
         self.cid = ax.figure.canvas.mpl_connect('draw_event', self._resize)
 
@@ -57,6 +80,23 @@ class scatter():
         self.timer.single_shot = True
         self.timer.add_callback(lambda : self.ax.figure.canvas.draw_idle())
         self.timer.start()
+
+    def mscatter(self, x, y, ax=None, m=None, **kwargs):
+        import matplotlib.markers as mmarkers
+        if not ax: ax=plt.gca()
+        sc = ax.scatter(x,y,**kwargs)
+        if (m is not None) and (len(m)==len(x)):
+            paths = []
+            for marker in m:
+                if isinstance(marker, mmarkers.MarkerStyle):
+                    marker_obj = marker
+                else:
+                    marker_obj = mmarkers.MarkerStyle(marker)
+                path = marker_obj.get_path().transformed(
+                        marker_obj.get_transform())
+                paths.append(path)
+            sc.set_paths(paths)
+        return sc
 
 class mapping(spectrum):
     """
@@ -707,7 +747,7 @@ class mapping(spectrum):
         # have a tight layout
         plt.tight_layout()
 
-    def PlotMapping(self, maptype, y, mapdims, step,
+    def PlotMapping(self, maptype, y, mapdims, step, area=None,
                     xticker=1, colormap='Reds', alpha=1.0,
                     numbered=False, vmin=None, vmax=None, grid=False,
                     background='', msize=1, plot_missing=True, **kwargs):
@@ -809,7 +849,7 @@ class mapping(spectrum):
                 missng_col = scatter(x_missing, y_missing, ax, msize=msize,
                                      color='black', linewidth=0.5, alpha=alpha)
 
-            sclb = scatter(x, y, ax, c=plot_vector, msize=msize,
+            sclb = scatter(x, y, ax, c=plot_vector, msize=msize, area=area,
                            cmap='Reds', linewidth=0.5, alpha=alpha)
             im = sclb.sc
         else:
