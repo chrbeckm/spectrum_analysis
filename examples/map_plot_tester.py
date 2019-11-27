@@ -239,7 +239,7 @@ for folder in mapFolderList:
                                                      mapdims, step,
                                                      dist1, dist2, subst,
                                                      background=background,
-                                                     msize=msize)
+                                                     msize=msize, area=area)
     dict_topbot = CreateMinMaxDict([values], [parameter_name], folder)
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_topbot)
 
@@ -251,7 +251,7 @@ for folder in mapFolderList:
         parameters, errors = data.GetAllData(peakFileList)
         parameterList_bg = map.CreatePeakList(peakFileList)
         PlotParameterMappings(parameters, parameterList_bg, mapdims, step,
-                              background=background, msize=msize)
+                              background=background, msize=msize, area=area)
 
         dict_bg = CreateMinMaxDict(parameters, parameterList_bg, folder)
         dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bg)
