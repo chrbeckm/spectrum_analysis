@@ -140,10 +140,12 @@ class mapping(spectrum):
             self.spectra.append(spectrum(spec.split('.')[-2]))
 
         self.pardir_peak = self.pardir + '/peakwise'
+        self.pardir_peak_bg = self.pardir + '/peakwise_bg'
         self.peaknames = peaknames
 
         if not os.path.exists(self.pardir_peak):
             os.makedirs(self.pardir_peak)
+            os.makedirs(self.pardir_peak_bg)
 
     @property
     def label(self):
@@ -370,6 +372,15 @@ class mapping(spectrum):
 
         return baselines
 
+    def EvaluateAllBaselines(self, x, baselinefits):
+        baselines = np.array([])
+        for i, spectrum in enumerate(x):
+            self.label = i
+            baseline = self.EvaluateBaseline(x[i], baselinefits[i][0])
+            baselines = data.VStack(i, baselines, baseline)
+
+        return baselines
+
     def WaveletSmoothAll(self, y, wavelet='sym8', level=2):
         """
         Smooth arrays by using wavelet transformation and soft threshold.
@@ -483,20 +494,27 @@ class mapping(spectrum):
                         + '\t' + '{:>11.5f}'.format(stderrs[i])
                         + '\n')
 
-    def SavePeak(self, ymax, peak, params):
+    def SavePeak(self, ymax, peak, params, prefix='', dir=''):
+        if dir == '':
+            dir = self.pardir_peak
         # iterate through all fit parameters
         for name in params.keys():
             # and find the current peak
             peakparameter = re.findall(peak, name)
+            # improvement possible here, but works for now
+            if peak == 'c' and 'center' in name:
+                peakparameter = []
 
             if peakparameter:
                 # create file for each parameter
-                file = self.get_file(dir=self.pardir_peak,
-                                     prefix='', suffix='',
+                file = self.get_file(dir=dir, prefix=prefix, suffix='',
                                      datatype='dat', label=name)
 
                 # get parameters for saving
-                peakparameter = name.replace(peak, '')
+                if prefix == '':
+                    peakparameter = name.replace(peak, '')
+                else:
+                    peakparameter = name
                 value = params[name].value
                 error = params[name].stderr
 
@@ -507,16 +525,15 @@ class mapping(spectrum):
                     self.Save2nd(file, value, error)
                 else:
                     with open(file, 'a') as f:
-                        f.write('{:>13.5f}'.format(value)
-                                + '\t' + '{:>11.5f}'.format(error)
-                                + '\n')
+                        f.write(f'{value:>13.5f}\t{error:>11.5f}\n')
 
     def GenerateUsedPeaks(self, fitresults):
         # find all peaks that were fitted and generate a list
         allpeaks = []
         for i, fit in enumerate(fitresults):
             if fitresults[i] != None:
-                allpeaks.extend(re.findall('prefix=\'(.*?)\'', fitresults[i].model.name))
+                allpeaks.extend(re.findall('prefix=\'(.*?)\'',
+                                fitresults[i].model.name))
 
         usedpeaks = list(set(allpeaks))
 
@@ -586,6 +603,20 @@ class mapping(spectrum):
             self.SaveFuncParams(self.SaveSpec, ymax[i][0], fitresults[i], peaks)
             self.SaveFuncParams(self.SavePeak, ymax[i][0], fitresults[i], peaks)
             self.SaveUnusedPeaks(peaks, usedpeaks, fitresults[i])
+
+    def SaveAllBackgrounds(self, bgfits, fits, ymax, peaks):
+        prefix = 'background'
+        for i, background in enumerate(bgfits):
+            self.label = i
+            # save background parameters
+            self.SaveBackground(bgfits[i][0], fits[i], ymax[i][0])
+            # for each parameter in polynomial Model
+            for parameter in bgfits[i][0].params.keys():
+                self.SavePeak(ymax[i][0], parameter, bgfits[i][0].params,
+                              prefix=prefix, dir=self.pardir_peak_bg)
+            # for constant from constant Model
+            self.SavePeak(ymax[i][0], 'c', fits[i].params,
+                          prefix=prefix, dir=self.pardir_peak_bg)
 
     def LabelZ(self, clb, label='Integrated Intensity\n', nbins=5,
                linear=False, unit='arb. u.'):

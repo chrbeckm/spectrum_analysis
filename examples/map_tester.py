@@ -18,7 +18,8 @@ y_cleaned = map.RemoveAllMuons(x_red, y_red)
 
 # select and fit baseline
 xregion = map.SelectAllBaselines(x_red, y_cleaned)
-baselines = map.FitAllBaselines(x_red, y_cleaned, xregion)
+basefits = map.FitAllBaselines(x_red, y_cleaned, xregion)
+baselines = map.EvaluateAllBaselines(x_red, basefits)
 y_basefree = y_cleaned - baselines
 
 # smooth the baseline corrected spectrum
@@ -37,3 +38,4 @@ fitresults = map.FitAllSpectra(x_red, y_bfn, peaks=peaks)
 map.PlotAllFits(x_red, y_bfn, ymax, fitresults)
 
 map.SaveAllFitParams(ymax, fitresults, peaks=peaks)
+map.SaveAllBackgrounds(basefits, fitresults, ymax, peaks=peaks)

@@ -28,10 +28,22 @@ msizes = [2.0,
 #          2.0
 ]
 
+# True if background should be plotted
+bg_plot = False
+
+# True if additional plots should be created
+# with the same scale for each parameter
+scaled = False
+
 # plot ratios
 top = 'lorentzian_p1_height'
 bot = 'breit_wigner_p1_height'
 opt = 'div'
+
+# plot peak distance
+dist1 = 'breit_wigner_p1_center'
+dist2 = 'lorentzian_p1_center'
+subst = 'sub'
 
 dict_minmax_global = {}
 
@@ -223,12 +235,33 @@ for folder in mapFolderList:
     dict_bottop = CreateMinMaxDict([values], [parameter_name], folder)
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bottop)
 
+    parameter_name, values = PlotParameterOperations(parameters, parameterList,
+                                                     mapdims, step,
+                                                     dist1, dist2, subst,
+                                                     background=background,
+                                                     msize=msize)
+    dict_topbot = CreateMinMaxDict([values], [parameter_name], folder)
+    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_topbot)
+
+    # plot background values from fits
+    if bg_plot:
+        peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak_bg,
+                                                            filetype='dat',
+                                                            quiet=True)
+        parameters, errors = data.GetAllData(peakFileList)
+        parameterList_bg = map.CreatePeakList(peakFileList)
+        PlotParameterMappings(parameters, parameterList_bg, mapdims, step,
+                              background=background, msize=msize)
+
+        dict_bg = CreateMinMaxDict(parameters, parameterList_bg, folder)
+        dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bg)
+
     print('\nList of minima and maxima.')
     PrintMinMax(dict_minmax, parameterList)
 
     print(linebreaker + '\n' + linebreaker)
 
-if len(mapFolderList) > 1:
+if scaled:
     print('List of global minima and maxima '
         + 'and the mappings they are taken from.')
     PrintMinMax(dict_minmax_global, dict_minmax_global.keys())

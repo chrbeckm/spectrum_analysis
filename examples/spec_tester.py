@@ -20,7 +20,8 @@ y_cleaned = spec.RemoveMuons(x_red, y_red)
 
 # select and fit baseline
 xregion = spec.SelectBaseline(x_red, y_cleaned)
-baseline = spec.FitBaseline(x_red, y_cleaned, xregion)
+basefit = spec.FitBaseline(x_red, y_cleaned, xregion)
+baseline = spec.EvaluateBaseline(x_red, basefit)
 y_basefree = y_cleaned - baseline
 
 # smooth the baseline corrected spectrum
@@ -43,3 +44,4 @@ fitresults = spec.FitSpectrum(x_red, y_freqfree, peaks=peaks)
 spec.PlotFit(x_red, y_freqfree, ymax, fitresults, show=True)
 
 spec.SaveFitParams(ymax, fitresults, peaks=peaks)
+spec.SaveBackground(basefit, fitresults, ymax)
