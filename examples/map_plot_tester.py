@@ -28,6 +28,9 @@ msizes = [2.0,
 #          2.0
 ]
 
+# True if background should be plotted
+bg_plot = False
+
 # plot ratios
 top = 'lorentzian_p1_height'
 bot = 'breit_wigner_p1_height'
@@ -228,16 +231,17 @@ for folder in mapFolderList:
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_topbot)
 
     # plot background values from fits
-    peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak_bg,
-                                                        filetype='dat',
-                                                        quiet=True)
-    parameters, errors = data.GetAllData(peakFileList)
-    parameterList_bg = map.CreatePeakList(peakFileList)
-    PlotParameterMappings(parameters, parameterList_bg, mapdims, step,
-                          background=background, msize=msize)
+    if bg_plot:
+        peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak_bg,
+                                                            filetype='dat',
+                                                            quiet=True)
+        parameters, errors = data.GetAllData(peakFileList)
+        parameterList_bg = map.CreatePeakList(peakFileList)
+        PlotParameterMappings(parameters, parameterList_bg, mapdims, step,
+                              background=background, msize=msize)
 
-    dict_bg = CreateMinMaxDict(parameters, parameterList_bg, folder)
-    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bg)
+        dict_bg = CreateMinMaxDict(parameters, parameterList_bg, folder)
+        dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bg)
 
     print('\nList of minima and maxima.')
     PrintMinMax(dict_minmax, parameterList)
