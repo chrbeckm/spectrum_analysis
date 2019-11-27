@@ -30,8 +30,8 @@ class scatter():
         # https://stackoverflow.com/questions/52303660/iterating-markers-in-plots/52303895#52303895
         # create array for linewidth corresponding to intensity
         if area is not None:
-            area_sub = (area - area.min())
-            area_norm = area_sub/area_sub.max()
+            area_sub = (area - min(area))
+            area_norm = area_sub/max(area_sub)
             marker_linewidth = 5 + 20 * (1 - area_norm)
         else:
             # create frame like marker
@@ -77,7 +77,7 @@ class scatter():
         import matplotlib.markers as mmarkers
         if not ax: ax=plt.gca()
         sc = ax.scatter(x,y,**kwargs)
-        if (m is not None) and (len(m)==len(x)):
+        if (m is not None):# and (len(m)==len(x)):
             paths = []
             for marker in m:
                 if isinstance(marker, mmarkers.MarkerStyle):
@@ -85,7 +85,7 @@ class scatter():
                 else:
                     marker_obj = mmarkers.MarkerStyle(marker)
                 path = marker_obj.get_path().transformed(
-                        marker_obj.get_transform())
+                            marker_obj.get_transform())
                 paths.append(path)
             sc.set_paths(paths)
         return sc
@@ -835,6 +835,7 @@ class mapping(spectrum):
             missing_vector = np.full_like(plot_vector, False, dtype=bool)
             missing_vector = (plot_matrix == fitmean)
             missing_vector = missing_vector.flatten()
+            area_corr = list(area.flatten())
 
             cor = 1.5
             for i in range(1, mapdims[1]+1):
@@ -856,6 +857,7 @@ class mapping(spectrum):
                 del(x[i-deleted])
                 del(y[i-deleted])
                 del(plot_vector[i-deleted])
+                del(area_corr[i-deleted])
                 deleted += 1
 
             try:
@@ -872,7 +874,7 @@ class mapping(spectrum):
                 missng_col = scatter(x_missing, y_missing, ax, msize=msize,
                                      color='black', linewidth=0.5, alpha=alpha)
 
-            sclb = scatter(x, y, ax, c=plot_vector, msize=msize, area=area,
+            sclb = scatter(x, y, ax, c=plot_vector, msize=msize, area=area_corr,
                            cmap='Reds', linewidth=0.5, alpha=alpha)
             im = sclb.sc
         else:
