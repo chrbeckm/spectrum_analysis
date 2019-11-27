@@ -48,10 +48,6 @@ bw_p1_sub_l_p1 = {'center': {'name': 'Distance',
 raw = {'raw': {'name': 'Integrated raw data',
                'unit': 'cts'}}
 
-bg_bw = {'center': {'name': 'Raman shift $\mathrm{\omega}$',
-                    'unit': 'cts'}}
-bg_l = {'center': {'name': 'Raman shift $\mathrm{\omega}$',
-                    'unit': 'cts'}}
 bg_c = {'c': {'name': 'background c',
               'unit': 'cts'},
         'c0': {'name': 'background c$_0$',
@@ -66,6 +62,4 @@ peaknames = {'lorentzian_p1': lorentzian_p1,
              'lorentzian_p1_div_breit_wigner_p1': l_p1_div_bw_p1,
              'breit_wigner_p1_div_lorentzian_p1': bw_p1_div_l_p1,
              'breit_wigner_p1_sub_lorentzian_p1': bw_p1_sub_l_p1,
-             'background_breit_wigner_p1': bg_bw,
-             'background_lorentzian_p1': bg_l,
              'background': bg_c}

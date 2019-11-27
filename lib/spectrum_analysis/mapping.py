@@ -469,6 +469,9 @@ class mapping(spectrum):
         for name in params.keys():
             # and find the current peak
             peakparameter = re.findall(peak, name)
+            # improvement possible here, but works for now
+            if peak == 'c' and 'center' in name:
+                peakparameter = []
 
             if peakparameter:
                 # create file for each parameter

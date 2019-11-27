@@ -31,6 +31,10 @@ msizes = [2.0,
 # True if background should be plotted
 bg_plot = False
 
+# True if additional plots should be created
+# with the same scale for each parameter
+scaled = False
+
 # plot ratios
 top = 'lorentzian_p1_height'
 bot = 'breit_wigner_p1_height'
@@ -248,7 +252,7 @@ for folder in mapFolderList:
 
     print(linebreaker + '\n' + linebreaker)
 
-if len(mapFolderList) > 1:
+if scaled:
     print('List of global minima and maxima '
         + 'and the mappings they are taken from.')
     PrintMinMax(dict_minmax_global, dict_minmax_global.keys())
