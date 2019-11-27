@@ -835,7 +835,10 @@ class mapping(spectrum):
             missing_vector = np.full_like(plot_vector, False, dtype=bool)
             missing_vector = (plot_matrix == fitmean)
             missing_vector = missing_vector.flatten()
-            area_corr = list(area.flatten())
+            if area is not None:
+                area_corr = list(area.flatten())
+            else:
+                area_corr = None
 
             cor = 1.5
             for i in range(1, mapdims[1]+1):
@@ -857,7 +860,8 @@ class mapping(spectrum):
                 del(x[i-deleted])
                 del(y[i-deleted])
                 del(plot_vector[i-deleted])
-                del(area_corr[i-deleted])
+                if area_corr is not None:
+                    del(area_corr[i-deleted])
                 deleted += 1
 
             try:
