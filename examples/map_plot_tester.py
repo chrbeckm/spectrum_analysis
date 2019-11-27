@@ -75,7 +75,7 @@ def PlotErrorMappings(params, errors, peakList, mapdims, step):
 
 def PlotParameterOperations(params, peakList, mapdims, step,
                             first, second, operation, background='',
-                            msize=2.1, name='', dict=None):
+                            msize=2.1, name='', dict=None, area=None):
     """
     Plot a mapping calculated from two parameters (like height_a/height_b).
     """
@@ -95,7 +95,7 @@ def PlotParameterOperations(params, peakList, mapdims, step,
                     name=name + 'grid_' + filename, alpha=0.75,
                     numbered=False, vmin=vmin, vmax=vmax, grid=True,
                     background=background, msize=msize,
-                    plot_missing=False)
+                    plot_missing=False, area=area)
     return filename, ratio
 
 def CreateMinMaxDict(params, paramList, mapping):
@@ -211,7 +211,7 @@ for folder in mapFolderList:
                                                      mapdims, step,
                                                      top, bot, opt,
                                                      background=background,
-                                                     msize=msize)
+                                                     msize=msize, area=area)
     dict_topbot = CreateMinMaxDict([values], [parameter_name], folder)
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_topbot)
 
@@ -219,7 +219,7 @@ for folder in mapFolderList:
                                                      mapdims, step,
                                                      bot, top, opt,
                                                      background=background,
-                                                     msize=msize)
+                                                     msize=msize, area=area)
     dict_bottop = CreateMinMaxDict([values], [parameter_name], folder)
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bottop)
 

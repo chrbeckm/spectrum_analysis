@@ -33,29 +33,21 @@ class scatter():
             area_sub = (area - area.min())
             area_norm = area_sub/area_sub.max()
             marker_linewidth = 5 + 20 * (1 - area_norm)
-
-            # create all paths
-            frames = []
-            for marker_lw in marker_linewidth:
-                marker_rest = marker_size - 2 * marker_lw
-                markerstring = (f'm 0,0 v 0 {marker_size} h {marker_size} '
-                                f'v -{marker_size} '
-                                f'z m {marker_lw},{marker_lw} '
-                                f'h {marker_rest} v {marker_rest} '
-                                f'h -{marker_rest} z')
-                frame = parse_path(markerstring)
-                frames.append(frame)
         else:
             # create frame like marker
-            marker_linewidth = 5
-            marker_rest = marker_size - 2 * marker_linewidth
+            marker_linewidth = 5 * np.ones_like(y)
 
+        # create all paths
+        frames = []
+        for marker_lw in marker_linewidth:
+            marker_rest = marker_size - 2 * marker_lw
             markerstring = (f'm 0,0 v 0 {marker_size} h {marker_size} '
                             f'v -{marker_size} '
-                            f'z m {marker_linewidth},{marker_linewidth} '
+                            f'z m {marker_lw},{marker_lw} '
                             f'h {marker_rest} v {marker_rest} '
                             f'h -{marker_rest} z')
-            frames = parse_path(markerstring)
+            frame = parse_path(markerstring)
+            frames.append(frame)
 
         self.n = len(x)
         self.ax = ax
