@@ -11,6 +11,8 @@ running_in = 100
 running_out = 10
 datapoints = 100
 
+linewidth = 0.2
+
 linebreaker ='============================================================'
 
 start = {}
@@ -60,6 +62,24 @@ for datafile in datafiles:
                           xdata='laps',
                           ydata='Cycle')
 
+    try:
+        _, temperature = GetData(datafile,
+                                measurement='tribo',
+                                xdata='Distance',
+                                ydata='Sample temperature')
+    except IndexError:
+        temperature = None
+        print('Sample temperature not defined.')
+
+    try:
+        _, penedepth = GetData(datafile,
+                                measurement='tribo',
+                                xdata='Distance',
+                                ydata='Penetration depth')
+    except IndexError:
+        penedepth = None
+        print('Penetration depth not defined.')
+
     # calculate nearest index to running_in/_out laps
     f_idx = find_nearest_index(laps, running_in)
     y_temp = y[f_idx : (f_idx + datapoints)]
@@ -77,11 +97,25 @@ for datafile in datafiles:
 
     # plot and save spectrum
     fig, ax = plt.subplots()
-    ax.plot(x, y, 'b-', label='Data')
+    ax.plot(x, y, 'b-', lw=linewidth)
+    ax.set_ylabel('µ (arb. u.)', color='b')
+    ax.set_xlabel('Distance (m)')
 
-    fig.legend(loc = 'lower right')
-    plt.ylabel('µ (arb. u.)')
-    plt.xlabel('Distance (m)')
+    if temperature is not None:
+        ax2 = ax.twinx()
+        color = 'r'
+        ax2.plot(x, temperature, f'{color}-', lw=linewidth)
+        ax2.set_ylabel('Temperature (°C)', color=color)
+
+    if penedepth is not None:
+        ax3 = ax.twinx()
+        if temperature is not None:
+            ax3.spines['right'].set_position(('outward', 60))
+        color = 'g'
+        ax3.plot(x, penedepth, f'{color}-', lw=linewidth)
+        ax3.set_ylabel('Penetration depth (µm)', color=color)
+
+    plt.tight_layout()
 
     # save figures
     fig.savefig(f'{resfolder}/{savename}_plot.pdf')
