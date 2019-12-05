@@ -36,6 +36,7 @@ bg_plot = False
 scaled = False
 
 # True if all raw spectra should be plotted
+# careful if plotting many spectra. Your PC might freeze
 plotrawspectra = False
 
 # plot ratios
