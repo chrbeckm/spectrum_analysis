@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 import pywt                             # for wavelet operations
@@ -183,6 +184,8 @@ class spectrum(object):
         plt.xlabel('Raman shift (cm$^{-1}$)')
 
     def PlotRawSpectrum(self, x, y):
+        matplotlib.rcParams.update({'font.size': 12})
+
         fig, ax = plt.subplots()
         ax.plot(x, y, 'b.', markersize=1)
 
