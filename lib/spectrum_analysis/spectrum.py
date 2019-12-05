@@ -179,7 +179,7 @@ class spectrum(object):
     def FormatxLabelAndTicks(self, plt):
         plt.xlabel('Raman shift (cm$^{-1}$)')
 
-    def PlotRaw(self, x, y):
+    def PlotRawSpectrum(self, x, y):
         fig, ax = plt.subplots()
         ax.plot(x, y, 'b.', markersize=1)
 

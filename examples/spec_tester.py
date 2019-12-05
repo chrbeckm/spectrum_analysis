@@ -11,7 +11,7 @@ spec = sp.spectrum('testdata/1/0005')
 x, y = data.GetData(spec.file)
 
 # plot raw data
-spec.PlotRaw(x, y)
+spec.PlotRawSpectrum(x, y)
 
 # reduce the data to the region of interest
 region = spec.SelectRegion(x, y)
