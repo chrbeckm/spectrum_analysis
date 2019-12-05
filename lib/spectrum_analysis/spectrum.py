@@ -67,6 +67,9 @@ class spectrum(object):
             os.makedirs(self.fitdir)
             os.makedirs(self.pardir_spec)
             os.makedirs(self.pltdir)
+        # create raw folder
+        if not os.path.exists(self.rawdir):
+            os.makedirs(self.rawdir)
 
     @property
     def label(self):
@@ -189,6 +192,8 @@ class spectrum(object):
         fig.savefig(self.get_file(dir=self.rawdir, prefix=self.rawname,
                                   datatype='png'), dpi=300)
         plt.close()
+
+        print(f'Raw Spectrum {self.label} plotted')
 
     def SelectRegion(self, x, y, **kwargs):
         """

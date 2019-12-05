@@ -10,6 +10,9 @@ map = mp.mapping(foldername='testdata/1')
 # get x- and y-data
 x, y = data.GetAllData(map.listOfFiles)
 
+# plot raw data
+map.PlotAllRawSpectra(x, y)
+
 # reduce the data to the region of interest
 x_red, y_red = map.ReduceAllRegions(x, y)
 
