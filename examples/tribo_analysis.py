@@ -104,7 +104,7 @@ for datafile in datafiles:
     if temperature is not None:
         ax2 = ax.twinx()
         color = 'r'
-        ax2.plot(x, temperature, f'{color}-', lw=linewidth)
+        ax2.plot(x, temperature, f'{color}-', lw=linewidth, alpha=0.5)
         ax2.set_ylabel('Temperature (°C)', color=color)
 
     if penedepth is not None:
@@ -112,7 +112,7 @@ for datafile in datafiles:
         if temperature is not None:
             ax3.spines['right'].set_position(('outward', 60))
         color = 'g'
-        ax3.plot(x, penedepth, f'{color}-', lw=linewidth)
+        ax3.plot(x[10:], penedepth[10:], f'{color}-', lw=linewidth, alpha=0.5)
         ax3.set_ylabel('Penetration depth (µm)', color=color)
 
     plt.tight_layout()
