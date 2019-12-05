@@ -32,7 +32,7 @@ class scatter():
         if area is not None:
             area_sub = (area - min(area))
             area_norm = area_sub/max(area_sub)
-            marker_linewidth = 5 + 20 * (1 - area_norm)
+            marker_linewidth = 2 + 13 * (1 - area_norm)
         else:
             # create frame like marker
             marker_linewidth = 5 * np.ones_like(y)
