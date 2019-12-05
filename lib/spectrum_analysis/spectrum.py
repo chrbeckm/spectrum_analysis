@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 import pywt                             # for wavelet operations
@@ -43,6 +44,7 @@ class spectrum(object):
 
         self.tmpdir = f'{self.folder}/temp'
         self.resdir = f'{self.folder}/results'
+        self.rawdir = f'{self.folder}/raw'
         self.basdir = f'{self.resdir}/baselines'
         self.fitdir = f'{self.resdir}/fitlines'
         self.pardir = f'{self.resdir}/fitparameter'
@@ -52,6 +54,7 @@ class spectrum(object):
         self.tmploc ='locpeak'
         self.tmpfft = 'fftpeak'
         self.pltname = 'fitplot'
+        self.rawname = 'rawplot'
 
         # set value of missing values
         self.missingvalue = 1.11
@@ -65,6 +68,9 @@ class spectrum(object):
             os.makedirs(self.fitdir)
             os.makedirs(self.pardir_spec)
             os.makedirs(self.pltdir)
+        # create raw folder
+        if not os.path.exists(self.rawdir):
+            os.makedirs(self.rawdir)
 
     @property
     def label(self):
@@ -164,6 +170,33 @@ class spectrum(object):
             figManager.window.showMaximized()           # show it maximized
 
         return xregion
+
+    def FormatyLabelAndTicks(self, plt):
+        # get tickvalues and reduce the decimals
+        tickvalues, ticklabels = plt.yticks()
+        newvalues, max_exp = self.ReduceDecimals(tickvalues)
+        ticklabels = [f'{x:1.2f}' for x in newvalues]
+
+        plt.ylabel(f'Scattered light intensity (10$^{max_exp:1.0f}$ arb. u.)')
+        plt.yticks(tickvalues, ticklabels)
+
+    def FormatxLabelAndTicks(self, plt):
+        plt.xlabel('Raman shift (cm$^{-1}$)')
+
+    def PlotRawSpectrum(self, x, y):
+        matplotlib.rcParams.update({'font.size': 12})
+
+        fig, ax = plt.subplots()
+        ax.plot(x, y, 'b.', markersize=1)
+
+        self.FormatxLabelAndTicks(plt)
+        self.FormatyLabelAndTicks(plt)
+
+        fig.savefig(self.get_file(dir=self.rawdir, prefix=self.rawname,
+                                  datatype='png'), dpi=300)
+        plt.close()
+
+        print(f'Raw Spectrum {self.label} plotted')
 
     def SelectRegion(self, x, y, **kwargs):
         """
@@ -1125,14 +1158,8 @@ class spectrum(object):
         fig.legend(loc = 'upper right')
         plt.title(f'Fit to spectrum {self.label}')
 
-        # get tickvalues and reduce the decimals
-        tickvalues, ticklabels = plt.yticks()
-        newvalues, max_exp = self.ReduceDecimals(tickvalues)
-        ticklabels = [f'{x:1.2f}' for x in newvalues]
-
-        plt.ylabel(f'Scattered light intensity (10$^{max_exp:1.0f}$ arb. u.)')
-        plt.yticks(tickvalues, ticklabels)
-        plt.xlabel('Raman shift (cm$^{-1}$)')
+        self.FormatxLabelAndTicks(plt)
+        self.FormatyLabelAndTicks(plt)
 
         # save figures
         fig.savefig(self.get_file(dir=self.pltdir, prefix=self.pltname,

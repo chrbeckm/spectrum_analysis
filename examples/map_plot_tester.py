@@ -35,6 +35,10 @@ bg_plot = False
 # with the same scale for each parameter
 scaled = False
 
+# True if all raw spectra should be plotted
+# careful if plotting many spectra. Your PC might freeze
+plotrawspectra = False
+
 # plot ratios
 top = 'lorentzian_p1_height'
 bot = 'breit_wigner_p1_height'
@@ -191,6 +195,8 @@ for folder in mapFolderList:
     # get and plot raw data
     x, y = data.GetAllData(map.listOfFiles)
     map.PlotMapping('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
+    if plotrawspectra:
+        map.PlotAllRawSpectra(x, y)
 
     # plot all colormaps
     #map.PlotAllColormaps('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)

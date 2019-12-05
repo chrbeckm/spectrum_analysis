@@ -164,6 +164,10 @@ class mapping(spectrum):
         return self.spectra[self.spectrum].resdir
 
     @property
+    def rawdir(self):
+        return self.spectra[self.spectrum].rawdir
+
+    @property
     def basdir(self):
         return self.spectra[self.spectrum].basdir
 
@@ -194,6 +198,10 @@ class mapping(spectrum):
     @property
     def pltname(self):
         return self.spectra[self.spectrum].pltname
+
+    @property
+    def rawname(self):
+        return self.spectra[self.spectrum].rawname
 
     @property
     def missingvalue(self):
@@ -238,6 +246,11 @@ class mapping(spectrum):
             number_of_files = len(list_of_files)
 
         return list_of_files, number_of_files, list_of_indices
+
+    def PlotAllRawSpectra(self, x, y):
+        for i, spectrum in enumerate(y):
+            self.label = i
+            self.PlotRawSpectrum(x[i], y[i])
 
     def ReduceAllRegions(self, x, y):
         """

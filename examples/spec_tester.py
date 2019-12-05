@@ -10,6 +10,9 @@ spec = sp.spectrum('testdata/1/0005')
 # get x- and y-data
 x, y = data.GetData(spec.file)
 
+# plot raw data
+spec.PlotRawSpectrum(x, y)
+
 # reduce the data to the region of interest
 region = spec.SelectRegion(x, y)
 xmin, xmax = spec.ExtractRegion(x, region)
