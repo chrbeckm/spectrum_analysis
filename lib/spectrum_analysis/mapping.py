@@ -967,6 +967,35 @@ class mapping(spectrum):
 
         print(plotname + ' ' + colormap + ' plotted')
 
+        return plot_matrix, plotname
+
+    def PlotHistogram(self, plot_matrix, plotname, bins=5):
+        """
+        Function that plots a histogram of plotdata handed to it.
+        """
+        # flatten matrix to vector
+        plot_values = plot_matrix.flatten()
+
+        # generate peak name
+        peakparameter = plotname.split('_')[-1]
+        type = plotname.split('_')[0]
+        peakshape = re.sub(type + '_', '', plotname)
+        peakshape = re.sub('_' + peakparameter, '', peakshape)
+
+        # generate labels from peaknames
+        label = self.peaknames[peakshape][peakparameter]['name']
+        unit = self.peaknames[peakshape][peakparameter]['unit']
+
+        plt.hist(plot_values, bins=bins)
+
+        self.FormatxLabelAndTicks(plt, name=label, unit=unit)
+        self.FormatyLabelAndTicks(plt, name='counts', unit='cts')
+
+        plt.tight_layout()
+
+        plt.savefig(f'{self.folder}/results/plot/hist_{plotname}.png', dpi=300)
+        plt.close()
+
     def PlotAllColormaps(self, maptype, y, mapdims, step, **kwargs):
         """
         """

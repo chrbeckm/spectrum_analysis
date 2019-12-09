@@ -70,7 +70,8 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
         if dict is not None:
             vmin = dict[mapping][0]
             vmax = dict[mapping][1]
-        map.PlotMapping('params', params[i], mapdims, step,
+        plot_matrix, plotname = map.PlotMapping('params',
+                        params[i], mapdims, step,
                         name=name + mapping,
                         vmin=vmin, vmax=vmax, grid=False)
         map.PlotMapping('params', params[i], mapdims, step,
@@ -78,6 +79,7 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
                         vmin=vmin, vmax=vmax, grid=True,
                         background=background, msize=msize,
                         plot_missing=False, area=area)
+        map.PlotHistogram(plot_matrix, plotname)
 
 def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
@@ -104,7 +106,8 @@ def PlotParameterOperations(params, peakList, mapdims, step,
     if dict is not None:
         vmin = dict[filename][0]
         vmax = dict[filename][1]
-    map.PlotMapping(operation, ratio, mapdims, step,
+    plot_matrix, plotname = map.PlotMapping(operation,
+                    ratio, mapdims, step,
                     name=name + filename,
                     numbered=False, vmin=vmin, vmax=vmax, grid=False)
     map.PlotMapping(operation, ratio, mapdims, step,
@@ -112,6 +115,7 @@ def PlotParameterOperations(params, peakList, mapdims, step,
                     numbered=False, vmin=vmin, vmax=vmax, grid=True,
                     background=background, msize=msize,
                     plot_missing=False, area=area)
+    map.PlotHistogram(plot_matrix, plotname)
     return filename, ratio
 
 def CreateMinMaxDict(params, paramList, mapping):

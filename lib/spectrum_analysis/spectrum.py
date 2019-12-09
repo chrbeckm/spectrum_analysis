@@ -171,17 +171,18 @@ class spectrum(object):
 
         return xregion
 
-    def FormatyLabelAndTicks(self, plt):
+    def FormatyLabelAndTicks(self, plt, name='Scattered light intensity',
+                             unit='arb. u.'):
         # get tickvalues and reduce the decimals
         tickvalues, ticklabels = plt.yticks()
         newvalues, max_exp = self.ReduceDecimals(tickvalues)
         ticklabels = [f'{x:1.2f}' for x in newvalues]
 
-        plt.ylabel(f'Scattered light intensity (10$^{max_exp:1.0f}$ arb. u.)')
+        plt.ylabel(f'{name} (10$^{max_exp:1.0f}$ {unit})')
         plt.yticks(tickvalues, ticklabels)
 
-    def FormatxLabelAndTicks(self, plt):
-        plt.xlabel('Raman shift (cm$^{-1}$)')
+    def FormatxLabelAndTicks(self, plt, name='Raman shift', unit='cm$^{-1}$'):
+        plt.xlabel(f'{name} ({unit})')
 
     def PlotRawSpectrum(self, x, y):
         matplotlib.rcParams.update({'font.size': 12})
