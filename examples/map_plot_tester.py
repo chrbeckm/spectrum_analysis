@@ -9,24 +9,27 @@ from spectrum_analysis import data
 from peaknames import *
 
 mapFolderList = ['testdata/1',
-#                 'testdata/2'
+                 'testdata/2'
                  ]
 dims = [(4, 4),
-#        (8, 2)
+        (8, 2)
         ]
 stepsize = [10,
-#            10
+            10
             ]
 
 # images need to be in folders specified in mapFolderList
 # best is to use png backgrounds, but jpgs work as well
 backgrounds = ['bg_test.png',
-#               'bg_test.jpg'
+               'bg_test.jpg'
               ]
 
 msizes = [2.0,
-#          2.0
+          2.0
 ]
+
+# number of bins
+bins = 10
 
 # True if background should be plotted
 bg_plot = False
@@ -70,7 +73,8 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
         if dict is not None:
             vmin = dict[mapping][0]
             vmax = dict[mapping][1]
-        map.PlotMapping('params', params[i], mapdims, step,
+        plot_matrix, plotname = map.PlotMapping('params',
+                        params[i], mapdims, step,
                         name=name + mapping,
                         vmin=vmin, vmax=vmax, grid=False)
         map.PlotMapping('params', params[i], mapdims, step,
@@ -78,6 +82,7 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
                         vmin=vmin, vmax=vmax, grid=True,
                         background=background, msize=msize,
                         plot_missing=False, area=area)
+        map.PlotHistogram(plot_matrix, plotname, bins=bins)
 
 def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
@@ -104,7 +109,8 @@ def PlotParameterOperations(params, peakList, mapdims, step,
     if dict is not None:
         vmin = dict[filename][0]
         vmax = dict[filename][1]
-    map.PlotMapping(operation, ratio, mapdims, step,
+    plot_matrix, plotname = map.PlotMapping(operation,
+                    ratio, mapdims, step,
                     name=name + filename,
                     numbered=False, vmin=vmin, vmax=vmax, grid=False)
     map.PlotMapping(operation, ratio, mapdims, step,
@@ -112,6 +118,7 @@ def PlotParameterOperations(params, peakList, mapdims, step,
                     numbered=False, vmin=vmin, vmax=vmax, grid=True,
                     background=background, msize=msize,
                     plot_missing=False, area=area)
+    map.PlotHistogram(plot_matrix, plotname, bins=bins)
     return filename, ratio
 
 def CreateMinMaxDict(params, paramList, mapping):
