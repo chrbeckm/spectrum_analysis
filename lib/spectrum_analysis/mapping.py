@@ -973,6 +973,7 @@ class mapping(spectrum):
         """
         Function that plots a histogram of plotdata handed to it.
         """
+        matplotlib.rcParams.update({'font.size': 12})
         # flatten matrix to vector
         plot_values = plot_matrix.flatten()
 
