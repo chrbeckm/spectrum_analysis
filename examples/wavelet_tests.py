@@ -1,3 +1,17 @@
+# This program plots wavelets and approximations of different detail levels.
+#
+# A lot of help came from:
+# - post on stackexchange
+#       https://dsp.stackexchange.com/questions/44285/discrete-wavelet-transform-how-to-interpret-approximation-and-detail-coefficien
+# - good introduction to the procedure of wavelet transform
+#       https://www.math.aau.dk/digitalAssets/120/120646_r-2003-24.pdf
+# - good overview to understand wavelets
+#       Wavelets: A Student Guide by Peter Nickolas
+# - pywavelets rough documentation is found here
+#       https://pywavelets.readthedocs.io/en/latest/index.html
+# - also helpful for understanding
+#       https://dsp.stackexchange.com/questions/47437/discrete-wavelet-transform-visualizing-relation-between-decomposed-detail-coef
+
 import numpy as np
 
 import matplotlib
