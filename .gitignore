@@ -8,3 +8,4 @@ temp/
 *.egg-info
 log.txt
 *.ipynb*
+*.svg

@@ -24,7 +24,7 @@ noise = False
 spike = True
 
 # True if need to show plot
-show = False
+show = True
 
 # should be 2^n (n = natural number)
 number_of_points = 128
@@ -85,6 +85,10 @@ for current_level in range(1, length):
     ax[current_level-1][1].plot(x, y_single)
     ax[current_level-1][1].tick_params(axis='x', labelbottom=False, bottom=False)
     ax[current_level-1][1].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+    ax[current_level-1][1].text(0.075, 0.75, f'$D_{current_level}$',
+                                horizontalalignment='center',
+                                verticalalignment='center',
+                                transform = ax[current_level-1][1].transAxes)
 
 # plot the sum for each level of reconstruction
 for current_level in range(1, length):
@@ -97,6 +101,10 @@ for current_level in range(1, length):
                                       rotation=90)
     ax[current_level-1][2].yaxis.set_label_position('right')
     ax[current_level-1][2].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+    ax[current_level-1][2].text(0.075, 0.75, f'$A_{current_level}$',
+                                horizontalalignment='center',
+                                verticalalignment='center',
+                                transform = ax[current_level-1][2].transAxes)
 
 axbig.set_title('Raw Data')
 ax[0][1].set_title('Wavelets ($D_i$)')
