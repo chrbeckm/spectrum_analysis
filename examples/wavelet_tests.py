@@ -53,7 +53,6 @@ if spike:
 coeff = pywt.wavedec(y, wavelet_name)
 
 length = len(coeff)
-print(f'Maximal level: {length}')
 
 # create figures for all wavelets and detail levels
 fig, ax = plt.subplots(figsize=(8,6), nrows=length-1, ncols=3)
