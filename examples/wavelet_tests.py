@@ -105,6 +105,6 @@ ax[-1][1].tick_params(axis='x', labelbottom=True, bottom=True)
 ax[-1][2].tick_params(axis='x', labelbottom=True, bottom=True)
 
 plt.tight_layout(h_pad=-0.25, w_pad=0.5)
-fig.savefig('wavelet.pdf')
+fig.savefig('wavelet.svg', format='svg')
 if show:
     plt.show()
