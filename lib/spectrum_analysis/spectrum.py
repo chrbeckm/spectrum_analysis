@@ -321,7 +321,7 @@ class spectrum(object):
         return grouped_array
 
     def DetectMuonsWavelet(self, y, thresh_mod=1.0, wavelet='sym8',
-                                 level=1, prnt=False):
+                                 level=1, prnt=False, mode='soft'):
         """
         Detect muons for removal an returns non vanishing indices.
 
@@ -363,7 +363,7 @@ class spectrum(object):
         # detect spikes on D1 details (written in the last entry of coeff)
         # calculate thresholded coefficients
         for i in range(1, len(coeff)):
-            coeff[i] = pywt.threshold(coeff[i], value=threshold, mode='soft')
+            coeff[i] = pywt.threshold(coeff[i], value=threshold, mode=mode)
         # set everything but D1 level to zero
         for i in range(0, len(coeff)-1):
             coeff[i] = np.zeros_like(coeff[i])

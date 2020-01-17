@@ -22,6 +22,10 @@ import pywt
 
 import scipy.stats as stats
 
+from statsmodels.robust import mad
+
+from spectrum_analysis import spectrum as sp
+
 from matplotlib import rcParams
 rcParams['font.family'] = 'serif'
 rcParams['text.usetex'] = True
@@ -55,10 +59,13 @@ if sinus:
     y += np.sin(100 * np.pi * x)
 if noise:
     y += np.random.randint(1, 5, size=number_of_points)
+
+y_spikefree = np.copy(y)
 if spike:
-    y[20] += 7
-    y[21] += 15
-    y[22] += 9
+    size = 1
+    y[20] += 7*size
+    y[21] += 15*size
+    y[22] += 9*size
 
 # the coefficients array has the for of
 # coeff = [cA(n-1) cD(n-1) cD(n-2) ... cD(2) cD(1)]
@@ -99,7 +106,7 @@ for current_level in range(1, length):
     ax[current_level-1][1].plot(x, y_single)
     ax[current_level-1][1].tick_params(axis='x', labelbottom=False, bottom=False)
     ax[current_level-1][1].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-    ax[current_level-1][1].text(0.075, 0.75, f'$D_{current_level}$',
+    ax[current_level-1][1].text(0.075, 0.75, f'$D_{{{current_level-1}}}$',
                                 horizontalalignment='center',
                                 verticalalignment='center',
                                 transform = ax[current_level-1][1].transAxes)
@@ -111,18 +118,18 @@ for current_level in range(1, length):
         y_sum += y_arr[i]
     ax[current_level-1][2].plot(x, y_sum)
     ax[current_level-1][2].tick_params(axis='x', labelbottom=False, bottom=False)
-    ax[current_level-1][2].set_ylabel(f'$\sum\limits_{{i=1}}^{current_level} D_i$',
-                                      rotation=90)
-    ax[current_level-1][2].yaxis.set_label_position('right')
+    #ax[current_level-1][2].set_ylabel(f'$\sum\limits_{{j=0}}^{{{current_level-1}}} D_j$',
+    #                                  rotation=90)
+    #ax[current_level-1][2].yaxis.set_label_position('right')
     ax[current_level-1][2].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-    ax[current_level-1][2].text(0.075, 0.75, f'$A_{current_level}$',
+    ax[current_level-1][2].text(0.075, 0.75, f'$A_{{{current_level-1}}}$',
                                 horizontalalignment='center',
                                 verticalalignment='center',
                                 transform = ax[current_level-1][2].transAxes)
 
-axbig.set_title('Raw Data')
-ax[0][1].set_title('Wavelets ($D_i$)')
-ax[0][2].set_title('Approximations ($A_i$)')
+axbig.set_title('Model Data')
+ax[0][1].set_title('Details ($D_j$)')
+ax[0][2].set_title('Approximations ($A_N$)')
 ax[-1][1].tick_params(axis='x', labelbottom=True, bottom=True)
 ax[-1][2].tick_params(axis='x', labelbottom=True, bottom=True)
 
@@ -130,3 +137,11 @@ plt.tight_layout(h_pad=-0.25, w_pad=0.5)
 fig.savefig('wavelet.svg', format='svg')
 if show:
     plt.show()
+plt.close()
+
+# new plot
+#fig, ax = plt.subplots(figsize=(8,3), nrows=1, ncols=3)
+#ax[0].plot(x, y)
+#ax[1].plot(x, y_arr[-1])
+#ax[2].plot(x, y_spikefree)
+#plt.show()
