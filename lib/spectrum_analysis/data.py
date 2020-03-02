@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import pandas as pd
 
-def GetData(file, measurement='', prnt=False, xdata='', ydata=''):
+def GetData(file, measurement='', prnt=False, xdata='', ydata='', **kwargs):
     """
     Get data of one specified spectrum.
 
@@ -43,13 +43,13 @@ def GetData(file, measurement='', prnt=False, xdata='', ydata=''):
 
     if os.path.isfile(file):
         if measurement == '':
-            x, y = np.genfromtxt(file, unpack=True)
+            x, y = np.genfromtxt(file, unpack=True, **kwargs)
             if prnt:
                 print('Simple xy Data was read.')
         elif measurement == 'xps':
             x, y = np.genfromtxt(file, unpack=True,
                                        skip_header=1,
-                                       usecols=(0,10))
+                                       usecols=(0,10), **kwargs)
             if prnt:
                 print('XPS Data from DELTA was read.')
         if measurement == 'tribo':
@@ -137,7 +137,7 @@ def VStack(i, x, xtemp):
             x = x.reshape(1,1)
     return x
 
-def GetAllData(listOfFiles, measurement='', prnt=False):
+def GetAllData(listOfFiles, measurement='', prnt=False, **kwargs):
     """
     Get data of the mapping.
     Parameters
@@ -160,7 +160,7 @@ def GetAllData(listOfFiles, measurement='', prnt=False):
 
     for i, spec in enumerate(listOfFiles):
         xtemp, ytemp = GetData(spec, measurement=measurement,
-                               prnt=prnt)
+                               prnt=prnt, **kwargs)
         x = VStack(i, x, xtemp)
         y = VStack(i, y, ytemp)
 
