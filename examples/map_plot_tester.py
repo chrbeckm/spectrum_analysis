@@ -8,8 +8,8 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 from peaknames import *
 
-mapFolderList = ['testdata/1',
-                 'testdata/2'
+mapFolderList = ['examples/testdata/1',
+                 'examples/testdata/2'
                  ]
 dims = [(4, 4),
         (8, 2)
@@ -32,7 +32,7 @@ msizes = [2.0,
 bins = 10
 
 # True if background should be plotted
-bg_plot = False
+bg_plot = True
 
 # True if additional plots should be created
 # with the same scale for each parameter
