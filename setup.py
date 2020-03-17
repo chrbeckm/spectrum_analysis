@@ -22,6 +22,7 @@ setup(
             "pytest>=5.3.5",
             "PyWavelets>=1.0.1",
             "scikit-image>=0.16.2",
+            "Pillow>=7.0.0",
             "scipy>=1.3.0",
             "statsmodels>=0.9.0",
             "svgpath2mpl>=0.2.1",
