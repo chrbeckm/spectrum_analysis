@@ -18,10 +18,13 @@ setup(
             "lmfit>=0.9.11",
             "matplotlib>=3.1.1",
             "numpy>=1.16.4",
+            "pandas>=0.24.0",
+            "pytest>=5.3.5",
             "PyWavelets>=1.0.1",
+            "scikit-image>=0.16.2",
             "scipy>=1.3.0",
             "statsmodels>=0.9.0",
-            "pandas>=0.24.0",
+            "svgpath2mpl>=0.2.1",
         ],
 
         # matplotlib has C/C++ extensions, so it's not zip safe.
