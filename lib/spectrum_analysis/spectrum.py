@@ -167,7 +167,7 @@ class spectrum(object):
             pass
         else:
             figManager = plt.get_current_fig_manager()  # get current figure
-            figManager.window.showMaximized()           # show it maximized
+            figManager.full_screen_toggle()           # show it maximized
 
         return xregion
 
@@ -725,7 +725,7 @@ class spectrum(object):
                 plt.title('Frequency spectrum of the selected spectrum.')
                 plt.legend()
                 figManager = plt.get_current_fig_manager()  # get current figure
-                figManager.window.showMaximized()           # show it maximized
+                figManager.full_screen_toggle()           # show it maximized
                 plt.show()
         else:
             yreduced = np.fft.ifft(y_fft)
@@ -785,7 +785,7 @@ class spectrum(object):
             pass
         else:
             figManager = plt.get_current_fig_manager()  # get current figure
-            figManager.window.showMaximized()           # show it maximized
+            figManager.full_screen_toggle()           # show it maximized
 
         return xpeak, ypeak
 
@@ -1173,7 +1173,7 @@ class spectrum(object):
                 pass
             else:
                 figManager = plt.get_current_fig_manager()  # get current figure
-                figManager.window.showMaximized()           # show it maximized
+                figManager.full_screen_toggle()           # show it maximized
             plt.show()
 
         plt.close()
