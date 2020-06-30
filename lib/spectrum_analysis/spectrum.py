@@ -1241,6 +1241,9 @@ class spectrum(object):
             for parameter in bgparams.keys():
                 value = bgparams[parameter].value
                 error = bgparams[parameter].stderr
+                # check if error exists and set to zero if it doesn't exist
+                if error is None:
+                    error = 0
                 f.write(f'{parameter.ljust(12)}'
                         f'{value:>13.5f} +/- {error:>11.5f}\n')
 
