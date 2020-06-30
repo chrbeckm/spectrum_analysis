@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 import matplotlib
@@ -130,7 +131,7 @@ class mapping(spectrum):
         self.listOfFiles, self.numberOfFiles = data.GetFolderContent(
                                                         self.folder,
                                                         datatype)
-        if os.path.exists(self.folder + '/results') and not plot:
+        if os.path.exists(os.path.join(self.folder, 'results')) and not plot:
             self.second_analysis = True
             self.listOfFiles, self.numberOfFiles, self.indices = self.Get2ndLabels()
 
@@ -139,8 +140,8 @@ class mapping(spectrum):
         for spec in self.listOfFiles:
             self.spectra.append(spectrum(spec.split('.')[-2]))
 
-        self.pardir_peak = self.pardir + '/peakwise'
-        self.pardir_peak_bg = self.pardir + '/peakwise_bg'
+        self.pardir_peak = os.path.join(self.pardir, 'peakwise')
+        self.pardir_peak_bg = os.path.join(self.pardir, 'peakwise_bg')
         self.peaknames = peaknames
 
         if not os.path.exists(self.pardir_peak):
@@ -208,7 +209,7 @@ class mapping(spectrum):
         return self.spectra[self.spectrum].missingvalue
 
     def SplitLabel(self, file):
-        return file.split('/')[-1].split('.')[-2]
+        return file.split(os.sep)[-1].split('.')[-2]
 
     def Get2ndLabels(self):
         """
@@ -591,7 +592,7 @@ class mapping(spectrum):
                                             quiet=True)
         peaklist = []
         for i, file in enumerate(list_of_files):
-            peakfile = list_of_files[i].split('/')[-1]
+            peakfile = list_of_files[i].split(os.sep)[-1]
             parameter = peakfile.split('_')[-1]
             peak = re.sub(parameter, '', peakfile)
             peaklist.append(peak)
@@ -673,13 +674,13 @@ class mapping(spectrum):
                                           & (kwargs['x'][0] < kwargs['xmax'])]
                 plot_value[i] = sum(selectedvalues)
 
-            savefile = self.pltdir + '/map_raw'
+            savefile = os.path.join(self.pltdir, 'map_raw')
         elif maptype == 'params' or (maptype in mapoperators):
             plot_value = np.copy(y)
-            savefile = self.pltdir + '/map_' + kwargs['name']
+            savefile = os.path.join(self.pltdir, f'map_{kwargs["name"]}')
         elif maptype == 'errs':
             plot_value = np.copy(y)
-            savefile = self.pltdir + '/err_' + kwargs['name']
+            savefile = os.path.join(self.pltdir, f'err_{kwargs["name"]}')
 
         return plot_value, savefile
 
@@ -929,7 +930,7 @@ class mapping(spectrum):
             NumberMap(mapdims, ax)
 
         # configure, save and show the plot
-        plotname = re.sub(self.folder + '/results/plot/', '', savefile)
+        plotname = re.sub(os.path.join(self.folder, 'results', 'plot', ''), '', savefile)
         try:
             # remove grid prefix
             if grid:
@@ -994,7 +995,7 @@ class mapping(spectrum):
 
         plt.tight_layout()
 
-        plt.savefig(f'{self.folder}/results/plot/hist_{plotname}.png', dpi=300)
+        plt.savefig(os.path.join(self.folder, 'results', 'plot', f'hist_{plotname}.png'), dpi=300)
         plt.close()
 
     def PlotAllColormaps(self, maptype, y, mapdims, step, **kwargs):
@@ -1013,7 +1014,7 @@ class mapping(spectrum):
         """
         peakList = []
         for mapping in peakFileList:
-            mapping = mapping.split('/')[-1]
+            mapping = mapping.split(os.sep)[-1]
             mapping = re.sub('.' + filetype, '', mapping)
             peakList.append(mapping)
         return peakList

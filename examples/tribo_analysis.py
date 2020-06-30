@@ -5,7 +5,7 @@ import numpy as np
 
 from spectrum_analysis.data import GetData, GetFolderContent
 
-tribofolder = 'testdata/tribo'
+tribofolder = os.path.join('testdata', 'tribo')
 datafiles, datasets = GetFolderContent(tribofolder, 'txt')
 running_in = 100
 running_out = 10
@@ -18,12 +18,12 @@ linebreaker ='============================================================'
 start = {}
 stop = {}
 
-resfolder = f'{tribofolder}/results/tribo'
+resfolder = os.path.join(tribofolder, 'results', 'tribo')
 if not os.path.exists(resfolder):
     os.makedirs(resfolder)
 
-startfile = f'{resfolder}/start_mu.dat'
-stopfile = f'{resfolder}/stop_mu.dat'
+startfile = os.path.join(resfolder, 'start_mu.dat')
+stopfile = os.path.join(resfolder, 'stop_mu.dat')
 
 def find_nearest_index(array, value):
     array = np.asarray(array)
@@ -47,7 +47,7 @@ print(f'{linebreaker}\n{linebreaker}')
 
 for datafile in datafiles:
     index = datafiles.index(datafile)
-    savename = datafile.split('/')[-1]
+    savename = datafile.split(os.sep)[-1]
     savename = savename.split('.')[0]
 
     print(f'Data set {index + 1} of {datasets} is analyzed.')
@@ -118,8 +118,8 @@ for datafile in datafiles:
     plt.tight_layout()
 
     # save figures
-    fig.savefig(f'{resfolder}/{savename}_plot.pdf')
-    fig.savefig(f'{resfolder}/{savename}_plot.png', dpi=300)
+    fig.savefig(os.path.join(resfolder, f'{savename}_plot.pdf'))
+    fig.savefig(os.path.join(resfolder, f'{savename}_plot.png', dpi=300))
     plt.close()
 
 save_mu(startfile, start)

@@ -8,8 +8,8 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 from peaknames import *
 
-mapFolderList = ['examples/testdata/1',
-                 'examples/testdata/2'
+mapFolderList = [os.path.join('examples', 'testdata', '1'),
+                 os.path.join('examples', 'testdata', '2')
                  ]
 dims = [(4, 4),
         (8, 2)
@@ -194,7 +194,7 @@ for folder in mapFolderList:
     print(folder + ' mappings are plotted now.')
     mapdims = dims[index]
     step = stepsize[index]
-    background = folder + '/' + backgrounds[index]
+    background = folder + os.sep + backgrounds[index]
     msize = msizes[index]
 
     map = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
@@ -287,7 +287,7 @@ if scaled:
         print(folder + ' mappings with same scale are plotted now.')
         mapdims = dims[index]
         step = stepsize[index]
-        background = folder + '/' + backgrounds[index]
+        background = folder + os.sep + backgrounds[index]
         msize = msizes[index]
 
         map = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)

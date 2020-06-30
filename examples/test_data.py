@@ -15,7 +15,7 @@ sigma = [90, 100, 92, 105,
          94, 106, 94,  98]
 intensity = 100000
 
-testdir = 'testdata/'
+testdir = 'testdata' + os.sep
 
 if not os.path.exists(testdir):
     os.makedirs(testdir)

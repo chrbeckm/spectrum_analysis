@@ -42,16 +42,16 @@ class spectrum(object):
         self.file = f'{filename}.{datatype}'
         self.folder = self.file[:-(len(self.label) + len(datatype) + 2)]
 
-        self.tmpdir = f'{self.folder}/temp'
-        self.resdir = f'{self.folder}/results'
-        self.rawdir = f'{self.folder}/raw'
-        self.basdir = f'{self.resdir}/baselines'
-        self.fitdir = f'{self.resdir}/fitlines'
-        self.pardir = f'{self.resdir}/fitparameter'
-        self.pardir_spec = f'{self.pardir}/spectra'
-        self.pltdir = f'{self.resdir}/plot'
+        self.tmpdir = os.path.join(self.folder, 'temp')
+        self.resdir = os.path.join(self.folder, 'results')
+        self.rawdir = os.path.join(self.folder, 'raw')
+        self.basdir = os.path.join(self.resdir, 'baselines')
+        self.fitdir = os.path.join(self.resdir, 'fitlines')
+        self.pardir = os.path.join(self.resdir, 'fitparameter')
+        self.pardir_spec = os.path.join(self.pardir, 'spectra')
+        self.pltdir = os.path.join(self.resdir, 'plot')
 
-        self.tmploc ='locpeak'
+        self.tmploc = 'locpeak'
         self.tmpfft = 'fftpeak'
         self.pltname = 'fitplot'
         self.rawname = 'rawplot'
@@ -74,7 +74,7 @@ class spectrum(object):
 
     @property
     def label(self):
-        return self.file.split('/')[-1].split('.')[-2]
+        return self.file.split(os.sep)[-1].split('.')[-2]
 
     def get_file(self, dir, prefix, datatype, suffix='', label=''):
         """
@@ -100,15 +100,15 @@ class spectrum(object):
             Retruns a string constructed as defined by the function.
         """
         if (suffix == '') and (prefix != '') and (label == ''):
-            return f'{dir}/{prefix}_{self.label}.{datatype}'
+            return os.path.join(dir, f'{prefix}_{self.label}.{datatype}')
         elif (prefix == '') and (suffix != '') and (label == ''):
-            return f'{dir}/{self.label}_{suffix}.{datatype}'
+            return os.path.join(dir, f'{self.label}_{suffix}.{datatype}')
         elif (label != '') and (prefix == ''):
-            return f'{dir}/{label}.{datatype}'
+            return os.path.join(dir, f'{label}.{datatype}')
         elif (label != '') and (prefix != ''):
-            return f'{dir}/{prefix}_{label}.{datatype}'
+            return os.path.join(dir, f'{prefix}_{label}.{datatype}')
         else:
-            return f'{dir}/{prefix}_{suffix}_{self.label}.{datatype}'
+            return os.path.join(dir, f'{prefix}_{suffix}_{self.label}.{datatype}')
 
     def PlotVerticalLines(self, color, fig, jupyter=False):
         """

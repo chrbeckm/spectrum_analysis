@@ -1,3 +1,4 @@
+import os
 from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 
@@ -5,7 +6,7 @@ import matplotlib.pyplot as plt
 
 peaks=['breit_wigner', 'lorentzian']
 
-map = mp.mapping(foldername='testdata/1')
+map = mp.mapping(foldername=os.path.join('testdata', '1'))
 
 # get x- and y-data
 x, y = data.GetAllData(map.listOfFiles)

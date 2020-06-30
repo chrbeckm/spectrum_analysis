@@ -113,7 +113,7 @@ def GetFolderContent(folder, filetype,
         The number of files in the requested folder.
     """
     # generate list of files in requested folder
-    files = folder + '/*.' + filetype
+    files = folder + os.sep + '*.' + filetype
     listOfFiles = sorted(glob.glob(files))
     numberOfFiles = len(listOfFiles)
 
