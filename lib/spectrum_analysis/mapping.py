@@ -227,7 +227,7 @@ class mapping(spectrum):
             list_of_indices = np.arange(self.numberOfFiles)
         elif self.answer == 'n':
             for i, label in enumerate(self.listOfFiles):
-                print(f'{self.SplitLabel(label)} \n')
+                print(f'{self.SplitLabel(label)}')
 
             print('Enter the spectra that you want to analyze again.\n'
                   'It is enough to enter the appendant four letter number.\n'
@@ -508,9 +508,9 @@ class mapping(spectrum):
                         + '\t' + '{:>11.5f}'.format(stderrs[i])
                         + '\n')
 
-    def SavePeak(self, ymax, peak, params, prefix='', dir=''):
-        if dir == '':
-            dir = self.pardir_peak
+    def SavePeak(self, ymax, peak, params, prefix='', directory=''):
+        if directory == '':
+            directory = self.pardir_peak
         # iterate through all fit parameters
         for name in params.keys():
             # and find the current peak
@@ -521,7 +521,7 @@ class mapping(spectrum):
 
             if peakparameter:
                 # create file for each parameter
-                file = self.get_file(dir=dir, prefix=prefix, suffix='',
+                file = self.get_file(directory=directory, prefix=prefix, suffix='',
                                      datatype='dat', label=name)
 
                 # get parameters for saving
@@ -571,7 +571,7 @@ class mapping(spectrum):
 
             # go through all parameters and write missing values
             for parameter in model.param_names:
-                peakfile = self.get_file(dir=self.pardir_peak,
+                peakfile = self.get_file(directory=self.pardir_peak,
                                          prefix='', suffix='',
                                          label=parameter, datatype='dat')
 
@@ -627,10 +627,10 @@ class mapping(spectrum):
             # for each parameter in polynomial Model
             for parameter in bgfits[i][0].params.keys():
                 self.SavePeak(ymax[i][0], parameter, bgfits[i][0].params,
-                              prefix=prefix, dir=self.pardir_peak_bg)
+                              prefix=prefix, directory=self.pardir_peak_bg)
             # for constant from constant Model
             self.SavePeak(ymax[i][0], 'c', fits[i].params,
-                          prefix=prefix, dir=self.pardir_peak_bg)
+                          prefix=prefix, directory=self.pardir_peak_bg)
 
     def LabelZ(self, clb, label='Integrated Intensity\n', nbins=5,
                linear=False, unit='arb. u.'):
