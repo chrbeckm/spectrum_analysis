@@ -3,9 +3,12 @@
 __pycache__/
 build/
 dist/
+raw/
 results/
 temp/
 *.egg-info
 log.txt
 *.ipynb*
 *.svg
+.mypy_cache/*
+setup.cfg

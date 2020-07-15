@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import pandas as pd
 
-def GetData(file, measurement='', prnt=False, xdata='', ydata='', **kwargs):
+def GetData(file, measurement='', prnt=False, xdata='Distance', ydata='µ', **kwargs):
     """
     Get data of one specified spectrum.
 
@@ -20,13 +20,13 @@ def GetData(file, measurement='', prnt=False, xdata='', ydata='', **kwargs):
     prnt : boolean, default : False
         Print what data was read.
 
-    xdata : string, default : ''
+    xdata : string, default : 'Distance'
         Only needed for 'tribo' measurements. Possible keywords are 'Time',
         'Distance', 'laps', 'Sequence ID', 'Cycle ID', 'Max linear speed',
         'Nominal Load', 'µ' or 'Normal force'. The selected column will be
         taken as data for the x-axis.
 
-    ydata : string, default : ''
+    ydata : string, default : 'µ'
         Only needed for 'tribo' measurements. Possible keywords are 'Time',
         'Distance', 'laps', 'Sequence ID', 'Cycle ID', 'Max linear speed',
         'Nominal Load', 'µ' or 'Normal force'. The selected column will be
@@ -52,7 +52,7 @@ def GetData(file, measurement='', prnt=False, xdata='', ydata='', **kwargs):
                                        usecols=(0,10), **kwargs)
             if prnt:
                 print('XPS Data from DELTA was read.')
-        if measurement == 'tribo':
+        elif measurement == 'tribo':
             dataframe = pd.read_csv(file, skiprows=54,
                                     delimiter='\t', decimal=',')
             labels = dataframe.columns
