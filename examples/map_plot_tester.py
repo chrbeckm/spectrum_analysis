@@ -211,7 +211,7 @@ for folder in mapFolderList:
     # get fit data and plot one map per peak parameter
     peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak,
                                                         filetype='dat',
-                                                        object='peakparameter')
+                                                        objects='peakparameter')
     parameters, errors = data.GetAllData(peakFileList)
     parameterList = map.CreatePeakList(peakFileList)
 
@@ -295,7 +295,7 @@ if scaled:
         # get fit data and plot one map per peak parameter
         peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak,
                                                         filetype='dat',
-                                                        object='peakparameter')
+                                                        objects='peakparameter')
         parameters, errors = data.GetAllData(peakFileList)
         parameterList = map.CreatePeakList(peakFileList)
         PlotParameterMappings(parameters, parameterList, mapdims, step,

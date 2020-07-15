@@ -1,5 +1,6 @@
-from setuptools import setup, find_packages
+"""Setup file for spectrum analysis."""
 from zipfile import ZipFile
+from setuptools import setup, find_packages
 setup(
         name="spectrum_analysis",
         version="0.2",
