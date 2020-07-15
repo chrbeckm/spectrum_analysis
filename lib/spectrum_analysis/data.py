@@ -63,10 +63,9 @@ def GetData(file, measurement='', prnt=False, xdata='Distance', ydata='µ', **kw
 
         return x, y
 
-    else:
-        print('The spectrum you have chosen doesn\'t exist.\n'
-              'You need to choose a different spectrum to read in.')
-        return np.empty([1]), np.empty([1])
+    print('The spectrum you have chosen doesn\'t exist.\n'
+          'You need to choose a different spectrum to read in.')
+    return np.zeros([1]), np.zeros([1])
 
 def Teller(number, kind, location='folder'):
     """
