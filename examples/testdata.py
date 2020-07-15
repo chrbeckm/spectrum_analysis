@@ -1,3 +1,4 @@
+"""Generate testdata for spectrum analysis."""
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,12 +24,14 @@ if not os.path.exists(testdir):
 x = np.linspace(729, 1859, num=number_of_points)
 y = []
 for i, center in enumerate(mu):
-    noise = np.random.randint(5,30,size=number_of_points)
-    centernoise = np.random.randint(50,200)
-    intensitynoise = np.random.randint(1,5)
+    noise = np.random.randint(5, 30, size=number_of_points)
+    centernoise = np.random.randint(50, 200)
+    intensitynoise = np.random.randint(1, 5)
     gaussian = intensity * stats.norm.pdf(x, center + 200, sigma[i]) + noise
     cauchy = (intensity / intensitynoise * 2 *
-              stats.cauchy.pdf(x, center - 300 + centernoise, sigma[i]) + noise)
+              stats.cauchy.pdf(x,
+                               center - 300 + centernoise,
+                               sigma[i]) + noise)
     temp = gaussian + cauchy
     y.append(temp)
 
