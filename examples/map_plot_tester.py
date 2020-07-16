@@ -8,8 +8,8 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 from peaknames import *
 
-mapFolderList = [os.path.join('examples', 'testdata', '1'),
-                 os.path.join('examples', 'testdata', '2')
+mapFolderList = [os.path.join('testdata', '1'),
+                 os.path.join('testdata', '2')
                  ]
 dims = [(4, 4),
         (8, 2)
