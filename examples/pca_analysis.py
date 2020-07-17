@@ -30,6 +30,7 @@ components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
 component_y = 1   # component to plot on x axis
 
+show = False  # set True if plots should be displayed
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
 # number of clusters (needed for SpectralClustering)
 n_clusters = [
@@ -179,8 +180,13 @@ for folder in mapFolderList:
     figManager = plt.get_current_fig_manager()  # get current figure
     figManager.full_screen_toggle()             # show it maximized
 
-    plt.title(f'PCA Analysis of {folder}')
     plt.xlabel(f'PC {component_x + 1}')
     plt.ylabel(f'PC {component_y + 1}')
+    plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis.png', dpi=300)
+    plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis.pdf')
+    plt.title(f'PCA Analysis of {folder}')
 
-    plt.show()
+    if show:
+        plt.show()
+
+    plt.close()
