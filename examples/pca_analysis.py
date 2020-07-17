@@ -7,13 +7,15 @@ show up.
 import os
 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 
+from PIL import Image
+import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from matplotlib.colors import to_rgba
 
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
+from sklearn.cluster import OPTICS, SpectralClustering
 
 from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
@@ -21,15 +23,20 @@ from peaknames import peaknames
 
 mapFolderList = [
     os.path.join('testdata', '1'),
-    #os.path.join('testdata', '2'),
+    # os.path.join('testdata', '2'),
     ]
 
 components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
 component_y = 1   # component to plot on x axis
 
-imagesize = 0.08
-imageshift = (100, -50)
+clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
+n_clusters = 4        # number of clusters (needed for SpectralClustering)
+numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
+brim = 0.25           # minimal brim around plotted data
+
+imagesize = (150, 150)         # size of hovering image
+imageshift = (100, -50)  # shift of hovering image
 
 
 for folder in mapFolderList:
@@ -70,8 +77,43 @@ for folder in mapFolderList:
     x = analyzed[:, component_x]
     y = analyzed[:, component_y]
 
+    # clustering of dataset
     fig, ax = plt.subplots()
-    sc = plt.scatter(x, y)
+
+    PC = np.vstack((x, y)).transpose()
+    if clustering == 'SpectralClustering':
+        cluster = SpectralClustering(n_clusters=n_clusters)
+        cluster.fit(PC)
+        sc = plt.scatter(-10, -10)
+    elif clustering == 'OPTICS':
+        cluster = OPTICS(min_samples=numberOfSamples)
+        cluster.fit(PC)
+        sc = plt.scatter(PC[cluster.labels_ == -1, 0],
+                         PC[cluster.labels_ == -1, 1], c='k')
+
+    def addPoint(scat, new_point, c='k'):
+        """Add point to scatter plot."""
+        old_off = scat.get_offsets()
+        new_off = np.concatenate([old_off, np.array(new_point, ndmin=2)])
+        old_c = scat.get_facecolors()
+        new_c = np.concatenate([old_c, np.array(to_rgba(c), ndmin=2)])
+
+        scat.set_offsets(new_off)
+        scat.set_facecolors(new_c)
+
+        scat.axes.autoscale_view()
+        scat.axes.figure.canvas.draw_idle()
+
+    # plot clustered data
+    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
+              'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+    for klass, color in zip(range(0, len(set(cluster.labels_))), colors):
+        PC_k = PC[cluster.labels_ == klass]
+        for point in PC_k:
+            addPoint(sc, point, color)
+
+    plt.xlim((min(x)-brim, max(x)+brim))
+    plt.ylim((min(y)-brim, max(y)+brim))
 
     # create annotation text
     annot = ax.annotate("", xy=(0, 0), xytext=(20, 20),
@@ -82,13 +124,13 @@ for folder in mapFolderList:
 
     # create annotation image
     label = mapp.listOfFiles[0].split(os.sep)[-1].split('.')[0]
+
     imagename = f'{mapp.pltdir}{os.sep}fitplot_{label}.png'
-    image = mpimg.imread(imagename)
-    imagebox = OffsetImage(image, zoom=imagesize)
+    image = Image.open(imagename)
+    image.thumbnail(imagesize, Image.ANTIALIAS)  # resize the image
+    imagebox = OffsetImage(image)
     ab = AnnotationBbox(imagebox, (0, 0), xybox=imageshift,
                         boxcoords="offset points")
-
-    names = list(range(1, len(transposed) + 1))
 
     # https://stackoverflow.com/questions/7908636/possible-to-make-labels-appear-when-hovering-over-a-point-in-matplotlib
     def update_annot(ind):
@@ -96,16 +138,20 @@ for folder in mapFolderList:
         # update text annotation
         pos = sc.get_offsets()[ind["ind"][0]]
         annot.xy = pos
-        text = [names[n] for n in ind["ind"]][0]
-        annot.set_text(text)
+        idxlist = []
+        for element in PC:
+            idxlist.append(np.allclose(element, pos))
+        idx = idxlist.index(True)
+        annot.set_text(idx+1)
         annot.get_bbox_patch().set_alpha(0.4)
 
         # update immage annotation
-        label = mapp.listOfFiles[text-1].split(os.sep)[-1].split('.')[0]
+        label = mapp.listOfFiles[idx].split(os.sep)[-1].split('.')[0]
         imagename = f'{mapp.pltdir}{os.sep}fitplot_{label}.png'
-        image = mpimg.imread(imagename)
+        image = Image.open(imagename)
+        image.thumbnail(imagesize, Image.ANTIALIAS)  # resize the image
         ab.xy = pos
-        ab.offsetbox = OffsetImage(image, zoom=imagesize)
+        ab.offsetbox = OffsetImage(image)
         ax.add_artist(ab)
 
     def hover(event):
