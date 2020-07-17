@@ -23,7 +23,7 @@ from peaknames import peaknames
 
 mapFolderList = [
     os.path.join('testdata', '1'),
-    # os.path.join('testdata', '2'),
+    os.path.join('testdata', '2'),
     ]
 
 components = 3    # number of PCA components
@@ -31,11 +31,16 @@ component_x = 0   # component to plot on x axis
 component_y = 1   # component to plot on x axis
 
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
-n_clusters = 4        # number of clusters (needed for SpectralClustering)
+# number of clusters (needed for SpectralClustering)
+n_clusters = [
+    4,
+    3,
+    ]
+
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
 brim = 0.25           # minimal brim around plotted data
 
-imagesize = (150, 150)         # size of hovering image
+imagesize = (150, 150)   # size of hovering image
 imageshift = (100, -50)  # shift of hovering image
 
 
@@ -82,7 +87,7 @@ for folder in mapFolderList:
 
     PC = np.vstack((x, y)).transpose()
     if clustering == 'SpectralClustering':
-        cluster = SpectralClustering(n_clusters=n_clusters)
+        cluster = SpectralClustering(n_clusters=n_clusters[index])
         cluster.fit(PC)
         sc = plt.scatter(-10, -10)
     elif clustering == 'OPTICS':
