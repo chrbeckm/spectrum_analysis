@@ -30,7 +30,8 @@ components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
 component_y = 1   # component to plot on x axis
 
-show = False  # set True if plots should be displayed
+show = True  # set True if plots should be displayed
+display_parameter_values = True    # show fitting values at hovering
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
 # number of clusters (needed for SpectralClustering)
 n_clusters = [
@@ -150,7 +151,11 @@ for folder in mapFolderList:
         for element in PC:
             idxlist.append(np.allclose(element, pos))
         idx = idxlist.index(True)
-        annot.set_text(idx+1)
+        annotation_string = f'{idx + 1}\n'
+        if display_parameter_values:
+            for i, label in enumerate(parameterList):
+                annotation_string += f'{parameters[i, idx]:10.2f} +/- {errors[i, idx]:10.2f} ({label})\n'
+        annot.set_text(annotation_string[:-1])
         annot.get_bbox_patch().set_alpha(0.4)
 
         # update immage annotation
