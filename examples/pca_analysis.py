@@ -26,6 +26,12 @@ mapFolderList = [
     os.path.join('testdata', '2'),
     ]
 
+# number of clusters (needed for SpectralClustering)
+n_clusters = [
+    4,
+    3,
+    ]
+
 components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
 component_y = 1   # component to plot on x axis
@@ -35,11 +41,6 @@ display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
 plot_parameter_directions = True   # plot direction of parameters in PC space
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
-# number of clusters (needed for SpectralClustering)
-n_clusters = [
-    4,
-    3,
-    ]
 
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
 brim = 0.25           # minimal brim around plotted data
