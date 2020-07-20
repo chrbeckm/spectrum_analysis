@@ -39,7 +39,7 @@ component_y = 1   # component to plot on x axis
 show_hover_plot = True  # set True if interactive plot should be displayed
 display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
-print_PC_components = True        # print the principal components
+print_PC_components = True         # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
 
@@ -105,6 +105,10 @@ def printPCAresults(pc_ana, param_list, print_components=False):
 
 if not os.path.exists(clustering):
     os.makedirs(clustering)
+
+if plot_parameter_directions:
+    if not os.path.exists(os.path.join(clustering, 'directions')):
+        os.makedirs(os.path.join(clustering, 'directions'))
 
 for folder in mapFolderList:
     index = mapFolderList.index(folder)
@@ -251,7 +255,8 @@ for folder in mapFolderList:
     plt.ylabel(f'PC {component_y + 1}')
     if plot_parameter_directions:
         plt.savefig(
-            (f'{clustering}{os.sep}{mapp.folder.replace(os.sep, "_")}'
+            (f'{clustering}{os.sep}directions{os.sep}'
+             f'{mapp.folder.replace(os.sep, "_")}'
              f'_pc{component_x}_pc{component_y}_dirs.png'),
             dpi=300)
         plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis'
