@@ -39,6 +39,7 @@ component_y = 1   # component to plot on x axis
 show_hover_plot = True  # set True if interactive plot should be displayed
 display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
+print_PC_components = True        # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
 
@@ -88,17 +89,18 @@ def createCluster(method, n_clust=3, min_samples=5):
     return clust, scat
 
 
-def printPCAresults(pc_ana, param_list):
+def printPCAresults(pc_ana, param_list, print_components=False):
     """Print results of PCA analysis to command line."""
     print(f'explained variance ratio'
           f'({pc_ana.components_.shape[0]} components): '
           f'{sum(pc_ana.explained_variance_ratio_):2.2f} '
           f'({pc_ana.explained_variance_ratio_.round(2)})')
-    for j, principal_component in enumerate(pc_ana.components_):
-        print(f'Principal component {j+1}')
-        for idx, lbl in enumerate(param_list):
-            print(f'{principal_component[idx]: 2.4f} * {lbl}')
-        print()
+    if print_components:
+        for j, principal_component in enumerate(pc_ana.components_):
+            print(f'Principal component {j+1}')
+            for idx, lbl in enumerate(param_list):
+                print(f'{principal_component[idx]: 2.4f} * {lbl}')
+            print()
 
 
 if not os.path.exists(clustering):
@@ -131,7 +133,8 @@ for folder in mapFolderList:
     pca = PCA(n_components=components)
     analyzed = pca.fit(transposed).transform(transposed)
     if print_PCA_results:
-        printPCAresults(pca, parameterList)
+        printPCAresults(pca, parameterList,
+                        print_components=print_PC_components)
 
     # plot everything and annotate each datapoint
     fig, ax = plt.subplots()
