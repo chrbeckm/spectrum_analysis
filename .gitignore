@@ -12,3 +12,4 @@ log.txt
 *.svg
 .mypy_cache/*
 setup.cfg
+SpectralClustering/
