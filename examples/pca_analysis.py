@@ -161,9 +161,21 @@ for folder in mapFolderList:
         pcx = pca.components_[component_x]
         pcy = pca.components_[component_y]
         for i, parameter in enumerate(parameterList):
-            plt.arrow(xcenter, ycenter, pcx[i], pcy[i], color='r', alpha=0.5)
+            peaknumber = int(parameter.split('_')[-2][-1])
+            peaktype = parameter[0][0]
+            param = parameter.split('_')[-1]
+            if peaktype == 'b':
+                color = colors[0]
+            elif peaktype == 'l':
+                color = colors[1]
+            elif peaktype == 'g':
+                color = colors[2]
+            elif peaktype == 'v':
+                color = colors[3]
+            color = np.array(to_rgba(color)) - np.array((0, 0, 0, 0.2 * (peaknumber-1)))
+            plt.arrow(xcenter, ycenter, pcx[i], pcy[i], color=color, alpha=0.5)
             plt.text(xcenter + pcx[i]*1.15, ycenter + pcy[i]*1.15,
-                     parameter, color='g', ha='center', va='center')
+                     f'{peaktype}_{param[0:3]}', ha='center', va='center')
 
     # create annotation text
     annot = ax.annotate('', xy=(0, 0), xytext=(20, 20),
