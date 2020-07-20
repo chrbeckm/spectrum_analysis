@@ -172,7 +172,8 @@ for folder in mapFolderList:
                 color = colors[2]
             elif peaktype == 'v':
                 color = colors[3]
-            color = np.array(to_rgba(color)) - np.array((0, 0, 0, 0.2 * (peaknumber-1)))
+            color = (np.array(to_rgba(color))
+                     - np.array((0, 0, 0, 0.2 * (peaknumber-1))))
             plt.arrow(xcenter, ycenter, pcx[i], pcy[i], color=color, alpha=0.5)
             plt.text(xcenter + pcx[i]*1.15, ycenter + pcy[i]*1.15,
                      f'{peaktype}_{param[0:3]}', ha='center', va='center')
