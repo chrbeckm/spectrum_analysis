@@ -30,8 +30,10 @@ components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
 component_y = 1   # component to plot on x axis
 
-show = True  # set True if plots should be displayed
+show_hover_plot = True  # set True if interactive plot should be displayed
 display_parameter_values = True    # show fitting values at hovering
+print_PCA_results = True           # print PCA results to command line
+plot_parameter_directions = True   # plot direction of parameters in PC space
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
 # number of clusters (needed for SpectralClustering)
 n_clusters = [
@@ -44,6 +46,59 @@ brim = 0.25           # minimal brim around plotted data
 
 imagesize = (150, 150)   # size of hovering image
 imageshift = (100, -50)  # shift of hovering image
+
+
+def addPoint(scat, new_point, c='k'):
+    """Add point to scatter plot."""
+    old_off = scat.get_offsets()
+    new_off = np.concatenate([old_off, np.array(new_point, ndmin=2)])
+    old_c = scat.get_facecolors()
+    new_c = np.concatenate([old_c, np.array(to_rgba(c), ndmin=2)])
+
+    scat.set_offsets(new_off)
+    scat.set_facecolors(new_c)
+
+    scat.axes.autoscale_view()
+    scat.axes.figure.canvas.draw_idle()
+
+
+def scaleParameters(params):
+    """Scale parameters to [0, 1]."""
+    scaled_params = np.zeros_like(params)
+    for idx, param in enumerate(params):
+        min_max_scaler = preprocessing.MinMaxScaler()
+        scaled_param = min_max_scaler.fit_transform(
+            param.reshape(-1, 1))
+        scaled_params[idx] = scaled_param.reshape(1, -1)
+    return scaled_params
+
+
+def createCluster(method, n_clust=3, min_samples=5):
+    """Create cluster and plot the corresponding scatter plot."""
+    if method == 'SpectralClustering':
+        clust = SpectralClustering(n_clusters=n_clust)
+        clust.fit(PC)
+        scat = plt.scatter(-10, -10)
+    elif method == 'OPTICS':
+        clust = OPTICS(min_samples=min_samples)
+        clust.fit(PC)
+        scat = plt.scatter(PC[clust.labels_ == -1, 0],
+                           PC[clust.labels_ == -1, 1], c='k')
+    return clust, scat
+
+
+def printPCAresults(pc_ana, param_list):
+    """Print results of PCA analysis to command line."""
+    print(f'explained variance ratio'
+          f'({pc_ana.components_.shape[0]} components): '
+          f'{sum(pc_ana.explained_variance_ratio_):2.2f} '
+          f'({pc_ana.explained_variance_ratio_.round(2)})')
+    for j, principal_component in enumerate(pc_ana.components_):
+        print(f'Principal component {j+1}')
+        for idx, lbl in enumerate(param_list):
+            print(f'{principal_component[idx]: 2.4f} * {lbl}')
+        print()
+
 
 if not os.path.exists(clustering):
     os.makedirs(clustering)
@@ -66,52 +121,24 @@ for folder in mapFolderList:
     # preprocessing data
     # https://scikit-learn.org/stable/modules/preprocessing.html#preprocessing
     # scale all data to [0,1]
-    scaled_parameters = np.zeros_like(parameters)
-    for i, parameter in enumerate(parameters):
-        min_max_scaler = preprocessing.MinMaxScaler()
-        scaled_parameter = min_max_scaler.fit_transform(
-            parameter.reshape(-1, 1))
-        scaled_parameters[i] = scaled_parameter.reshape(1, -1)
+    scaled_parameters = scaleParameters(parameters)
 
     # transpose data, so all parameters of one spectrum are in one array
     transposed = np.transpose(scaled_parameters)
 
-    # perform PCA analysis
+    # perform PCA analysis and print results to commmand line
     pca = PCA(n_components=components)
     analyzed = pca.fit(transposed).transform(transposed)
-    print(f'explained variance ratio ({components} components):'
-          f'{pca.explained_variance_ratio_}')
+    if print_PCA_results:
+        printPCAresults(pca, parameterList)
 
     # plot everything and annotate each datapoint
-    x = analyzed[:, component_x]
-    y = analyzed[:, component_y]
-
-    # clustering of dataset
     fig, ax = plt.subplots()
 
+    x = analyzed[:, component_x]
+    y = analyzed[:, component_y]
     PC = np.vstack((x, y)).transpose()
-    if clustering == 'SpectralClustering':
-        cluster = SpectralClustering(n_clusters=n_clusters[index])
-        cluster.fit(PC)
-        sc = plt.scatter(-10, -10)
-    elif clustering == 'OPTICS':
-        cluster = OPTICS(min_samples=numberOfSamples)
-        cluster.fit(PC)
-        sc = plt.scatter(PC[cluster.labels_ == -1, 0],
-                         PC[cluster.labels_ == -1, 1], c='k')
-
-    def addPoint(scat, new_point, c='k'):
-        """Add point to scatter plot."""
-        old_off = scat.get_offsets()
-        new_off = np.concatenate([old_off, np.array(new_point, ndmin=2)])
-        old_c = scat.get_facecolors()
-        new_c = np.concatenate([old_c, np.array(to_rgba(c), ndmin=2)])
-
-        scat.set_offsets(new_off)
-        scat.set_facecolors(new_c)
-
-        scat.axes.autoscale_view()
-        scat.axes.figure.canvas.draw_idle()
+    cluster, sc = createCluster(clustering, n_clusters[index])
 
     # plot clustered data
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
@@ -121,14 +148,28 @@ for folder in mapFolderList:
         for point in PC_k:
             addPoint(sc, point, color)
 
-    plt.xlim((min(x)-brim, max(x)+brim))
-    plt.ylim((min(y)-brim, max(y)+brim))
+    # set center, min and max of the plot
+    xmin, xmax, ymin, ymax = [min(x)-brim, max(x)+brim,
+                              min(y)-brim, max(y)+brim]
+    xcenter, ycenter = [(xmax-abs(xmin))/2, (ymax-abs(ymin))/2]
+    plt.xlim((xmin, xmax))
+    plt.ylim((ymin, ymax))
+
+    # add composing directions
+    if plot_parameter_directions:
+        pcx = pca.components_[component_x]
+        pcy = pca.components_[component_y]
+        for i, parameter in enumerate(parameterList):
+            plt.arrow(xcenter, ycenter, pcx[i], pcy[i], color='r', alpha=0.5)
+            plt.text(xcenter + pcx[i]*1.15, ycenter + pcy[i]*1.15,
+                     parameter, color='g', ha='center', va='center')
 
     # create annotation text
-    annot = ax.annotate("", xy=(0, 0), xytext=(20, 20),
-                        textcoords="offset points",
-                        bbox=dict(boxstyle="round", fc="w"),
-                        arrowprops=dict(arrowstyle="->"))
+    annot = ax.annotate('', xy=(0, 0), xytext=(20, 20),
+                        textcoords='offset points',
+                        fontfamily='monospace',
+                        bbox=dict(boxstyle='round', fc='w'),
+                        arrowprops=dict(arrowstyle='->'))
     annot.set_visible(False)
 
     # create annotation image
@@ -154,7 +195,9 @@ for folder in mapFolderList:
         annotation_string = f'{idx + 1}\n'
         if display_parameter_values:
             for i, label in enumerate(parameterList):
-                annotation_string += f'{parameters[i, idx]:10.2f} +/- {errors[i, idx]:10.2f} ({label})\n'
+                annotation_string += (f'{parameters[i, idx]: 10.2f} '
+                                      f'+/- {errors[i, idx]:8.2f} '
+                                      f'({label})\n')
         annot.set_text(annotation_string[:-1])
         annot.get_bbox_patch().set_alpha(0.4)
 
@@ -189,14 +232,27 @@ for folder in mapFolderList:
 
     plt.xlabel(f'PC {component_x + 1}')
     plt.ylabel(f'PC {component_y + 1}')
-    plt.savefig(
-        f'{clustering}{os.sep}{mapp.folder.replace(os.sep, "_")}.png',
-        dpi=300)
-    plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis.png', dpi=300)
-    plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis.pdf')
+    if plot_parameter_directions:
+        plt.savefig(
+            (f'{clustering}{os.sep}{mapp.folder.replace(os.sep, "_")}'
+             f'_pc{component_x}_pc{component_y}_dirs.png'),
+            dpi=300)
+        plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis'
+                    f'_pc{component_x}_pc{component_y}_dirs.png', dpi=300)
+        plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis'
+                    f'_pc{component_x}_pc{component_y}_dirs.pdf')
+    else:
+        plt.savefig(
+            (f'{clustering}{os.sep}{mapp.folder.replace(os.sep, "_")}'
+             f'_pc{component_x}_pc{component_y}.png'),
+            dpi=300)
+        plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis'
+                    f'_pc{component_x}_pc{component_y}.png', dpi=300)
+        plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis'
+                    f'_pc{component_x}_pc{component_y}.pdf')
     plt.title(f'PCA Analysis of {folder}')
 
-    if show:
+    if show_hover_plot:
         plt.show()
 
     plt.close()
