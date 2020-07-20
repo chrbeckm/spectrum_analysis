@@ -44,6 +44,8 @@ brim = 0.25           # minimal brim around plotted data
 imagesize = (150, 150)   # size of hovering image
 imageshift = (100, -50)  # shift of hovering image
 
+if not os.path.exists(clustering):
+    os.makedirs(clustering)
 
 for folder in mapFolderList:
     index = mapFolderList.index(folder)
@@ -182,6 +184,9 @@ for folder in mapFolderList:
 
     plt.xlabel(f'PC {component_x + 1}')
     plt.ylabel(f'PC {component_y + 1}')
+    plt.savefig(
+        f'{clustering}{os.sep}{mapp.folder.replace(os.sep, "_")}.png',
+        dpi=300)
     plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis.png', dpi=300)
     plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis.pdf')
     plt.title(f'PCA Analysis of {folder}')
