@@ -11,7 +11,8 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from matplotlib.colors import to_rgba
+from matplotlib.colors import to_rgba, CSS4_COLORS
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
@@ -50,6 +51,9 @@ imagesize = (150, 150)   # size of hovering image
 imageshift = (100, -50)  # shift of hovering image
 
 plot_clustered_fitlines = False  # plot summed raw data if False
+histogramm_parameters = ['breit_wigner_p1_fwhm', 'breit_wigner_p1_center',
+                         'lorentzian_p1_fwhm', 'lorentzian_p1_center']
+bins = 10
 
 linebreaker = '============================================================'
 
@@ -153,7 +157,7 @@ for folder in mapFolderList:
               plt.subplot2grid((3, 3), (2, 2))]
     ax = plt.subplot2grid((3, 3), (0, 0), colspan=2, rowspan=3)
     ax_sum[0].set_title('Cluster sum spectra')
-    ax_sum[2].set_xlabel('Raman shift cm$^{-1}$)')
+    ax_sum[2].set_xlabel('FWHM or Raman shift (cm$^{-1}$)')
 
     x = analyzed[:, component_x]
     y = analyzed[:, component_y]
@@ -188,9 +192,25 @@ for folder in mapFolderList:
                        color=colors[clust[1]])
         ax_sum[i].text(0.05, 0.85, f'C{clust[1]}, {clust[0]} S',
                        transform=ax_sum[i].transAxes, fontsize=8)
-        ax_sum[i].yaxis.tick_right()
+        # plot histogrammed fwhm and position of each cluster into plot
+        ax_twin = ax_sum[i].twinx()
+        for param in histogramm_parameters:
+            param_idx = parameterList.index(param)
+            color = CSS4_COLORS[list(CSS4_COLORS)[param_idx+20]]
+            ax_twin.hist(parameters[param_idx][spectra[0]], label=f'{param[0]}_{param.split("_")[-1]}',
+                         bins=bins, histtype='step', color=color)
+            ax_twin.yaxis.tick_left()
+            ax_twin.yaxis.set_major_locator(MultipleLocator(1))
+            ax_twin.yaxis.set_major_formatter(FormatStrFormatter('%2.f'))
         if i != 2:
             ax_sum[i].get_xaxis().set_ticks([])
+        else:
+            ax_twin.legend(ncol=len(histogramm_parameters), bbox_to_anchor=(-2.4, 3.41),
+                           loc='lower left', prop={'size': 6}, borderaxespad=0.)
+
+        ax_sum[i].yaxis.tick_right()
+        ax_sum[i].yaxis.set_label_position('right')
+        ax_sum[i].set_ylabel('Intensity')
 
     # set center, min and max of the plot
     xmin, xmax, ymin, ymax = [min(x)-brim, max(x)+brim,
