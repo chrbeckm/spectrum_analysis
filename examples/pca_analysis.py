@@ -12,7 +12,6 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from matplotlib.colors import to_rgba, CSS4_COLORS
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
@@ -201,16 +200,18 @@ for folder in mapFolderList:
                          label=f'{param[0]}_{param.split("_")[-1]}',
                          bins=bins, histtype='step', color=color)
             ax_twin.yaxis.tick_left()
-            ax_twin.yaxis.set_major_locator(MultipleLocator(1))
-            ax_twin.yaxis.set_major_formatter(FormatStrFormatter('%2.f'))
+            ax_twin.tick_params(axis='y', labelsize=7)
         if i != 2:
             ax_sum[i].get_xaxis().set_ticks([])
         else:
-            ax_twin.legend(ncol=len(histogramm_parameters),
-                           bbox_to_anchor=(-2.4, 3.41),
-                           loc='lower left', prop={'size': 6},
-                           borderaxespad=0.)
+            hnd, lbl = ax_twin.get_legend_handles_labels()
+            ax.legend(hnd, lbl, ncol=len(histogramm_parameters),
+                      bbox_to_anchor=(0, 1.01),  # legend on top of pca plot
+                      loc='lower left', prop={'size': 6},
+                      borderaxespad=0.)
 
+        ax_sum[i].tick_params(axis='y', labelsize=7)
+        ax_sum[i].tick_params(axis='x', labelsize=7)
         ax_sum[i].yaxis.tick_right()
         ax_sum[i].yaxis.set_label_position('right')
         ax_sum[i].set_ylabel('Intensity')
@@ -312,6 +313,7 @@ for folder in mapFolderList:
 
     ax.set_xlabel(f'PC {component_x + 1}')
     ax.set_ylabel(f'PC {component_y + 1}')
+    fig.tight_layout()
     if plot_parameter_directions:
         plt.savefig(
             (f'{clustering}{os.sep}directions{os.sep}'
