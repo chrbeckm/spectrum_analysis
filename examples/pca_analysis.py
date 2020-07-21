@@ -203,7 +203,7 @@ for folder in mapFolderList:
             ax_twin.tick_params(axis='y', labelsize=7)
         if i != 2:
             ax_sum[i].get_xaxis().set_ticks([])
-        else:
+        if i == 1:
             hnd, lbl = ax_twin.get_legend_handles_labels()
             ax.legend(hnd, lbl, ncol=len(histogramm_parameters),
                       bbox_to_anchor=(0, 1.01),  # legend on top of pca plot
