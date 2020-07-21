@@ -197,7 +197,8 @@ for folder in mapFolderList:
         for param in histogramm_parameters:
             param_idx = parameterList.index(param)
             color = CSS4_COLORS[list(CSS4_COLORS)[param_idx+20]]
-            ax_twin.hist(parameters[param_idx][spectra[0]], label=f'{param[0]}_{param.split("_")[-1]}',
+            ax_twin.hist(parameters[param_idx][spectra[0]],
+                         label=f'{param[0]}_{param.split("_")[-1]}',
                          bins=bins, histtype='step', color=color)
             ax_twin.yaxis.tick_left()
             ax_twin.yaxis.set_major_locator(MultipleLocator(1))
@@ -205,8 +206,10 @@ for folder in mapFolderList:
         if i != 2:
             ax_sum[i].get_xaxis().set_ticks([])
         else:
-            ax_twin.legend(ncol=len(histogramm_parameters), bbox_to_anchor=(-2.4, 3.41),
-                           loc='lower left', prop={'size': 6}, borderaxespad=0.)
+            ax_twin.legend(ncol=len(histogramm_parameters),
+                           bbox_to_anchor=(-2.4, 3.41),
+                           loc='lower left', prop={'size': 6},
+                           borderaxespad=0.)
 
         ax_sum[i].yaxis.tick_right()
         ax_sum[i].yaxis.set_label_position('right')
@@ -239,7 +242,7 @@ for folder in mapFolderList:
                      - np.array((0, 0, 0, 0.2 * (peaknumber-1))))
             ax.arrow(xcenter, ycenter, pcx[i], pcy[i], color=color, alpha=0.5)
             ax.text(xcenter + pcx[i]*1.15, ycenter + pcy[i]*1.15,
-                     f'{peaktype}_{param[0:3]}', ha='center', va='center')
+                    f'{peaktype}_{param[0:3]}', ha='center', va='center')
 
     # create annotation text
     annot = ax.annotate('', xy=(0, 0), xytext=(20, 20),
