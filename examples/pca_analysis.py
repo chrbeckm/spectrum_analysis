@@ -39,7 +39,7 @@ component_y = 1   # component to plot on x axis
 show_hover_plot = True  # set True if interactive plot should be displayed
 display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
-print_PC_components = True         # print the principal components
+print_PC_components = False        # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
 clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
 
@@ -48,6 +48,10 @@ brim = 0.25           # minimal brim around plotted data
 
 imagesize = (150, 150)   # size of hovering image
 imageshift = (100, -50)  # shift of hovering image
+
+plot_clustered_fitlines = False  # plot summed raw data if False
+
+linebreaker = '============================================================'
 
 
 def addPoint(scat, new_point, c='k'):
@@ -110,6 +114,8 @@ if plot_parameter_directions:
     if not os.path.exists(os.path.join(clustering, 'directions')):
         os.makedirs(os.path.join(clustering, 'directions'))
 
+print(linebreaker + '\n' + linebreaker)
+
 for folder in mapFolderList:
     index = mapFolderList.index(folder)
     print(f'Mapping {index + 1} of {len(mapFolderList)}\n')
@@ -141,7 +147,13 @@ for folder in mapFolderList:
                         print_components=print_PC_components)
 
     # plot everything and annotate each datapoint
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax_sum = [plt.subplot2grid((3, 3), (0, 2)),
+              plt.subplot2grid((3, 3), (1, 2)),
+              plt.subplot2grid((3, 3), (2, 2))]
+    ax = plt.subplot2grid((3, 3), (0, 0), colspan=2, rowspan=3)
+    ax_sum[0].set_title('Cluster sum spectra')
+    ax_sum[2].set_xlabel('Raman shift cm$^{-1}$)')
 
     x = analyzed[:, component_x]
     y = analyzed[:, component_y]
@@ -151,17 +163,41 @@ for folder in mapFolderList:
     # plot clustered data
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
               'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
-    for klass, color in zip(range(0, len(set(cluster.labels_))), colors):
+    clustertypes = set(cluster.labels_)
+    clustersizes = []
+    for klass, color in zip(range(0, len(clustertypes)), colors):
         PC_k = PC[cluster.labels_ == klass]
+        clustersizes.append(len(PC_k))
         for point in PC_k:
             addPoint(sc, point, color)
+
+    # get three biggest clusters and plot the sum spectrum
+    rankedcluster = sorted(zip(clustersizes, clustertypes), reverse=True)
+    if plot_clustered_fitlines:
+        rawspectra, __ = data.GetFolderContent(mapp.fitdir, 'dat', quiet=True)
+    else:
+        rawspectra, __ = data.GetFolderContent(mapp.folder, 'txt', quiet=True)
+    print('The three biggest clusters are')
+    for i, clust in enumerate(rankedcluster[:3]):
+        spectra = [cluster.labels_ == clust[1]]
+        clusterspectra = [name for i, name in enumerate(rawspectra)
+                          if spectra[0][i]]
+        clust_x, clust_y = data.GetAllData(clusterspectra)
+        print(f'Cluster {clust[1]}, containing {clust[0]} spectra.')
+        ax_sum[i].plot(clust_x[0], sum(clust_y)/len(clust_y),
+                       color=colors[clust[1]])
+        ax_sum[i].text(0.05, 0.85, f'C{clust[1]}, {clust[0]} S',
+                       transform=ax_sum[i].transAxes, fontsize=8)
+        ax_sum[i].yaxis.tick_right()
+        if i != 2:
+            ax_sum[i].get_xaxis().set_ticks([])
 
     # set center, min and max of the plot
     xmin, xmax, ymin, ymax = [min(x)-brim, max(x)+brim,
                               min(y)-brim, max(y)+brim]
     xcenter, ycenter = [(xmax-abs(xmin))/2, (ymax-abs(ymin))/2]
-    plt.xlim((xmin, xmax))
-    plt.ylim((ymin, ymax))
+    ax.set_xlim((xmin, xmax))
+    ax.set_ylim((ymin, ymax))
 
     # add composing directions
     if plot_parameter_directions:
@@ -181,8 +217,8 @@ for folder in mapFolderList:
                 color = colors[3]
             color = (np.array(to_rgba(color))
                      - np.array((0, 0, 0, 0.2 * (peaknumber-1))))
-            plt.arrow(xcenter, ycenter, pcx[i], pcy[i], color=color, alpha=0.5)
-            plt.text(xcenter + pcx[i]*1.15, ycenter + pcy[i]*1.15,
+            ax.arrow(xcenter, ycenter, pcx[i], pcy[i], color=color, alpha=0.5)
+            ax.text(xcenter + pcx[i]*1.15, ycenter + pcy[i]*1.15,
                      f'{peaktype}_{param[0:3]}', ha='center', va='center')
 
     # create annotation text
@@ -251,8 +287,8 @@ for folder in mapFolderList:
     figManager = plt.get_current_fig_manager()  # get current figure
     figManager.full_screen_toggle()             # show it maximized
 
-    plt.xlabel(f'PC {component_x + 1}')
-    plt.ylabel(f'PC {component_y + 1}')
+    ax.set_xlabel(f'PC {component_x + 1}')
+    ax.set_ylabel(f'PC {component_y + 1}')
     if plot_parameter_directions:
         plt.savefig(
             (f'{clustering}{os.sep}directions{os.sep}'
@@ -272,9 +308,10 @@ for folder in mapFolderList:
                     f'_pc{component_x}_pc{component_y}.png', dpi=300)
         plt.savefig(f'{mapp.pltdir}{os.sep}pca_analysis'
                     f'_pc{component_x}_pc{component_y}.pdf')
-    plt.title(f'PCA Analysis of {folder}')
+    ax.set_title(f'PCA Analysis of {folder}')
 
     if show_hover_plot:
         plt.show()
 
     plt.close()
+    print(linebreaker + '\n' + linebreaker)
