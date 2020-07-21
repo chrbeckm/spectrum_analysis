@@ -87,7 +87,7 @@ def createCluster(method, n_clust=3, min_samples=5):
     if method == 'SpectralClustering':
         clust = SpectralClustering(n_clusters=n_clust)
         clust.fit(PC)
-        scat = plt.scatter(-10, -10)
+        scat = plt.scatter(-100, -100, zorder=2)
     elif method == 'OPTICS':
         clust = OPTICS(min_samples=min_samples)
         clust.fit(PC)
@@ -222,6 +222,10 @@ for folder in mapFolderList:
     xcenter, ycenter = [(xmax-abs(xmin))/2, (ymax-abs(ymin))/2]
     ax.set_xlim((xmin, xmax))
     ax.set_ylim((ymin, ymax))
+    ax.axhline(0, linestyle='-', color=CSS4_COLORS['lightgrey'],
+               zorder=1)
+    ax.axvline(0, linestyle='-', color=CSS4_COLORS['lightgrey'],
+               zorder=1)
 
     # add composing directions
     if plot_parameter_directions:
@@ -241,9 +245,10 @@ for folder in mapFolderList:
                 color = colors[3]
             color = (np.array(to_rgba(color))
                      - np.array((0, 0, 0, 0.2 * (peaknumber-1))))
-            ax.arrow(xcenter, ycenter, pcx[i], pcy[i], color=color, alpha=0.5)
-            ax.text(xcenter + pcx[i]*1.15, ycenter + pcy[i]*1.15,
-                    f'{peaktype}_{param[0:3]}', ha='center', va='center')
+            ax.arrow(0, 0, pcx[i], pcy[i], color=color, alpha=0.5)
+            ax.text(pcx[i]*1.15, pcy[i]*1.15,
+                    f'{peaktype}{peaknumber}_{param[0:3]}',
+                    ha='center', va='center')
 
     # create annotation text
     annot = ax.annotate('', xy=(0, 0), xytext=(20, 20),
