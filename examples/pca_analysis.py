@@ -98,7 +98,7 @@ def createCluster(method, n_clust=3, min_samples=5):
 
 def printPCAresults(pc_ana, param_list, print_components=False):
     """Print results of PCA analysis to command line."""
-    print(f'explained variance ratio'
+    print(f'explained variance ratio '
           f'({pc_ana.components_.shape[0]} components): '
           f'{sum(pc_ana.explained_variance_ratio_):2.2f} '
           f'({pc_ana.explained_variance_ratio_.round(2)})')
@@ -179,7 +179,7 @@ for folder in mapFolderList:
         rawspectra, __ = data.GetFolderContent(mapp.fitdir, 'dat', quiet=True)
     else:
         rawspectra, __ = data.GetFolderContent(mapp.folder, 'txt', quiet=True)
-    print('The three biggest clusters are')
+    print('The four biggest clusters are')
     for i, clust in enumerate(rankedcluster[:4]):
         spectra = [cluster.labels_ == clust[1]]
         clusterspectra = [name for i, name in enumerate(rawspectra)
@@ -327,7 +327,7 @@ for folder in mapFolderList:
     ax.set_xlabel(f'PC {component_x + 1}')
     ax.set_ylabel(f'PC {component_y + 1}')
     fig.tight_layout()
-    fig.subplots_adjust(hspace = .001)
+    fig.subplots_adjust(hspace=0.001)
     if plot_parameter_directions:
         plt.savefig(
             (f'{clustering}{os.sep}directions{os.sep}'
