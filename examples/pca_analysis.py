@@ -151,12 +151,11 @@ for folder in mapFolderList:
 
     # plot everything and annotate each datapoint
     fig = plt.figure()
-    ax_sum = [plt.subplot2grid((3, 3), (0, 2)),
-              plt.subplot2grid((3, 3), (1, 2)),
-              plt.subplot2grid((3, 3), (2, 2))]
-    ax = plt.subplot2grid((3, 3), (0, 0), colspan=2, rowspan=3)
-    ax_sum[0].set_title('Cluster sum spectra')
-    ax_sum[2].set_xlabel('FWHM or Raman shift (cm$^{-1}$)')
+    ax_sum = [plt.subplot2grid((4, 3), (0, 2)),
+              plt.subplot2grid((4, 3), (1, 2)),
+              plt.subplot2grid((4, 3), (2, 2)),
+              plt.subplot2grid((4, 3), (3, 2))]
+    ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=4)
 
     x = analyzed[:, component_x]
     y = analyzed[:, component_y]
@@ -174,14 +173,14 @@ for folder in mapFolderList:
         for point in PC_k:
             addPoint(sc, point, color)
 
-    # get three biggest clusters and plot the sum spectrum
+    # get four biggest clusters and plot the sum spectrum
     rankedcluster = sorted(zip(clustersizes, clustertypes), reverse=True)
     if plot_clustered_fitlines:
         rawspectra, __ = data.GetFolderContent(mapp.fitdir, 'dat', quiet=True)
     else:
         rawspectra, __ = data.GetFolderContent(mapp.folder, 'txt', quiet=True)
     print('The three biggest clusters are')
-    for i, clust in enumerate(rankedcluster[:3]):
+    for i, clust in enumerate(rankedcluster[:4]):
         spectra = [cluster.labels_ == clust[1]]
         clusterspectra = [name for i, name in enumerate(rawspectra)
                           if spectra[0][i]]
@@ -202,8 +201,6 @@ for folder in mapFolderList:
                          bins=bins, histtype='step', color=color)
             ax_twin.yaxis.tick_left()
             ax_twin.tick_params(axis='y', labelsize=7)
-        if i != 2:
-            ax_sum[i].get_xaxis().set_ticks([])
         if i == 1:
             hnd, lbl = ax_twin.get_legend_handles_labels()
             ax.legend(hnd, lbl, ncol=len(histogramm_parameters),
@@ -211,11 +208,21 @@ for folder in mapFolderList:
                       loc='lower left', prop={'size': 6},
                       borderaxespad=0.)
 
-        ax_sum[i].tick_params(axis='y', labelsize=7)
-        ax_sum[i].tick_params(axis='x', labelsize=7)
-        ax_sum[i].yaxis.tick_right()
-        ax_sum[i].yaxis.set_label_position('right')
-        ax_sum[i].set_ylabel('Intensity')
+    # create labels and delete empty plots
+    for i, axs in enumerate(ax_sum):
+        if axs.lines:
+            axs.tick_params(axis='y', labelsize=7)
+            axs.tick_params(axis='x', labelsize=7)
+            axs.yaxis.tick_right()
+            axs.yaxis.set_label_position('right')
+            axs.set_ylabel('Intensity')
+        else:
+            fig.delaxes(axs)
+            ax_sum.remove(axs)
+    for axs in ax_sum[0:-1]:
+        axs.get_xaxis().set_ticks([])
+    ax_sum[0].set_title('Cluster sum spectra')
+    ax_sum[-1].set_xlabel('FWHM or Raman shift (cm$^{-1}$)')
 
     # set center, min and max of the plot
     xmin, xmax, ymin, ymax = [min(x)-brim, max(x)+brim,
@@ -320,6 +327,7 @@ for folder in mapFolderList:
     ax.set_xlabel(f'PC {component_x + 1}')
     ax.set_ylabel(f'PC {component_y + 1}')
     fig.tight_layout()
+    fig.subplots_adjust(hspace = .001)
     if plot_parameter_directions:
         plt.savefig(
             (f'{clustering}{os.sep}directions{os.sep}'
