@@ -196,7 +196,8 @@ for folder in mapFolderList:
         for param in histogramm_parameters:
             param_idx = parameterList.index(param)
             color = CSS4_COLORS[list(CSS4_COLORS)[param_idx+20]]
-            ax_twin.hist(parameters[param_idx][spectra[0]],
+            hist_params = parameters[param_idx][spectra[0]]
+            ax_twin.hist(hist_params[hist_params != mapp.missingvalue],
                          label=f'{param[0]}_{param.split("_")[-1]}',
                          bins=bins, histtype='step', color=color)
             ax_twin.yaxis.tick_left()
