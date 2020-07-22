@@ -41,7 +41,7 @@ display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
 print_PC_components = False        # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
-clustering = 'SpectralClustering'  # SpectralClustering or OPTICS
+clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
 brim = 0.25           # minimal brim around plotted data
@@ -52,7 +52,7 @@ imageshift = (100, -50)  # shift of hovering image
 plot_clustered_fitlines = False  # plot summed raw data if False
 histogramm_parameters = ['breit_wigner_p1_fwhm', 'breit_wigner_p1_center',
                          'lorentzian_p1_fwhm', 'lorentzian_p1_center']
-bins = 10
+bins = 10  # number of bins for histogrammed parameters
 
 linebreaker = '============================================================'
 
