@@ -245,10 +245,10 @@ for folder in mapFolderList:
                 color = colors[3]
             color = (np.array(to_rgba(color))
                      - np.array((0, 0, 0, 0.2 * (peaknumber-1))))
-            ax.arrow(0, 0, pcx[i], pcy[i], color=color, alpha=0.5)
+            ax.arrow(0, 0, pcx[i], pcy[i], color=color, zorder=3)
             ax.text(pcx[i]*1.15, pcy[i]*1.15,
                     f'{peaktype}{peaknumber}_{param[0:3]}',
-                    ha='center', va='center')
+                    ha='center', va='center', fontsize=7, zorder=4)
 
     # create annotation text
     annot = ax.annotate('', xy=(0, 0), xytext=(20, 20),
