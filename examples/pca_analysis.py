@@ -29,7 +29,7 @@ mapFolderList = [
 # number of clusters (needed for SpectralClustering)
 n_clusters = [
     4,
-    3,
+    2,
     ]
 
 components = 3    # number of PCA components
@@ -209,7 +209,8 @@ for folder in mapFolderList:
                       borderaxespad=0.)
 
     # create labels and delete empty plots
-    for i, axs in enumerate(ax_sum):
+    ax_copy = ax_sum.copy()
+    for axs in ax_copy:
         if axs.lines:
             axs.tick_params(axis='y', labelsize=7)
             axs.tick_params(axis='x', labelsize=7)
