@@ -970,11 +970,11 @@ class mapping(spectrum):
 
         return plot_matrix, plotname
 
-    def PlotHistogram(self, plot_matrix, plotname, bins=5):
+    def PlotHistogram(self, plot_matrix, plotname, bins=5, rng=None):
         """
         Function that plots a histogram of plotdata handed to it.
         """
-        matplotlib.rcParams.update({'font.size': 12})
+        matplotlib.rcParams.update({'font.size': 16})
         # flatten matrix to vector
         plot_values = plot_matrix.flatten()
 
@@ -983,19 +983,21 @@ class mapping(spectrum):
         type = plotname.split('_')[0]
         peakshape = re.sub(type + '_', '', plotname)
         peakshape = re.sub('_' + peakparameter, '', peakshape)
+        print(f'hist_{plotname}')
 
         # generate labels from peaknames
         label = self.peaknames[peakshape][peakparameter]['name']
         unit = self.peaknames[peakshape][peakparameter]['unit']
 
-        plt.hist(plot_values, bins=bins)
+        plt.hist(plot_values, bins=bins, range=rng)
 
         self.FormatxLabelAndTicks(plt, name=label, unit=unit)
         self.FormatyLabelAndTicks(plt, name='counts', unit='cts')
 
         plt.tight_layout()
 
-        plt.savefig(os.path.join(self.folder, 'results', 'plot', f'hist_{plotname}.png'), dpi=300)
+        plt.savefig(os.path.join(self.folder, 'results', 'plot',
+                                 f'hist_{plotname}.png'), dpi=300)
         plt.close()
 
     def PlotAllColormaps(self, maptype, y, mapdims, step, **kwargs):
