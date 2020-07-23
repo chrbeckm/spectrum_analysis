@@ -41,6 +41,13 @@ display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
 print_PC_components = False        # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
+plot_only = {'fwhm': {'linestyle': '-',
+                      'plot_label': True},
+             'center': {'linestyle': '--',
+                        'plot_label': True},
+             'height': {'linestyle': '-.',
+                        'plot_label': True},
+             }
 clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
@@ -179,7 +186,7 @@ for folder in mapFolderList:
         rawspectra, __ = data.GetFolderContent(mapp.fitdir, 'dat', quiet=True)
     else:
         rawspectra, __ = data.GetFolderContent(mapp.folder, 'txt', quiet=True)
-    print('The four biggest clusters are')
+    print('The biggest clusters are')
     for i, clust in enumerate(rankedcluster[:4]):
         spectra = [cluster.labels_ == clust[1]]
         clusterspectra = [name for i, name in enumerate(rawspectra)
@@ -240,24 +247,29 @@ for folder in mapFolderList:
     if plot_parameter_directions:
         pcx = pca.components_[component_x]
         pcy = pca.components_[component_y]
+        plot_lines = []
         for i, parameter in enumerate(parameterList):
             peaknumber = int(parameter.split('_')[-2][-1])
             peaktype = parameter[0][0]
             param = parameter.split('_')[-1]
-            if peaktype == 'b':
-                color = colors[0]
-            elif peaktype == 'l':
-                color = colors[1]
-            elif peaktype == 'g':
-                color = colors[2]
-            elif peaktype == 'v':
-                color = colors[3]
-            color = (np.array(to_rgba(color))
-                     - np.array((0, 0, 0, 0.2 * (peaknumber-1))))
-            ax.arrow(0, 0, pcx[i], pcy[i], color=color, zorder=3)
-            ax.text(pcx[i]*1.15, pcy[i]*1.15,
-                    f'{peaktype}{peaknumber}_{param[0:3]}',
-                    ha='center', va='center', fontsize=7, zorder=4)
+            if param in plot_only.keys():
+                if peaktype == 'b':
+                    color = 'b'
+                elif peaktype == 'l':
+                    color = 'r'
+                elif peaktype == 'g':
+                    color = 'g'
+                elif peaktype == 'v':
+                    color = 'c'
+                color = (np.array(to_rgba(color))
+                         - np.array((0, 0, 0, 0.3 * (peaknumber-1))))
+                line = ax.plot((0, pcx[i]), (0, pcy[i]), color=color, zorder=3,
+                               linestyle=plot_only[param]['linestyle'])
+                plot_lines.append(line)
+                if plot_only[param]['plot_label']:
+                    ax.text(pcx[i]*1.15, pcy[i]*1.15,
+                            f'{peaktype}{peaknumber}_{param[0:3]}',
+                            ha='center', va='center', fontsize=7, zorder=4)
 
     # create annotation text
     annot = ax.annotate('', xy=(0, 0), xytext=(20, 20),
@@ -325,8 +337,8 @@ for folder in mapFolderList:
     figManager = plt.get_current_fig_manager()  # get current figure
     figManager.full_screen_toggle()             # show it maximized
 
-    ax.set_xlabel(f'PC {component_x + 1}')
-    ax.set_ylabel(f'PC {component_y + 1}')
+    ax.set_xlabel(f'principal component {component_x + 1}')
+    ax.set_ylabel(f'principal component {component_y + 1}')
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.001)
     if plot_parameter_directions:
