@@ -5,6 +5,7 @@ By hovering over the data points, the corresponding spectra
 show up.
 """
 import os
+import shutil
 
 import numpy as np
 
@@ -171,6 +172,12 @@ def plotClusterOverview(mapping, ax_main, ax_arr, rank_clust, clust_lbl,
 
 if not os.path.exists(clustering):
     os.makedirs(clustering)
+
+if not os.path.exists(f'{clustering}{os.sep}allclusters'):
+    os.makedirs(f'{clustering}{os.sep}allclusters')
+else:
+    shutil.rmtree(f'{clustering}{os.sep}allclusters')
+    os.makedirs(f'{clustering}{os.sep}allclusters')
 
 if plot_parameter_directions:
     if not os.path.exists(os.path.join(clustering, 'directions')):
@@ -405,10 +412,11 @@ for folder in mapFolderList:
                        bbox_to_anchor=(0, 1.01), loc='lower left',
                        borderaxespad=0.)
         plt.savefig(
-            (f'{clustering}{os.sep}{mapp.folder.replace(os.sep, "_")}'
+            (f'{clustering}{os.sep}allclusters{os.sep}'
+             f'{mapp.folder.replace(os.sep, "_")}'
              f'_pc{component_x}_pc{component_y}_S{spec:03}_C{clst}.png'),
             dpi=300)
-        plt.show()
+        #plt.show()
         plt.close()
 
     print(linebreaker + '\n' + linebreaker)
