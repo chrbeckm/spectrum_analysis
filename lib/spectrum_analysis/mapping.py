@@ -1,3 +1,4 @@
+import gc
 import os
 import numpy as np
 
@@ -21,6 +22,8 @@ from mpl_toolkits import axes_grid1
 This module contains the mapping class to work multiple x, y structured
 data sets.
 """
+
+matplotlib.use('Agg')  # might need adjustment in case of memory leakage
 
 class scatter():
     def __init__(self, x, y, ax, msize=1, area=None, **kwargs):
@@ -77,7 +80,7 @@ class scatter():
     def mscatter(self, x, y, ax=None, m=None, **kwargs):
         import matplotlib.markers as mmarkers
         if not ax: ax=plt.gca()
-        sc = ax.scatter(x,y,**kwargs)
+        scs = ax.scatter(x,y,**kwargs)
         if (m is not None):# and (len(m)==len(x)):
             paths = []
             for marker in m:
@@ -88,8 +91,8 @@ class scatter():
                 path = marker_obj.get_path().transformed(
                             marker_obj.get_transform())
                 paths.append(path)
-            sc.set_paths(paths)
-        return sc
+            scs.set_paths(paths)
+        return scs
 
 class mapping(spectrum):
     """
@@ -751,7 +754,7 @@ class mapping(spectrum):
                                                     facecolor=facecolor)
         return pc
 
-    def ConfigureTicks(self, mapdims, step, xticker, plt, grid, remove=2):
+    def ConfigureTicks(self, mapdims, step, xticker, plot, grid, remove=2):
         xdim = mapdims[0]
         ydim = mapdims[1]
         # create x and y ticks accordingly to the parameters of the mapping
@@ -761,28 +764,28 @@ class mapping(spectrum):
             y_ticks = y_ticks[::-1]
 
 
-        plt.xticks(np.arange(xdim, step=xticker), x_ticks, fontsize='small')
-        plt.yticks(np.arange(ydim), y_ticks, fontsize='small')
+        plot.xticks(np.arange(xdim, step=xticker), x_ticks, fontsize='small')
+        plot.yticks(np.arange(ydim), y_ticks, fontsize='small')
 
-        ax = plt.gca()
-        plt.setp(ax.xaxis.get_ticklabels()[1::remove], visible=False)
+        ax = plot.gca()
+        plot.setp(ax.xaxis.get_ticklabels()[1::remove], visible=False)
         if grid:
-            plt.setp(ax.yaxis.get_ticklabels()[1::remove], visible=False)
+            plot.setp(ax.yaxis.get_ticklabels()[1::remove], visible=False)
         else:
             if mapdims[1] % 2 == 0:
-                plt.setp(ax.yaxis.get_ticklabels()[0::remove], visible=False)
+                plot.setp(ax.yaxis.get_ticklabels()[0::remove], visible=False)
             else:
-                plt.setp(ax.yaxis.get_ticklabels()[1::remove], visible=False)
+                plot.setp(ax.yaxis.get_ticklabels()[1::remove], visible=False)
 
-    def ConfigurePlot(self, clb, peak, **kwargs):
+    def ConfigurePlot(self, clb, plot, peak, **kwargs):
         # set title, label of x, y and z axis
         #plt.title('Mapping of ' + self.folder + ' ' + peak, fontsize='small')
-        plt.ylabel('y-Position ($\mathrm{\mu}$m)', fontsize='small')
-        plt.xlabel('x-Position ($\mathrm{\mu}$m)', fontsize='small')
+        plot.ylabel('y-Position ($\mathrm{\mu}$m)', fontsize='small')
+        plot.xlabel('x-Position ($\mathrm{\mu}$m)', fontsize='small')
         self.LabelZ(clb, **kwargs)
 
         # have a tight layout
-        plt.tight_layout()
+        plot.tight_layout()
 
     def PlotMapping(self, maptype, y, mapdims, step, area=None,
                     xticker=1, colormap='Reds', alpha=1.0,
@@ -884,6 +887,7 @@ class mapping(spectrum):
                 plt.imshow(img, zorder=0, cmap='Greys_r',
                            extent=[0+pos, mapdims[0]+pos,
                                    0+pos, mapdims[1]+pos])
+                del img
             except ValueError:
                 #traceback.print_exc()
                 print('No background given.')
@@ -895,6 +899,7 @@ class mapping(spectrum):
             sclb = scatter(x, y, ax, c=plot_vector, msize=msize, area=area_corr,
                            cmap='Reds', linewidth=0.5, alpha=alpha)
             im = sclb.sc
+            del sclb
         else:
             im = plt.imshow(plot_matrix, cmap=colormap, vmin=vmin, vmax=vmax)
 
@@ -909,7 +914,8 @@ class mapping(spectrum):
             current_ax = plt.gca()
             cax = divider.append_axes("right", size='5%', pad=0.05)
             plt.sca(current_ax)
-            return im.axes.figure.colorbar(im, cax=cax, **kwargs)
+            cbar = im.axes.figure.colorbar(im, cax=cax, **kwargs)
+            return cbar
 
         clb = add_colorbar(im)
 
@@ -921,7 +927,7 @@ class mapping(spectrum):
                     color = 'black'
                     if missing_matrix[j][mapdims[0] - i-1]:
                         color = 'white'
-                    text = ax.text(mapdims[0] - i-1, j,
+                    ax.text(mapdims[0] - i-1, j,
                                    product - (j * mapdims[0] + i),
                                    ha='center', va='center',
                                    color=color, fontsize=fontsize_int*0.4)
@@ -958,13 +964,16 @@ class mapping(spectrum):
         if maptype == 'errs':
             zlabel = 'Relative error of\n' + zlabel
 
-        self.ConfigurePlot(clb,
+        self.ConfigurePlot(clb, plt,
                            peak = peakshape,
                            label = zlabel,
                            unit = unit)
         plt.savefig(savefile + '_' + colormap + '.pdf', format='pdf')
         plt.savefig(savefile + '_' + colormap + '.png')
-        plt.close()
+        plt.clf()
+        plt.close(fig)
+        del im, clb
+        gc.collect()
 
         print(plotname + ' ' + colormap + ' plotted')
 
@@ -989,6 +998,7 @@ class mapping(spectrum):
         label = self.peaknames[peakshape][peakparameter]['name']
         unit = self.peaknames[peakshape][peakparameter]['unit']
 
+        fig, ax = plt.subplots()
         plt.hist(plot_values, bins=bins, range=rng)
 
         self.FormatxLabelAndTicks(plt, name=label, unit=unit)
@@ -998,6 +1008,7 @@ class mapping(spectrum):
 
         plt.savefig(os.path.join(self.folder, 'results', 'plot',
                                  f'hist_{plotname}.png'), dpi=300)
+        fig.clf()
         plt.close()
 
     def PlotAllColormaps(self, maptype, y, mapdims, step, **kwargs):

@@ -8,6 +8,15 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 from peaknames import *
 
+import pandas as pd
+import tracemalloc
+from pympler import muppy, summary
+
+debug = False
+
+if debug:
+    tracemalloc.start()
+
 mapFolderList = [os.path.join('testdata', '1'),
                  os.path.join('testdata', '2')
                  ]
@@ -24,8 +33,8 @@ backgrounds = ['bg_test.png',
                'bg_test.jpg'
               ]
 
-msizes = [2.0,
-          2.0
+msizes = [1.04,
+          1.04,
 ]
 
 # number of bins
@@ -75,13 +84,13 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
         if dicti is not None:
             vmin = dicti[mapping][0]
             vmax = dicti[mapping][1]
-        plot_matrix, plotname = map.PlotMapping('params',
+        plot_matrix, plotname = mapp.PlotMapping('params',
                         params[i], mapdims, step,
                         name=name + mapping,
                         vmin=vmin, vmax=vmax, grid=False)
         plot_mats.append(plot_matrix)
         plot_nams.append(plotname)
-        map.PlotMapping('params', params[i], mapdims, step,
+        mapp.PlotMapping('params', params[i], mapdims, step,
                         name=name + 'grid_' + mapping, alpha=0.75,
                         vmin=vmin, vmax=vmax, grid=True,
                         background=background, msize=msize,
@@ -99,7 +108,7 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
             if key in keys:
                 # get index of parameter and corresponding min and max
                 i = peakList.index(keys)
-                nonMissing = [x for x in params[i] if not (x == map.missingvalue)]
+                nonMissing = [x for x in params[i] if not (x == mapp.missingvalue)]
                 minval = np.min(nonMissing)
                 maxval = np.max(nonMissing)
                 if plot_ranges[key]['min'] is None:
@@ -114,7 +123,7 @@ def PlotParameterMappings(params, peakList, mapdims, step, background='',
 
     # plot histograms with the same plot ranges
     for mat, nam in zip(plot_mats, plot_nams):
-        map.PlotHistogram(mat, nam, bins=bins,
+        mapp.PlotHistogram(mat, nam, bins=bins,
                           rng=(plot_ranges[nam.split('_')[-1]]['min'],
                                plot_ranges[nam.split('_')[-1]]['max']))
 
@@ -124,8 +133,8 @@ def PlotErrorMappings(params, errors, peakList, mapdims, step):
     """
     for i, mapping in enumerate(peakList):
         # calculate relative error, set missing values and plot errors
-        relative_error = map.ModifyValues(errors[i], params[i], 'div')
-        map.PlotMapping('errs', relative_error, mapdims, step, name=mapping,
+        relative_error = mapp.ModifyValues(errors[i], params[i], 'div')
+        mapp.PlotMapping('errs', relative_error, mapdims, step, name=mapping,
                         numbered=True)
 
 def PlotParameterOperations(params, peakList, mapdims, step,
@@ -136,23 +145,23 @@ def PlotParameterOperations(params, peakList, mapdims, step,
     """
     a = peakList.index(first)
     b = peakList.index(second)
-    ratio = map.ModifyValues(params[a], params[b], operation)
+    ratio = mapp.ModifyValues(params[a], params[b], operation)
     filename = first + '_' + operation + '_' + second
     vmin = None
     vmax = None
     if dicti is not None:
         vmin = dicti[filename][0]
         vmax = dicti[filename][1]
-    plot_matrix, plotname = map.PlotMapping(operation,
+    plot_matrix, plotname = mapp.PlotMapping(operation,
                     ratio, mapdims, step,
                     name=name + filename,
                     numbered=False, vmin=vmin, vmax=vmax, grid=False)
-    map.PlotMapping(operation, ratio, mapdims, step,
+    mapp.PlotMapping(operation, ratio, mapdims, step,
                     name=name + 'grid_' + filename, alpha=0.75,
                     numbered=False, vmin=vmin, vmax=vmax, grid=True,
                     background=background, msize=msize,
                     plot_missing=False, area=area)
-    map.PlotHistogram(plot_matrix, plotname, bins=bins)
+    mapp.PlotHistogram(plot_matrix, plotname, bins=bins)
     return filename, ratio
 
 def CreateMinMaxDict(params, paramList, mapping):
@@ -164,7 +173,7 @@ def CreateMinMaxDict(params, paramList, mapping):
     for param in paramList:
         # get index of parameter and corresponding min and max
         i = paramList.index(param)
-        nonMissing = [x for x in params[i] if not (x == map.missingvalue)]
+        nonMissing = [x for x in params[i] if not (x == mapp.missingvalue)]
         min = np.min(nonMissing)
         max = np.max(nonMissing)
         minfile = mapping
@@ -192,7 +201,7 @@ def UpdateGlobalDict(globaldict, dicti):
             # check if parameter smaller/bigger than current value
             # and update values and mappings
             if ((globaldict[param][0] > min)
-            and not (globaldict[param][0] == map.missingvalue)):
+            and not (globaldict[param][0] == mapp.missingvalue)):
                 pass
             else:
                 min = globaldict[param][0]
@@ -231,23 +240,23 @@ for folder in mapFolderList:
     background = folder + os.sep + backgrounds[index]
     msize = msizes[index]
 
-    map = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
+    mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
     # get and plot raw data
-    x, y = data.GetAllData(map.listOfFiles)
-    map.PlotMapping('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
+    x, y = data.GetAllData(mapp.listOfFiles)
+    mapp.PlotMapping('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
     if plotrawspectra:
-        map.PlotAllRawSpectra(x, y)
+        mapp.PlotAllRawSpectra(x, y)
 
     # plot all colormaps
-    #map.PlotAllColormaps('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
+    #mapp.PlotAllColormaps('raw', y, mapdims, step, x=x, xmin=1300, xmax=1400)
 
     # get fit data and plot one map per peak parameter
-    peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak,
+    peakFileList, numberOfPeakFiles = data.GetFolderContent(mapp.pardir_peak,
                                                         filetype='dat',
                                                         objects='peakparameter')
     parameters, errors = data.GetAllData(peakFileList)
-    parameterList = map.CreatePeakList(peakFileList)
+    parameterList = mapp.CreatePeakList(peakFileList)
 
     # calculate area under the curve
     # area is used to scale the linewidth of the grid marker
@@ -256,10 +265,13 @@ for folder in mapFolderList:
         test = re.findall('amplitude', parameter)
         if test:
             area += parameters[i]
-
+    if debug:
+        time1 = tracemalloc.take_snapshot()
     PlotParameterMappings(parameters, parameterList, mapdims, step,
                           background=background, msize=msize, area=area)
     PlotErrorMappings(parameters, errors, parameterList, mapdims, step)
+    if debug:
+        time2 = tracemalloc.take_snapshot()
 
     dict_minmax = CreateMinMaxDict(parameters, parameterList, folder)
     dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_minmax)
@@ -292,11 +304,11 @@ for folder in mapFolderList:
 
     # plot background values from fits
     if bg_plot:
-        peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak_bg,
+        peakFileList, numberOfPeakFiles = data.GetFolderContent(mapp.pardir_peak_bg,
                                                             filetype='dat',
                                                             quiet=True)
         parameters, errors = data.GetAllData(peakFileList)
-        parameterList_bg = map.CreatePeakList(peakFileList)
+        parameterList_bg = mapp.CreatePeakList(peakFileList)
         PlotParameterMappings(parameters, parameterList_bg, mapdims, step,
                               background=background, msize=msize, area=area)
 
@@ -307,6 +319,19 @@ for folder in mapFolderList:
     PrintMinMax(dict_minmax, parameterList)
 
     print(linebreaker + '\n' + linebreaker)
+
+    if debug:
+        all_objects = muppy.get_objects()
+        sum1 = summary.summarize(all_objects)# Prints out a summary of the large objects
+        summary.print_(sum1)# Get references to certain types of objects such as dataframe
+        dataframes = [ao for ao in all_objects if isinstance(ao, pd.DataFrame)]
+
+        for dat in dataframes:
+            print(dat.columns.values)
+            print(len(dat))
+        stats = time2.compare_to(time1, 'lineno')
+        for stat in stats[:10]:
+            print(stat)
 
 if scaled:
     print('List of global minima and maxima '
@@ -324,14 +349,14 @@ if scaled:
         background = folder + os.sep + backgrounds[index]
         msize = msizes[index]
 
-        map = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
+        mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
         # get fit data and plot one map per peak parameter
-        peakFileList, numberOfPeakFiles = data.GetFolderContent(map.pardir_peak,
+        peakFileList, numberOfPeakFiles = data.GetFolderContent(mapp.pardir_peak,
                                                         filetype='dat',
                                                         objects='peakparameter')
         parameters, errors = data.GetAllData(peakFileList)
-        parameterList = map.CreatePeakList(peakFileList)
+        parameterList = mapp.CreatePeakList(peakFileList)
         PlotParameterMappings(parameters, parameterList, mapdims, step,
                               background=background, msize=msize,
                               name='scaled_',

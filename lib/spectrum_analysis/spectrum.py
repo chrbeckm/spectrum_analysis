@@ -199,7 +199,8 @@ class spectrum(object):
 
         fig.savefig(self.get_file(directory=self.rawdir, prefix=self.rawname,
                                   datatype='png'), dpi=300)
-        plt.close()
+        fig.clf()
+        plt.close(fig)
 
         print(f'Raw Spectrum {self.label} plotted')
 
@@ -1182,7 +1183,8 @@ class spectrum(object):
                 figManager.full_screen_toggle()           # show it maximized
             plt.show()
 
-        plt.close()
+        fig.clf()
+        plt.close(fig)
 
         # save the fitline
         file = self.get_file(self.fitdir, prefix='',
