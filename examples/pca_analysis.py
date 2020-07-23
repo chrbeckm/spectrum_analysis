@@ -117,6 +117,58 @@ def printPCAresults(pc_ana, param_list, print_components=False):
             print()
 
 
+def plotCluster(axes, clst_lbl, clst, rawspec, prnt=True):
+    spectra = [clst_lbl == clst[1]]
+    clusterspectra = [name for j, name in enumerate(rawspec)
+                      if spectra[0][j]]
+    clust_x, clust_y = data.GetAllData(clusterspectra)
+    if prnt:
+        print(f'Cluster {clst[1]}, containing {clst[0]} spectra.')
+    axes.plot(clust_x[0], sum(clust_y)/len(clust_y),
+              color=colors[clst[1]])
+    axes.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
+              transform=axes.transAxes, fontsize=8)
+    # plot histogrammed fwhm and position of each cluster into plot
+    axs_twin = axes.twinx()
+    for param in histogramm_parameters:
+        param_idx = parameterList.index(param)
+        color = CSS4_COLORS[list(CSS4_COLORS)[param_idx+20]]
+        hist_params = parameters[param_idx][spectra[0]]
+        peakname = '_'.join(param.split('_')[:-1])
+        parametername = param.split("_")[-1]
+        axs_twin.hist(hist_params[hist_params != mapp.missingvalue],
+                      label=peaknames[peakname][parametername]['name'],
+                      bins=bins, histtype='step', color=color)
+        axs_twin.yaxis.tick_left()
+        axs_twin.tick_params(axis='y', labelsize=7)
+    return axs_twin, (clst[1], clst[0])
+
+
+def selectSpecType(mappng, plt_clust=False):
+    if plt_clust:
+        spectra, __ = data.GetFolderContent(mappng.fitdir, 'dat',
+                                            quiet=True)
+    else:
+        spectra, __ = data.GetFolderContent(mappng.folder, 'txt',
+                                            quiet=True)
+    return spectra
+
+
+def plotClusterOverview(mapping, ax_main, ax_arr, rank_clust, clust_lbl,
+                        plt_clust_fits=False):
+    spectra = selectSpecType(mapping, plt_clust_fits)
+    print('The clusters are')
+    minimum = min(len(ax_arr), len(rank_clust))
+    for i in range(0, minimum):
+        ax_twin, __ = plotCluster(ax_arr[i], clust_lbl, rank_clust[i], spectra)
+        if i == 1:
+            hnd, lbl = ax_twin.get_legend_handles_labels()
+            ax_main.legend(hnd, lbl, ncol=len(histogramm_parameters),
+                           bbox_to_anchor=(0, 1.01),  # legend on top pca plot
+                           loc='lower left', prop={'size': 6},
+                           borderaxespad=0.)
+
+
 if not os.path.exists(clustering):
     os.makedirs(clustering)
 
@@ -182,38 +234,8 @@ for folder in mapFolderList:
 
     # get four biggest clusters and plot the sum spectrum
     rankedcluster = sorted(zip(clustersizes, clustertypes), reverse=True)
-    if plot_clustered_fitlines:
-        rawspectra, __ = data.GetFolderContent(mapp.fitdir, 'dat', quiet=True)
-    else:
-        rawspectra, __ = data.GetFolderContent(mapp.folder, 'txt', quiet=True)
-    print('The biggest clusters are')
-    for i, clust in enumerate(rankedcluster[:4]):
-        spectra = [cluster.labels_ == clust[1]]
-        clusterspectra = [name for i, name in enumerate(rawspectra)
-                          if spectra[0][i]]
-        clust_x, clust_y = data.GetAllData(clusterspectra)
-        print(f'Cluster {clust[1]}, containing {clust[0]} spectra.')
-        ax_sum[i].plot(clust_x[0], sum(clust_y)/len(clust_y),
-                       color=colors[clust[1]])
-        ax_sum[i].text(0.05, 0.85, f'C{clust[1]}, {clust[0]} S',
-                       transform=ax_sum[i].transAxes, fontsize=8)
-        # plot histogrammed fwhm and position of each cluster into plot
-        ax_twin = ax_sum[i].twinx()
-        for param in histogramm_parameters:
-            param_idx = parameterList.index(param)
-            color = CSS4_COLORS[list(CSS4_COLORS)[param_idx+20]]
-            hist_params = parameters[param_idx][spectra[0]]
-            ax_twin.hist(hist_params[hist_params != mapp.missingvalue],
-                         label=f'{param[0]}_{param.split("_")[-1]}',
-                         bins=bins, histtype='step', color=color)
-            ax_twin.yaxis.tick_left()
-            ax_twin.tick_params(axis='y', labelsize=7)
-        if i == 1:
-            hnd, lbl = ax_twin.get_legend_handles_labels()
-            ax.legend(hnd, lbl, ncol=len(histogramm_parameters),
-                      bbox_to_anchor=(0, 1.01),  # legend on top of pca plot
-                      loc='lower left', prop={'size': 6},
-                      borderaxespad=0.)
+    plotClusterOverview(mapp, ax, ax_sum, rankedcluster, cluster.labels_,
+                        plt_clust_fits=plot_clustered_fitlines)
 
     # create labels and delete empty plots
     ax_copy = ax_sum.copy()
@@ -230,7 +252,7 @@ for folder in mapFolderList:
     for axs in ax_sum[0:-1]:
         axs.get_xaxis().set_ticks([])
     ax_sum[0].set_title('Cluster sum spectra')
-    ax_sum[-1].set_xlabel('FWHM or Raman shift (cm$^{-1}$)')
+    ax_sum[-1].set_xlabel('Wavenumber (cm$^{-1}$)')
 
     # set center, min and max of the plot
     xmin, xmax, ymin, ymax = [min(x)-brim, max(x)+brim,
@@ -366,4 +388,27 @@ for folder in mapFolderList:
         plt.show()
 
     plt.close()
+
+    for i, clust in enumerate(rankedcluster):
+        fig, ax = plt.subplots()
+        spectra = selectSpecType(mapp, plot_clustered_fitlines)
+        ax_twin, (clst, spec) = plotCluster(ax, cluster.labels_, clust,
+                                            spectra, prnt=False)
+        ax.yaxis.tick_right()
+        ax.yaxis.set_label_position('right')
+        ax.set_xlabel('Wavenumber (cm$^{-1}$)')
+        ax.set_ylabel('Intensity')
+        ax_twin.yaxis.set_label_position('left')
+        ax_twin.tick_params(axis='y', labelsize=12)
+        ax_twin.set_ylabel('Counts')
+        ax_twin.legend(ncol=len(histogramm_parameters),
+                       bbox_to_anchor=(0, 1.01), loc='lower left',
+                       borderaxespad=0.)
+        plt.savefig(
+            (f'{clustering}{os.sep}{mapp.folder.replace(os.sep, "_")}'
+             f'_pc{component_x}_pc{component_y}_S{spec:03}_C{clst}.png'),
+            dpi=300)
+        plt.show()
+        plt.close()
+
     print(linebreaker + '\n' + linebreaker)
