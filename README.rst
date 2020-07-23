@@ -143,3 +143,34 @@ You can also adjust which two peak parameters (``top`` and ``bot``) should
 be linked by a specified operation (``opt``). Operations possible are
 ``'div'``, ``'mult'``, ``'add'`` and ``'sub'``. You can take any of the
 peakparameters found in ``results/fitparameter/peakwise/`` of your mapping.
+
+Principal Component Analysis
+----------
+
+If you fitted and plotted a mapping you can perform an interactive principal
+component analysis (pca) with additional cluster analysis.
+
+::
+
+  python -u pca_analysis.py 2>&1 | tee log.txt
+
+An interactive plot opens, displaying multiple panels.
+In the left panel the first two principal components (PC) are plotted, as well
+as the projections of the fitting parameters in the two dimensional PC space.
+Each dot here is linked to the fitting data and to the corresponding fit plot.
+By hovering over a dot, the data will show up.
+
+In the right panel, the results of the ``SpectralClustering`` method of
+``scikit-learn`` are shown.
+Here the mean spectra of the clusters with the most spectra are presented.
+The colors of the spectra correspond to the colors in the PC plot in order to
+easen the analysis of the data.
+
+Additionally to the clusters' mean spectra, it might be interesting to
+plot histogrammed fitting parameters of a cluster as well. The parameters are
+plotted in the same plot as the mean spectra, to get a fast overview.
+Here for example, the ``center`` and the ``fwhm`` of selected peak functions
+are plotted.
+
+The script can be tuned to the analysts' needs. Details on the different
+tuning optins are described in the script.

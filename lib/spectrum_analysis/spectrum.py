@@ -1,4 +1,10 @@
+"""
+Spectrum class to work with any x, y structured data.
+"""
 import os
+import re
+from warnings import warn
+
 import numpy as np
 
 import matplotlib
@@ -8,15 +14,12 @@ import pywt                             # for wavelet operations
 from statsmodels.robust import mad      # median absolute deviation from array
 from scipy.optimize import curve_fit    # for interpolating muons
 
-from lmfit.models import *
+from lmfit.models import ConstantModel, PolynomialModel, VoigtModel, \
+                         BreitWignerModel, LorentzianModel, GaussianModel
 
-from spectrum_analysis.starting_params import *
-from spectrum_analysis.customwarnings import *
+from spectrum_analysis.starting_params import StartingParameters
+from spectrum_analysis.customwarnings import ParameterWarning
 
-"""
-This module contains the spectrum class to work with any x, y structured
-data.
-"""
 
 class spectrum(object):
     """
@@ -76,13 +79,13 @@ class spectrum(object):
     def label(self):
         return self.file.split(os.sep)[-1].split('.')[-2]
 
-    def get_file(self, dir, prefix, datatype, suffix='', label=''):
+    def get_file(self, directory, prefix, datatype, suffix='', label=''):
         """
         Returns a filename
 
         Parameters
         ----------
-        dir : string
+        directory : string
             Directory where to find the file.
 
         prefix : string
@@ -100,15 +103,16 @@ class spectrum(object):
             Retruns a string constructed as defined by the function.
         """
         if (suffix == '') and (prefix != '') and (label == ''):
-            return os.path.join(dir, f'{prefix}_{self.label}.{datatype}')
+            return os.path.join(directory, f'{prefix}_{self.label}.{datatype}')
         elif (prefix == '') and (suffix != '') and (label == ''):
-            return os.path.join(dir, f'{self.label}_{suffix}.{datatype}')
+            return os.path.join(directory, f'{self.label}_{suffix}.{datatype}')
         elif (label != '') and (prefix == ''):
-            return os.path.join(dir, f'{label}.{datatype}')
+            return os.path.join(directory, f'{label}.{datatype}')
         elif (label != '') and (prefix != ''):
-            return os.path.join(dir, f'{prefix}_{label}.{datatype}')
+            return os.path.join(directory, f'{prefix}_{label}.{datatype}')
         else:
-            return os.path.join(dir, f'{prefix}_{suffix}_{self.label}.{datatype}')
+            return os.path.join(directory,
+                                f'{prefix}_{suffix}_{self.label}.{datatype}')
 
     def PlotVerticalLines(self, color, fig, jupyter=False):
         """
@@ -140,10 +144,10 @@ class spectrum(object):
             if event.button:
                 xregion.append(event.xdata)
                 # plot vertical lines to mark chosen region
-                plt.vlines(x = event.xdata,
-                           color = color,
-                           linestyle = '--',
-                           ymin = plt_ymin, ymax = plt_ymax)
+                plt.vlines(x=event.xdata,
+                           color=color,
+                           linestyle='--',
+                           ymin=plt_ymin, ymax=plt_ymax)
                 # fill selected region with transparent colorbar
                 if(len(xregion) % 2 == 0 & len(xregion) != 1):
                     # define bar height
@@ -152,18 +156,18 @@ class spectrum(object):
                     barwidth = np.array([xregion[-1] - xregion[-2]])
                     # fill region between vertical lines with prior defined bar
                     plt.bar(xregion[-2],
-                            height = barheight, width = barwidth,
-                            bottom = plt_ymin,
-                            facecolor = color,
-                            alpha = 0.2,
-                            align = 'edge',
-                            edgecolor = 'black',
-                            linewidth = 5)
+                            height=barheight, width=barwidth,
+                            bottom=plt_ymin,
+                            facecolor=color,
+                            alpha=0.2,
+                            align='edge',
+                            edgecolor='black',
+                            linewidth=5)
                 fig.canvas.draw()
 
         # actual execution of the defined function onclickbase
         cid = fig.canvas.mpl_connect('button_press_event', onclickbase)
-        if jupyter == True:
+        if jupyter:
             pass
         else:
             figManager = plt.get_current_fig_manager()  # get current figure
@@ -171,18 +175,18 @@ class spectrum(object):
 
         return xregion
 
-    def FormatyLabelAndTicks(self, plt, name='Scattered light intensity',
+    def FormatyLabelAndTicks(self, plot, name='Scattered light intensity',
                              unit='arb. u.'):
         # get tickvalues and reduce the decimals
         tickvalues, ticklabels = plt.yticks()
         newvalues, max_exp = self.ReduceDecimals(tickvalues)
         ticklabels = [f'{x:1.2f}' for x in newvalues]
 
-        plt.ylabel(f'{name} (10$^{max_exp:1.0f}$ {unit})')
-        plt.yticks(tickvalues, ticklabels)
+        plot.ylabel(f'{name} (10$^{max_exp:1.0f}$ {unit})')
+        plot.yticks(tickvalues, ticklabels)
 
-    def FormatxLabelAndTicks(self, plt, name='Raman shift', unit='cm$^{-1}$'):
-        plt.xlabel(f'{name} ({unit})')
+    def FormatxLabelAndTicks(self, plot, name='Raman shift', unit='cm$^{-1}$'):
+        plot.xlabel(f'{name} ({unit})')
 
     def PlotRawSpectrum(self, x, y):
         matplotlib.rcParams.update({'font.size': 12})
@@ -193,16 +197,18 @@ class spectrum(object):
         self.FormatxLabelAndTicks(plt)
         self.FormatyLabelAndTicks(plt)
 
-        fig.savefig(self.get_file(dir=self.rawdir, prefix=self.rawname,
+        fig.savefig(self.get_file(directory=self.rawdir, prefix=self.rawname,
                                   datatype='png'), dpi=300)
-        plt.close()
+        fig.clf()
+        plt.close(fig)
 
         print(f'Raw Spectrum {self.label} plotted')
 
     def SelectRegion(self, x, y, **kwargs):
         """
         Function that lets the user select a region by running the
-        method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
+        method
+        :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`.
 
         Parameters
         ----------
@@ -224,8 +230,8 @@ class spectrum(object):
         fig, ax = plt.subplots()
         ax.plot(x, y, 'b.', label='Data')
         ax.set_title(f'Spectrum {self.label} '
-                      '\nSelect the part of the spectrum you wish to '
-                      'consider by clicking into the plot.')
+                     '\nSelect the part of the spectrum you wish to '
+                     'consider by clicking into the plot.')
 
         # select region of interest
         xregion = self.PlotVerticalLines('green', fig, **kwargs)
@@ -251,7 +257,8 @@ class spectrum(object):
     def ReduceRegion(self, x, y, xmin, xmax):
         """
         Function that calculates the reduced spectra, as selected before
-        by the method :func:`SelectRegion() <spectrum.spectrum.SelectRegion()>`.
+        by the method
+        :func:`SelectRegion() <spectrum.spectrum.SelectRegion()>`.
 
         Parameters
         ----------
@@ -321,7 +328,7 @@ class spectrum(object):
         return grouped_array
 
     def DetectMuonsWavelet(self, y, thresh_mod=1.0, wavelet='sym8',
-                                 level=1, prnt=False, mode='soft'):
+                           level=1, prnt=False, mode='soft'):
         """
         Detect muons for removal an returns non vanishing indices.
 
@@ -417,7 +424,8 @@ class spectrum(object):
             Prints if muons were found in the spectrum of interest.
 
         **kwargs
-            see method :func:`DetectMuonsWavelet() <spectrum.spectrum.DetectMuonsWavelet()>`
+            see method
+            :func:`DetectMuonsWavelet() <spectrum.spectrum.DetectMuonsWavelet()>`
 
         Returns
         -------
@@ -442,7 +450,7 @@ class spectrum(object):
 
                 # calculate approximated y values and remove muon
                 for index in muon[limit:-limit]:
-                    y[index] = self.linear(x[index],*popt)
+                    y[index] = self.linear(x[index], *popt)
         elif prnt:
             print('No muons found.')
 
@@ -452,7 +460,8 @@ class spectrum(object):
         """
         Function that lets the user distinguish between the background
         and the signal. It runs the
-        method :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`
+        method
+        :func:`PlotVerticalLines() <spectrum.spectrum.PlotVerticalLines()>`
         to select the regions that do not belong to the background and
         are therefore not used for background fit.
 
@@ -481,14 +490,14 @@ class spectrum(object):
         fig, ax = plt.subplots()
         ax.plot(x, y, label='Data', color=color)
         ax.set_title(f'Spectrum {self.label}'
-                      '\nSelect the area of the spectrum you wish to exclude'
-                      'from the background by clicking into the plot\n'
+                     '\nSelect the area of the spectrum you wish to exclude'
+                     'from the background by clicking into the plot\n'
                      f'({degree} degree polynomial assumed)')
 
         # choose the region
         xregion = self.PlotVerticalLines('red', fig, **kwargs)
 
-        plt.legend(loc = 'upper right')
+        plt.legend(loc='upper right')
         plt.show()
 
         return xregion
@@ -514,7 +523,7 @@ class spectrum(object):
         """
         # xregion[0] is the lowest border
         relevant = (x <= xregion[0])
-        for i in range(1, len(xregion) - 2, 2): # upper borders i
+        for i in range(1, len(xregion) - 2, 2):  # upper borders i
             # take only data between the borders
             relevant = relevant | ((x >= xregion[i]) &
                                    (x <= xregion[i + 1]))
@@ -565,7 +574,7 @@ class spectrum(object):
 
         # save the baseline
         file = self.get_file(self.basdir, prefix='',
-                        suffix='baseline', datatype='dat')
+                             suffix='baseline', datatype='dat')
         np.savetxt(file, np.column_stack([x, baseline]))
 
         return baseline
@@ -600,7 +609,7 @@ class spectrum(object):
         threshold = sigma * np.sqrt(2 * np.log(len(y)))
 
         # calculate thresholded coefficients
-        for i in range(1,len(coeff)):
+        for i in range(1, len(coeff)):
             coeff[i] = pywt.threshold(coeff[i], value=threshold, mode='soft')
 
         # reconstruct the signal using the thresholded coefficients
@@ -632,7 +641,7 @@ class spectrum(object):
         ymax :
             Maximum of the input array.
         """
-        if ymax == None:
+        if ymax is None:
             ymax = np.max(y)
         ynormed = y/ymax
 
@@ -656,15 +665,15 @@ class spectrum(object):
         # plot fourier transformed data
         ax.plot(x_fft, abs(self.RemoveIndex(y_fft)), 'b-')
         ax.set_title(f'Fourier transform of Spectrum {self.label}'
-                      ' Select the maximum of the unwanted frequency.\n'
-                      ' Frequencies close to 0 are removed for better'
-                      ' visibility. Only one frequency selectable!')
+                     ' Select the maximum of the unwanted frequency.\n'
+                     ' Frequencies close to 0 are removed for better'
+                     ' visibility. Only one frequency selectable!')
         # arrays of initial values for the fits
         xpeak, ypeak = self.PlotPeaks(fig, ax)
         plt.show()
         # store the chosen values
         if xpeak != []:
-            np.savetxt(self.get_file(dir=self.tmpdir, prefix=self.tmpfft,
+            np.savetxt(self.get_file(directory=self.tmpdir, prefix=self.tmpfft,
                                      datatype='dat'),
                        np.transpose([np.array(xpeak),
                                      np.array(ypeak)]))
@@ -706,10 +715,10 @@ class spectrum(object):
             want to check if the tolerance is set properly.
         """
         # get the selected peak position
-        peakfile = self.get_file(dir=self.tmpdir, prefix=self.tmpfft,
+        peakfile = self.get_file(directory=self.tmpdir, prefix=self.tmpfft,
                                  datatype='dat')
         if os.path.exists(peakfile):
-            xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+            xpeak, ypeak = np.genfromtxt(peakfile, unpack=True)
             # search the closest index and generate min and max values
             index = np.abs(x_fft - xpeak).argmin()
             modifiedSpec = self.RemoveIndex(y_fft, index=index, **kwargs)
@@ -724,7 +733,7 @@ class spectrum(object):
                          label='Modified frequencies')
                 plt.title('Frequency spectrum of the selected spectrum.')
                 plt.legend()
-                figManager = plt.get_current_fig_manager()  # get current figure
+                figManager = plt.get_current_fig_manager()  # get current fig
                 figManager.full_screen_toggle()           # show it maximized
                 plt.show()
         else:
@@ -753,7 +762,7 @@ class spectrum(object):
         xpeak = []  # x and
         ypeak = []  # y arrays for peak coordinates
         global line
-        line, = ax.plot(xpeak, ypeak, 'ro', markersize = 10)
+        line, = ax.plot(xpeak, ypeak, 'ro', markersize=10)
 
         def onclickpeaks(event):
             """
@@ -781,7 +790,7 @@ class spectrum(object):
 
         # actual execution of the defined function oneclickpeaks
         cid = fig.canvas.mpl_connect('button_press_event', onclickpeaks)
-        if jupyter == True:
+        if jupyter:
             pass
         else:
             figManager = plt.get_current_fig_manager()  # get current figure
@@ -823,15 +832,15 @@ class spectrum(object):
             # plot corrected data
             ax.plot(x, y, 'b.')
             ax.set_title(f'Spectrum {self.label}'
-                          '\nBackground substracted, smoothed,'
-                          ' normalized spectrum\n Select the maxima of the '
+                         '\nBackground substracted, smoothed,'
+                         ' normalized spectrum\n Select the maxima of the '
                          f'{peaktype}-PEAKS to fit.')
             # arrays of initial values for the fits
             xpeak, ypeak = self.PlotPeaks(fig, ax, **kwargs)
             plt.show()
 
             # store the chosen initial values
-            np.savetxt(self.get_file(dir=self.tmpdir, prefix=self.tmploc,
+            np.savetxt(self.get_file(directory=self.tmpdir, prefix=self.tmploc,
                                      datatype='dat', suffix=peaktype),
                        np.transpose([np.array(xpeak),
                                      np.array(ypeak)]))
@@ -862,15 +871,15 @@ class spectrum(object):
             *Model(prefix = prefix, nan_policy = 'omit').
             The prefix contains the peaktype and i.
         """
-        prefix = peaktype + '_p'+ str(i + 1) + '_'
+        prefix = peaktype + '_p' + str(i + 1) + '_'
         if peaktype == 'voigt':
-            return VoigtModel(prefix = prefix, nan_policy = 'omit')
+            return VoigtModel(prefix=prefix, nan_policy='omit')
         elif peaktype == 'breit_wigner':
-            return BreitWignerModel(prefix = prefix, nan_policy = 'omit')
+            return BreitWignerModel(prefix=prefix, nan_policy='omit')
         elif peaktype == 'lorentzian':
-            return LorentzianModel(prefix = prefix, nan_policy = 'omit')
+            return LorentzianModel(prefix=prefix, nan_policy='omit')
         elif peaktype == 'gaussian':
-            return GaussianModel(prefix = prefix, nan_policy = 'omit')
+            return GaussianModel(prefix=prefix, nan_policy='omit')
 
     def GenerateModel(self, peaks):
         """
@@ -887,28 +896,28 @@ class spectrum(object):
         model : lmfit.models.CompositeModel
             Fitmodel for the spectrum.
         """
-        model = ConstantModel() # Add a constant for a better fit
+        model = ConstantModel()  # Add a constant for a better fit
 
         # go through all defined peaks
         for peaktype in peaks:
-            peakfile = self.get_file(dir=self.tmpdir, prefix=self.tmploc,
+            peakfile = self.get_file(directory=self.tmpdir, prefix=self.tmploc,
                                      datatype='dat', suffix=peaktype)
 
             # check, if the current peaktype has been selected
             if(os.stat(peakfile).st_size > 0):
                 # get the selected peak positions
-                xpeak, ypeak = np.genfromtxt(peakfile, unpack = True)
+                xpeak, ypeak = np.genfromtxt(peakfile, unpack=True)
                 # necessary if only one peak is selected
                 if type(xpeak) == np.float64:
                     xpeak = [xpeak]
                     ypeak = [ypeak]
 
-                #define starting values for the fit
+                # define starting values for the fit
                 for i in range(0, len(xpeak)):
                     # prefix for the different peaks from one model
                     temp = self.ChoosePeakType(peaktype, i)
                     temp = StartingParameters(temp, peaks, xpeak, ypeak, i)
-                    model += temp # add the models to 'model'
+                    model += temp  # add the models to 'model'
 
         return model
 
@@ -934,7 +943,7 @@ class spectrum(object):
         fit_val = np.array([fit.params[key].value for key in fit.params.keys()])
         names = np.array([fit.params[key].name for key in fit.params.keys()])
 
-        lmt = 0.01 # percentage distance to the bounds leading to a warning
+        lmt = 0.01  # percentage distance to the bounds leading to a warning
 
         # mask = True if best value is near upper or lower bound
         low_mask = fit_val[inf_mask] <= low_lmt[inf_mask] + lmt * range_lmt
@@ -944,13 +953,13 @@ class spectrum(object):
         if True in low_mask:
             warn(f'The parameter(s) {(names[inf_mask])[low_mask]} of '
                  f'spectrum {self.label} are close to chosen low limits.',
-                  ParameterWarning)
+                 ParameterWarning)
 
         # warn if one of the parameters has reached the upper bound
         if True in hig_mask:
             warn(f'The parameter(s) {(names[inf_mask])[hig_mask]} of '
                  f'spectrum {self.label} are close to chosen high limits.',
-                  ParameterWarning)
+                 ParameterWarning)
 
     def FitSpectrum(self, x, y, peaks):
         """
@@ -971,7 +980,8 @@ class spectrum(object):
         :func:`~spectrum.SaveFitParams`.
         The fit parameters values that are derived from the fit parameters
         are individual for each line shape.
-        Especially parameters of the BreitWignerModel() is adapted to our research.
+        Especially parameters of the BreitWignerModel() is adapted to our
+        research.
 
         **VoigtModel():**
             |'center': x value of the maximum
@@ -1037,8 +1047,8 @@ class spectrum(object):
         # create the fit parameters and fit
         pars = model.make_params()
         fitresults = model.fit(y, pars, x=x,
-                                    method='leastsq',
-                                    scale_covar=True)
+                               method='leastsq',
+                               scale_covar=True)
 
         # test if any starting limits were reached and print to console
         self.TestLimits(pars, fitresults)
@@ -1066,7 +1076,7 @@ class spectrum(object):
         for name in components.keys():
             if (name != 'constant'):
                 ax.plot(x, (components[name] + components['constant']) * ymax,
-                        'k-', linewidth = 0.5, zorder = 0)
+                        'k-', linewidth=0.5, zorder=0)
 
     def PlotConfidence(self, x, ax, ymax, fitresults, fitline):
         """
@@ -1094,14 +1104,11 @@ class spectrum(object):
             # plot confidence band
             ax.fill_between(x, (fitline + confidence) * ymax,
                                (fitline - confidence) * ymax,
-                 color = 'r', linewidth = 1, alpha = 0.5, zorder = 1,
-                 label = '3$\sigma$')
+                            color='r', linewidth=1, alpha=0.5, zorder=1,
+                            label='3$\sigma$')
 
     def ReduceDecimals(self, values):
-        """
-        Function that reduces the decimal places to one and returns the
-        values and the corresponding exponent.
-        """
+        """Reduce decimal places to one and return exponent."""
         # look for zeros and replace them with negligible exponent
         values[values == 0] = 1e-256
         # get exponents of the values and round them to smallest integer
@@ -1156,40 +1163,42 @@ class spectrum(object):
         self.PlotComponents(x, ax, ymax, comps)
         self.PlotConfidence(x, ax, ymax, fitresults, fitline)
 
-        fig.legend(loc = 'upper right')
+        fig.legend(loc='upper right')
         plt.title(f'Fit to spectrum {self.label}')
 
         self.FormatxLabelAndTicks(plt)
         self.FormatyLabelAndTicks(plt)
 
         # save figures
-        fig.savefig(self.get_file(dir=self.pltdir, prefix=self.pltname,
+        fig.savefig(self.get_file(directory=self.pltdir, prefix=self.pltname,
                                   datatype='pdf'))
-        fig.savefig(self.get_file(dir=self.pltdir, prefix=self.pltname,
+        fig.savefig(self.get_file(directory=self.pltdir, prefix=self.pltname,
                                   datatype='png'), dpi=300)
 
         if show:
-            if jupyter == True:
+            if jupyter:
                 pass
             else:
-                figManager = plt.get_current_fig_manager()  # get current figure
+                figManager = plt.get_current_fig_manager()  # get current fig
                 figManager.full_screen_toggle()           # show it maximized
             plt.show()
 
-        plt.close()
+        fig.clf()
+        plt.close(fig)
 
         # save the fitline
         file = self.get_file(self.fitdir, prefix='',
-                        suffix='fitline', datatype='dat')
+                             suffix='fitline', datatype='dat')
         np.savetxt(file, np.column_stack([x, fitline * ymax]))
 
     def ScaleParameters(self, ymax, peakparameter, value, error):
+        """Scale parameters with ymax."""
         # if parameter is height or amplitude or intensity
         # it has to be scaled properly as the fit was normalized
         if ((peakparameter == 'amplitude')
-            or (peakparameter == 'height')
-            or (peakparameter == 'intensity')
-            or (peakparameter == 'c')):
+                or (peakparameter == 'height')
+                or (peakparameter == 'intensity')
+                or (peakparameter == 'c')):
             value = value * ymax
             if error is not None:
                 error = error * ymax
@@ -1201,7 +1210,8 @@ class spectrum(object):
         return value, error
 
     def SaveSpec(self, ymax, peak, params):
-        file = self.get_file(dir=self.pardir_spec, prefix='',
+        """Save parameters of each spectrum."""
+        file = self.get_file(directory=self.pardir_spec, prefix='',
                              suffix=peak[:-1], datatype='dat')
         with open(file, 'w') as f:
             # iterate through all fit parameters
@@ -1223,10 +1233,11 @@ class spectrum(object):
                             f'{value:>13.5f} +/- {error:>11.5f}\n')
 
     def SaveBackground(self, bgfit, fit, ymax):
+        """Save background."""
         bgparams = bgfit.params
         fitparams = fit.params
 
-        file = self.get_file(dir=self.pardir_spec, prefix='',
+        file = self.get_file(directory=self.pardir_spec, prefix='',
                              suffix='background', datatype='dat')
         with open(file, 'w') as f:
             # save constant from fitmodel
@@ -1249,10 +1260,11 @@ class spectrum(object):
 
         # print which spectrum is saved
         print(f'Spectrum {self.label} '
-               'Backgrounds saved')
+              'Backgrounds saved')
 
     def SaveFuncParams(self, savefunc, ymax, fitresults, peaks):
-        """
+        """Save all parameters depending on the fit function.
+
         The optimized line shapes as well as the corresponding fit parameters
         with uncertainties are saved in several folders, all contained in the
         folder self.redir.
@@ -1286,4 +1298,5 @@ class spectrum(object):
               f'{str(savefunc).split("Save")[-1].split(" ")[0]}s saved')
 
     def SaveFitParams(self, ymax, fitresults, peaks):
+        """Save fit parameters."""
         self.SaveFuncParams(self.SaveSpec, ymax, fitresults, peaks)

@@ -1,9 +1,12 @@
+"""Data read in for the spectrum analysis package."""
 import os
 import glob
 import numpy as np
 import pandas as pd
 
-def GetData(file, measurement='', prnt=False, xdata='Distance', ydata='µ', **kwargs):
+
+def GetData(file, measurement='', prnt=False,
+            xdata='Distance', ydata='µ', **kwargs):
     """
     Get data of one specified spectrum.
 
@@ -40,7 +43,6 @@ def GetData(file, measurement='', prnt=False, xdata='Distance', ydata='µ', **kw
     y : numpy.array
         Read in data of the y-axis.
     """
-
     if os.path.isfile(file):
         if measurement == '':
             x, y = np.genfromtxt(file, unpack=True, **kwargs)
@@ -48,8 +50,8 @@ def GetData(file, measurement='', prnt=False, xdata='Distance', ydata='µ', **kw
                 print('Simple xy Data was read.')
         elif measurement == 'xps':
             x, y = np.genfromtxt(file, unpack=True,
-                                       skip_header=1,
-                                       usecols=(0,10), **kwargs)
+                                 skip_header=1,
+                                 usecols=(0, 10), **kwargs)
             if prnt:
                 print('XPS Data from DELTA was read.')
         elif measurement == 'tribo':
@@ -67,10 +69,11 @@ def GetData(file, measurement='', prnt=False, xdata='Distance', ydata='µ', **kw
           'You need to choose a different spectrum to read in.')
     return np.zeros([1]), np.zeros([1])
 
+
 def Teller(number, kind, location='folder'):
     """
-    Function that prints out how many instances there are in a
-    location.
+    Print out how many instances there are in a location.
+
     Parameters
     ----------
     number : int
@@ -87,10 +90,12 @@ def Teller(number, kind, location='folder'):
         print(f'There is {number} {kind} in this {location}.')
         print()
 
+
 def GetFolderContent(folder, filetype,
-                     object='spectra', quiet=False):
+                     objects='spectra', quiet=False):
     """
-    Get a list of all files of a defined type from a folder
+    Get a list of all files of a defined type from a folder.
+
     Parameters
     ----------
     folder : string
@@ -98,7 +103,7 @@ def GetFolderContent(folder, filetype,
     filetype : string
         Ending of the file types that should be analyzed.
         For example 'txt', 'csv' or 'dat'.
-    object : string, default : 'spectra'
+    objects : string, default : 'spectra'
         Type of the objects that are analyzed.
     quiet : boolean, default : False
         Whether the command line should tell how many files are in
@@ -118,27 +123,28 @@ def GetFolderContent(folder, filetype,
 
     # tell the number of files in the requested folder
     if not quiet:
-        Teller(numberOfFiles, object)
+        Teller(numberOfFiles, objects)
 
     return listOfFiles, numberOfFiles
 
+
 def VStack(i, x, xtemp):
-    """
-    Stacks arrays
-    """
+    """Stacks arrays."""
     if i != 0:
         x = np.vstack((x, xtemp))
     else:
         x = np.array(xtemp)
         if len(x.shape) == 1:
-            x = x.reshape(1,len(x))
+            x = x.reshape(1, len(x))
         if len(x.shape) == 0:
-            x = x.reshape(1,1)
+            x = x.reshape(1, 1)
     return x
+
 
 def GetAllData(listOfFiles, measurement='', prnt=False, **kwargs):
     """
     Get data of the mapping.
+
     Parameters
     ----------
     measurement : string, default : ''
