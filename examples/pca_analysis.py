@@ -410,7 +410,8 @@ for folder in mapFolderList:
         ax_twin.set_ylabel('Counts')
         ax_twin.legend(ncol=len(histogramm_parameters),
                        bbox_to_anchor=(0, 1.01), loc='lower left',
-                       borderaxespad=0.)
+                       borderaxespad=0., prop={'size': 7})
+        fig.tight_layout()
         plt.savefig(
             (f'{clustering}{os.sep}allclusters{os.sep}'
              f'{mapp.folder.replace(os.sep, "_")}'
