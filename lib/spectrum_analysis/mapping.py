@@ -23,9 +23,6 @@ This module contains the mapping class to work multiple x, y structured
 data sets.
 """
 
-matplotlib.use('Agg')  # might need adjustment in case of memory leakage
-                       # as some backends are leaking
-
 class scatter():
     def __init__(self, x, y, ax, msize=1, area=None, **kwargs):
         marker_size = 50

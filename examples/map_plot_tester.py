@@ -3,6 +3,7 @@ import re
 import shutil
 
 import numpy as np
+import matplotlib
 
 from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
@@ -11,6 +12,9 @@ from peaknames import *
 import pandas as pd
 import tracemalloc
 from pympler import muppy, summary
+
+matplotlib.use('Agg')  # might need adjustment in case of memory leakage
+                       # as some backends are leaking
 
 debug = False
 
