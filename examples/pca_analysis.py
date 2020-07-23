@@ -42,12 +42,12 @@ display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
 print_PC_components = False        # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
-plot_only = {'fwhm': {'linestyle': '-',
-                      'plot_label': True},
-             'center': {'linestyle': '--',
-                        'plot_label': True},
-             'height': {'linestyle': '-.',
-                        'plot_label': True},
+plot_only_dirs = {'fwhm': {'linestyle': '-',
+                           'plot_label': True},
+                  'center': {'linestyle': '--',
+                             'plot_label': True},
+                  'height': {'linestyle': '-.',
+                             'plot_label': True},
              }
 clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 
@@ -281,7 +281,7 @@ for folder in mapFolderList:
             peaknumber = int(parameter.split('_')[-2][-1])
             peaktype = parameter[0][0]
             param = parameter.split('_')[-1]
-            if param in plot_only.keys():
+            if param in plot_only_dirs.keys():
                 if peaktype == 'b':
                     color = 'b'
                 elif peaktype == 'l':
@@ -293,9 +293,9 @@ for folder in mapFolderList:
                 color = (np.array(to_rgba(color))
                          - np.array((0, 0, 0, 0.3 * (peaknumber-1))))
                 line = ax.plot((0, pcx[i]), (0, pcy[i]), color=color, zorder=3,
-                               linestyle=plot_only[param]['linestyle'])
+                               linestyle=plot_only_dirs[param]['linestyle'])
                 plot_lines.append(line)
-                if plot_only[param]['plot_label']:
+                if plot_only_dirs[param]['plot_label']:
                     ax.text(pcx[i]*1.15, pcy[i]*1.15,
                             f'{peaktype}{peaknumber}_{param[0:3]}',
                             ha='center', va='center', fontsize=7, zorder=4)
