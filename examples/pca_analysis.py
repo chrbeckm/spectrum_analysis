@@ -48,7 +48,7 @@ plot_only_dirs = {'fwhm': {'linestyle': '-',
                              'plot_label': True},
                   'height': {'linestyle': '-.',
                              'plot_label': True},
-             }
+                  }
 clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
