@@ -105,7 +105,7 @@ Fitting
 12. If you selected ``breit_wigner`` as one of your fitting functions, you
     might want to analyze its ``fwhm``. The automatic calculation as been
     removed     from recent versions of ``lmfit`` (see `lmfit google-Group
-    <https://groups.google.com/forum/#!topic/lmfit-py/IctDA3DEjrE>`).
+    <https://groups.google.com/forum/#!topic/lmfit-py/IctDA3DEjrE>`_).
     You can calculate the ``fwhm`` using the ``fwhm_calculator.py``. Just
     change the ``folders`` array accordingly to your fit folder and run it.
 
