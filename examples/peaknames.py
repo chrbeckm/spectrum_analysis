@@ -37,7 +37,9 @@ breit_wigner_p1 = {'amplitude': {'name': 'Area of peakfunction A$\mathrm{_{b1}}$
 
 l_p1_div_bw_p1 = {'height': {'name': 'Intensity Ratio',
                              'unit': 'cts/cts'}}
-bw_p1_div_l_p1 = {'height': {'name': 'Intensity Ratio',
+bw_p1_div_l_p1 = {'fwhm': {'name': 'FWHM Ratio',
+                           'unit': 'cm$^{-1}$/cm$^{-1}$'},
+                  'height': {'name': 'Intensity Ratio',
                              'unit': 'cts/cts'}}
 bw_p1_sub_l_p1 = {'center': {'name': 'Distance',
                              'unit': 'cm$^{-1}$'}}

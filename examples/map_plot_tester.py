@@ -60,6 +60,10 @@ top = 'lorentzian_p1_height'
 bot = 'breit_wigner_p1_height'
 opt = 'div'
 
+top2 = 'breit_wigner_p1_fwhm'
+bot2 = 'lorentzian_p1_fwhm'
+opt2 = 'div'
+
 # plot peak distance
 dist1 = 'breit_wigner_p1_center'
 dist2 = 'lorentzian_p1_center'
@@ -293,6 +297,14 @@ for folder in mapFolderList:
     parameter_name, values = PlotParameterOperations(parameters, parameterList,
                                                      mapdims, step,
                                                      bot, top, opt,
+                                                     background=background,
+                                                     msize=msize, area=area)
+    dict_bottop = CreateMinMaxDict([values], [parameter_name], folder)
+    dict_minmax_global = UpdateGlobalDict(dict_minmax_global, dict_bottop)
+
+    parameter_name, values = PlotParameterOperations(parameters, parameterList,
+                                                     mapdims, step,
+                                                     top2, bot2, opt2,
                                                      background=background,
                                                      msize=msize, area=area)
     dict_bottop = CreateMinMaxDict([values], [parameter_name], folder)
