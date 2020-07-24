@@ -24,9 +24,11 @@ if debug:
 mapFolderList = [os.path.join('testdata', '1'),
                  os.path.join('testdata', '2')
                  ]
+
 dims = [(4, 4),
         (8, 2)
         ]
+
 stepsize = [10,
             10
             ]

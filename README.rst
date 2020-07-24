@@ -15,10 +15,14 @@ Needed packages are
 * lmfit>=0.9.11
 * matplotlib>=3.1.1
 * numpy>=1.16.4
+* pandas>=0.24.0
+* Pillow>=7.0.0
+* pytest>=5.3.5
 * PyWavelets>=1.0.1
+* scikit-image>=0.16.2
 * scipy>=1.3.0
 * statsmodels>=0.9.0
-* pandas>=0.24.0
+* svgpath2mpl>=0.2.1
 
 ==========
 Installing
@@ -44,12 +48,12 @@ Fitting
 
 ::
 
-  spec = sp.spectrum('testdata/0005')
+  spec = sp.spectrum(os.path.join('testdata', '1', '0005'))
 
 |   For a mapping it should read
 ::
 
-  map = mp.mapping(foldername='testdata')
+  mapp = mp.mapping(foldername=os.path.join('testdata', '1'))
 
 4. Define which peaks you want to use in your analysis.
    Implemented are ``gaussian``, ``lorentzian``, ``breit_wigner`` and
@@ -98,6 +102,13 @@ Fitting
     everything (data, results and plots) inside the newly created ``results``
     inside your data folder.
 
+12. If you selected ``breit_wigner`` as one of your fitting functions, you
+    might want to analyze its ``fwhm``. The automatic calculation as been
+    removed     from recent versions of ``lmfit`` (see `lmfit google-Group
+    <https://groups.google.com/forum/#!topic/lmfit-py/IctDA3DEjrE>`).
+    You can calculate the ``fwhm`` using the ``fwhm_calculator.py``. Just
+    change the ``folders`` array accordingly to your fit folder and run it.
+
 Plot Mappings
 ----------
 
@@ -119,14 +130,16 @@ The first lines of ``map_plot_tester.py`` should read
 
 ::
 
-  mapFolderList = ['testdata/1',
-  #                 'testdata/2'
+  mapFolderList = [os.path.join('testdata', '1'),
+                   os.path.join('testdata', '2')
                    ]
+
   dims = [(4, 4),
-  #        (8, 2)
+          (8, 2)
           ]
+
   stepsize = [10,
-  #           10
+             10
               ]
 
   # plot ratios
@@ -143,6 +156,12 @@ You can also adjust which two peak parameters (``top`` and ``bot``) should
 be linked by a specified operation (``opt``). Operations possible are
 ``'div'``, ``'mult'``, ``'add'`` and ``'sub'``. You can take any of the
 peakparameters found in ``results/fitparameter/peakwise/`` of your mapping.
+
+**Caution**
+If you want to analyse different parameter operations than presented in the
+example file or use more than one ``breit_wigner`` and two ``lorentzian``
+peaks, you need to modify the ``peaknames.py`` accordingly to your wishes.
+The dictionary is rather self-explanatory.
 
 Principal Component Analysis
 ----------
@@ -173,4 +192,14 @@ Here for example, the ``center`` and the ``fwhm`` of selected peak functions
 are plotted.
 
 The script can be tuned to the analysts' needs. Details on the different
-tuning optins are described in the script.
+tuning options are described in the script.
+
+In case of using the ``plot_parameter_directions = True`` option, the plots
+are saved to the ``SpectralClustering/directions`` directory. Setting the
+option to ``False`` the plots are saved in the ``SpectralClustering`` directory.
+The plots are saved in the corresponding mapping folder as well.
+
+Additionally all mean spectra of the clusters are saved to the
+``SpectralClustering/allclusters`` folder. Each file name contains information
+on the principal components (pc), the number of spectra (S) and the number of
+cluster of the corresponding plot.

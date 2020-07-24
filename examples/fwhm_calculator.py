@@ -1,4 +1,10 @@
-"""Calculate FWHM of BWF function."""
+"""
+Calculate FWHM of BWF function.
+
+Calculations are taken from:
+http://openafox.com/science/peak-function-derivations.html#breit-wigner-fano
+Errors are calculated by simplified error propagation.
+"""
 import os
 
 from spectrum_analysis import data
