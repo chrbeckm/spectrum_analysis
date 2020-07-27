@@ -148,6 +148,8 @@ def plotCluster(axes, clst_lbl, clst, rawspec, prnt=True):
     axs_twin.yaxis.set_major_locator(MaxNLocator(prune='both',
                                                  nbins=3,
                                                  integer=True))
+    axs_twin.set_ylabel('Counts')
+    axs_twin.yaxis.set_label_position('left')
     axs_twin.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
                   transform=axes.transAxes, fontsize=8,
                   bbox=dict(color='white', alpha=0.75, pad=3))
