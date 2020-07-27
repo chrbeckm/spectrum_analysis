@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from matplotlib.colors import to_rgba, CSS4_COLORS, ListedColormap
 from matplotlib.ticker import MaxNLocator
+from matplotlib import rcdefaults, rcParams
 
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
@@ -462,5 +463,7 @@ for folder in mapFolderList:
                      name='grid_pca', alpha=0.75, grid=True,
                      background=background, msize=msize,
                      plot_missing=False, area=None, colormap=cmap)
+    # set rcParams to default, as PlotMapping modifies it
+    rcdefaults()
 
     print(linebreaker + '\n' + linebreaker)
