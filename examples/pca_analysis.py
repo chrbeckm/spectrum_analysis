@@ -13,6 +13,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from matplotlib.colors import to_rgba, CSS4_COLORS
+from matplotlib.ticker import MaxNLocator
 
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
@@ -127,8 +128,6 @@ def plotCluster(axes, clst_lbl, clst, rawspec, prnt=True):
         print(f'Cluster {clst[1]}, containing {clst[0]} spectra.')
     axes.plot(clust_x[0], sum(clust_y)/len(clust_y),
               color=colors[clst[1]])
-    axes.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
-              transform=axes.transAxes, fontsize=8)
     # plot histogrammed fwhm and position of each cluster into plot
     axs_twin = axes.twinx()
     for param in histogramm_parameters:
@@ -137,11 +136,22 @@ def plotCluster(axes, clst_lbl, clst, rawspec, prnt=True):
         hist_params = parameters[param_idx][spectra[0]]
         peakname = '_'.join(param.split('_')[:-1])
         parametername = param.split("_")[-1]
+        label = peaknames[peakname][parametername]['name'].split(' ')[-1]
         axs_twin.hist(hist_params[hist_params != mapp.missingvalue],
-                      label=peaknames[peakname][parametername]['name'],
+                      label=label,
                       bins=bins, histtype='step', color=color)
         axs_twin.yaxis.tick_left()
         axs_twin.tick_params(axis='y', labelsize=7)
+
+    axes.yaxis.set_major_locator(MaxNLocator(prune='both',
+                                             nbins=3))
+    axs_twin.yaxis.set_major_locator(MaxNLocator(prune='both',
+                                                 nbins=3,
+                                                 integer=True))
+    axs_twin.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
+                  transform=axes.transAxes, fontsize=8,
+                  bbox=dict(color='white', alpha=0.75, pad=3))
+
     return axs_twin, (clst[1], clst[0])
 
 
@@ -370,6 +380,7 @@ for folder in mapFolderList:
     ax.set_ylabel(f'principal component {component_y + 1}')
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.001)
+
     if plot_parameter_directions:
         plt.savefig(
             (f'{clustering}{os.sep}directions{os.sep}'
