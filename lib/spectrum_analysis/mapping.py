@@ -802,7 +802,7 @@ class mapping(spectrum):
         maptype : string
             Plot any of the parameters in fitparameter/peakwise/
         xticker : int
-        colormap : string
+        colormap : string or colormap
             Defines the coloring of the mapping according to the `matplotlib
             colormaps <https://matplotlib.org/users/colormaps.html>`_
         """
@@ -895,7 +895,7 @@ class mapping(spectrum):
                                      color='black', linewidth=0.5, alpha=alpha)
 
             sclb = scatter(x, y, ax, c=plot_vector, msize=msize, area=area_corr,
-                           cmap='Reds', linewidth=0.5, alpha=alpha)
+                           cmap=colormap, linewidth=0.5, alpha=alpha)
             im = sclb.sc
             del sclb
         else:
@@ -966,14 +966,26 @@ class mapping(spectrum):
                            peak = peakshape,
                            label = zlabel,
                            unit = unit)
-        plt.savefig(savefile + '_' + colormap + '.pdf', format='pdf')
-        plt.savefig(savefile + '_' + colormap + '.png')
+        try:
+            if 'pca' in kwargs['name']:
+                clb.set_label('')
+                clb.set_ticks([])
+                clb.set_label('Clusters')
+        except KeyError:
+            pass
+
+        if isinstance(colormap, str):
+            colormap_name = colormap
+        else:
+            colormap_name = colormap.name
+        plt.savefig(f'{savefile}_{colormap_name}.pdf', format='pdf')
+        plt.savefig(f'{savefile}_{colormap_name}.png')
         plt.clf()
         plt.close(fig)
         del im, clb
         gc.collect()
 
-        print(plotname + ' ' + colormap + ' plotted')
+        print(f'{plotname} {colormap_name} plotted')
 
         return plot_matrix, plotname
 

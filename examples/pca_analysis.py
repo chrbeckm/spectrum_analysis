@@ -12,7 +12,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from matplotlib.colors import to_rgba, CSS4_COLORS
+from matplotlib.colors import to_rgba, CSS4_COLORS, ListedColormap
 from matplotlib.ticker import MaxNLocator
 
 from sklearn import preprocessing
@@ -33,6 +33,24 @@ n_clusters = [
     4,
     2,
     ]
+
+dims = [(4, 4),
+        (8, 2)
+        ]
+
+stepsize = [10,
+            10
+            ]
+
+# images need to be in folders specified in mapFolderList
+# best is to use png backgrounds, but jpgs work as well
+backgrounds = ['bg_test.png',
+               'bg_test.jpg'
+              ]
+
+msizes = [1.04,
+          1.04,
+]
 
 components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
@@ -201,6 +219,10 @@ for folder in mapFolderList:
     index = mapFolderList.index(folder)
     print(f'Mapping {index + 1} of {len(mapFolderList)}\n')
     print(f'{folder} mappings are plotted now.')
+    mapdims = dims[index]
+    step = stepsize[index]
+    background = folder + os.sep + backgrounds[index]
+    msize = msizes[index]
 
     mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
@@ -432,5 +454,13 @@ for folder in mapFolderList:
             dpi=300)
         #plt.show()
         plt.close()
+
+    cmap = ListedColormap(colors[0:max(cluster.labels_)+1])
+    mapp.PlotMapping('params', cluster.labels_+2, mapdims, step, name='pca',
+                     colormap=cmap)
+    mapp.PlotMapping('params', cluster.labels_+2, mapdims, step,
+                     name='grid_pca', alpha=0.75, grid=True,
+                     background=background, msize=msize,
+                     plot_missing=False, area=None, colormap=cmap)
 
     print(linebreaker + '\n' + linebreaker)
