@@ -35,21 +35,25 @@ n_clusters = [
     2,
     ]
 
-dims = [(4, 4),
+dims = [
+        (4, 4),
         (8, 2)
         ]
 
-stepsize = [10,
+stepsize = [
+            10,
             10
             ]
 
 # images need to be in folders specified in mapFolderList
 # best is to use png backgrounds, but jpgs work as well
-backgrounds = ['bg_test.png',
+backgrounds = [
+               'bg_test.png',
                'bg_test.jpg'
               ]
 
-msizes = [1.04,
+msizes = [
+          1.04,
           1.04,
 ]
 
