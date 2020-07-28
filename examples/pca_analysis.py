@@ -297,7 +297,7 @@ for folder in mapFolderList:
             ax_sum.remove(axs)
     for axs in ax_sum[0:-1]:
         axs.get_xaxis().set_ticks([])
-    ax_sum[0].set_title('Cluster sum spectra')
+    ax_sum[0].set_title('Cluster mean spectra')
     ax_sum[-1].set_xlabel('Wavenumber (cm$^{-1}$)')
 
     # set center, min and max of the plot
