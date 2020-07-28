@@ -172,7 +172,7 @@ def plotCluster(axes, clst_lbl, clst, rawspec, prnt=True):
     axs_twin.yaxis.set_major_locator(MaxNLocator(prune='both',
                                                  nbins=3,
                                                  integer=True))
-    axs_twin.set_ylabel('Counts')
+    axs_twin.set_ylabel('Spectra')
     axs_twin.yaxis.set_label_position('left')
     axs_twin.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
                   transform=axes.transAxes, fontsize=8,
@@ -452,7 +452,6 @@ for folder in mapFolderList:
         ax.set_ylabel('Intensity')
         ax_twin.yaxis.set_label_position('left')
         ax_twin.tick_params(axis='y', labelsize=12)
-        ax_twin.set_ylabel('Counts')
         ax_twin.legend(ncol=len(histogramm_parameters),
                        bbox_to_anchor=(0, 1.01), loc='lower left',
                        borderaxespad=0., prop={'size': 7})
