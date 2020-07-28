@@ -177,6 +177,10 @@ def plotCluster(axes, clst_lbl, clst, rawspec, prnt=True):
     axs_twin.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
                   transform=axes.transAxes, fontsize=8,
                   bbox=dict(color='white', alpha=0.75, pad=3))
+    __, y_max_val = axs_twin.get_ylim()
+    if y_max_val < 1:
+        axs_twin.yaxis.set_ticks([])
+        axs_twin.set_ylabel('')
 
     return axs_twin, (clst[1], clst[0])
 
