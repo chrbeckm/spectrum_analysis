@@ -4,6 +4,7 @@ Perform a PCA analysis of a fitted mapping.
 By hovering over the data points, the corresponding spectra
 show up.
 """
+import gc
 import os
 import shutil
 
@@ -32,7 +33,7 @@ mapFolderList = [
 # number of clusters (needed for SpectralClustering)
 n_clusters = [
     4,
-    2,
+    3,
     ]
 
 dims = [
@@ -471,3 +472,4 @@ for folder in mapFolderList:
     rcdefaults()
 
     print(linebreaker + '\n' + linebreaker)
+    gc.collect()
