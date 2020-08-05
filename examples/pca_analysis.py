@@ -79,6 +79,7 @@ clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 additional_fitplot_folder = 'testdata/2/results/plot'  # additional fit data
 show_both_images = False                               # True to display both
                                                        # fits in hovering plot
+shift_second_image = [0.8, 0]
 
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
 brim = 0.25           # minimal brim around plotted data
@@ -403,7 +404,7 @@ for folder in mapFolderList:
         ax.add_artist(ab)
         if show_both_images:
             additional_image = get_image(additional_fitplot_folder, label)
-            ac.xy = pos + [0.8, 0]
+            ac.xy = pos + shift_second_image
             ac.offsetbox = OffsetImage(additional_image)
             ax.add_artist(ac)
 
