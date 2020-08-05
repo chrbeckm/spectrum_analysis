@@ -76,6 +76,10 @@ plot_only_dirs = {'fwhm': {'linestyle': '-',
                   }
 clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 
+additional_fitplot_folder = 'testdata/2/results/plot'  # additional fit data
+show_both_images = False                               # True to display both
+                                                       # fits in hovering plot
+
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
 brim = 0.25           # minimal brim around plotted data
 
@@ -127,6 +131,14 @@ def createCluster(method, n_clust=3, min_samples=5):
         scat = plt.scatter(PC[clust.labels_ == -1, 0],
                            PC[clust.labels_ == -1, 1], c='k')
     return clust, scat
+
+
+def get_image(pltdir, label):
+    """Get image."""
+    img_name = f'{pltdir}{os.sep}fitplot_{label}.png'
+    img = Image.open(img_name)
+    img.thumbnail(imagesize, Image.ANTIALIAS)  # resize the image
+    return img
 
 
 def printPCAresults(pc_ana, param_list, print_components=False):
@@ -354,13 +366,15 @@ for folder in mapFolderList:
 
     # create annotation image
     label = mapp.listOfFiles[0].split(os.sep)[-1].split('.')[0]
-
-    imagename = f'{mapp.pltdir}{os.sep}fitplot_{label}.png'
-    image = Image.open(imagename)
-    image.thumbnail(imagesize, Image.ANTIALIAS)  # resize the image
+    image = get_image(mapp.pltdir, label)
     imagebox = OffsetImage(image)
     ab = AnnotationBbox(imagebox, (0, 0), xybox=imageshift,
                         boxcoords="offset points")
+    if show_both_images:
+        additional_image = get_image(additional_fitplot_folder, label)
+        additional_imagebox = OffsetImage(additional_image)
+        ac = AnnotationBbox(additional_imagebox, (0, 0), xybox=imageshift,
+                            boxcoords="offset points")
 
     # https://stackoverflow.com/questions/7908636/possible-to-make-labels-appear-when-hovering-over-a-point-in-matplotlib
     def update_annot(ind):
@@ -383,12 +397,15 @@ for folder in mapFolderList:
 
         # update immage annotation
         label = mapp.listOfFiles[idx].split(os.sep)[-1].split('.')[0]
-        imagename = f'{mapp.pltdir}{os.sep}fitplot_{label}.png'
-        image = Image.open(imagename)
-        image.thumbnail(imagesize, Image.ANTIALIAS)  # resize the image
+        image = get_image(mapp.pltdir, label)
         ab.xy = pos
         ab.offsetbox = OffsetImage(image)
         ax.add_artist(ab)
+        if show_both_images:
+            additional_image = get_image(additional_fitplot_folder, label)
+            ac.xy = pos + [0.8, 0]
+            ac.offsetbox = OffsetImage(additional_image)
+            ax.add_artist(ac)
 
     def hover(event):
         """Hovering behavoir."""
