@@ -119,7 +119,7 @@ for datafile in datafiles:
 
     # save figures
     fig.savefig(os.path.join(resfolder, f'{savename}_plot.pdf'))
-    fig.savefig(os.path.join(resfolder, f'{savename}_plot.png', dpi=300))
+    fig.savefig(os.path.join(resfolder, f'{savename}_plot.png'), dpi=300)
     plt.close()
 
 save_mu(startfile, start)
