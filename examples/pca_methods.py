@@ -137,8 +137,8 @@ def plotClusterOverview(mapping, ax_main, ax_arr, rank_clust, clust_lbl,
     minimum = min(len(ax_arr), len(rank_clust))
     for i in range(0, minimum):
         ax_twin, __ = plotCluster(ax_arr[i], clust_lbl, rank_clust[i], spectra,
-                                  colors, hist_params, param_list, params, nbins,
-                                  missing)
+                                  colors, hist_params, param_list, params,
+                                  nbins, missing)
         if i == 1:
             hnd, lbl = ax_twin.get_legend_handles_labels()
             ax_main.legend(hnd, lbl, ncol=len(hist_params),
