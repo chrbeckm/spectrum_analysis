@@ -10,20 +10,19 @@ import shutil
 
 import numpy as np
 
-from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from matplotlib.colors import to_rgba, CSS4_COLORS, ListedColormap
-from matplotlib.ticker import MaxNLocator
-from matplotlib import rcdefaults, rcParams
+from matplotlib import rcdefaults
 
-from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from sklearn.cluster import OPTICS, SpectralClustering
 
 from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 from peaknames import peaknames
+from pca_methods import addPoint, scaleParameters, createCluster, get_image, \
+                        printPCAresults, plotCluster, selectSpecType, \
+                        plotClusterOverview
 
 # define all data to plot mappings
 # 'mapfolder': The dir-path of the mapping to be plotted
@@ -83,135 +82,6 @@ bins = 10  # number of bins for histogrammed parameters
 
 linebreaker = '============================================================'
 
-
-def addPoint(scat, new_point, c='k'):
-    """Add point to scatter plot."""
-    old_off = scat.get_offsets()
-    new_off = np.concatenate([old_off, np.array(new_point, ndmin=2)])
-    old_c = scat.get_facecolors()
-    new_c = np.concatenate([old_c, np.array(to_rgba(c), ndmin=2)])
-
-    scat.set_offsets(new_off)
-    scat.set_facecolors(new_c)
-
-    scat.axes.autoscale_view()
-    scat.axes.figure.canvas.draw_idle()
-
-
-def scaleParameters(params):
-    """Scale parameters to [0, 1]."""
-    scaled_params = np.zeros_like(params)
-    for idx, param in enumerate(params):
-        min_max_scaler = preprocessing.MinMaxScaler()
-        scaled_param = min_max_scaler.fit_transform(
-            param.reshape(-1, 1))
-        scaled_params[idx] = scaled_param.reshape(1, -1)
-    return scaled_params
-
-
-def createCluster(method, n_clust=3, min_samples=5):
-    """Create cluster and plot the corresponding scatter plot."""
-    if method == 'SpectralClustering':
-        clust = SpectralClustering(n_clusters=n_clust)
-        clust.fit(PC)
-        scat = plt.scatter(-100, -100, zorder=2)
-    elif method == 'OPTICS':
-        clust = OPTICS(min_samples=min_samples)
-        clust.fit(PC)
-        scat = plt.scatter(PC[clust.labels_ == -1, 0],
-                           PC[clust.labels_ == -1, 1], c='k')
-    return clust, scat
-
-
-def get_image(pltdir, label):
-    """Get image."""
-    img_name = f'{pltdir}{os.sep}fitplot_{label}.png'
-    img = Image.open(img_name)
-    img.thumbnail(imagesize, Image.ANTIALIAS)  # resize the image
-    return img
-
-
-def printPCAresults(pc_ana, param_list, print_components=False):
-    """Print results of PCA analysis to command line."""
-    print(f'explained variance ratio '
-          f'({pc_ana.components_.shape[0]} components): '
-          f'{sum(pc_ana.explained_variance_ratio_):2.2f} '
-          f'({pc_ana.explained_variance_ratio_.round(2)})')
-    if print_components:
-        for j, principal_component in enumerate(pc_ana.components_):
-            print(f'Principal component {j+1}')
-            for idx, lbl in enumerate(param_list):
-                print(f'{principal_component[idx]: 2.4f} * {lbl}')
-            print()
-
-
-def plotCluster(axes, clst_lbl, clst, rawspec, prnt=True):
-    spectra = [clst_lbl == clst[1]]
-    clusterspectra = [name for j, name in enumerate(rawspec)
-                      if spectra[0][j]]
-    clust_x, clust_y = data.GetAllData(clusterspectra)
-    if prnt:
-        print(f'Cluster {clst[1]}, containing {clst[0]} spectra.')
-    axes.plot(clust_x[0], sum(clust_y)/len(clust_y),
-              color=colors[clst[1]])
-    # plot histogrammed fwhm and position of each cluster into plot
-    axs_twin = axes.twinx()
-    for param in histogramm_parameters:
-        param_idx = parameterList.index(param)
-        color = CSS4_COLORS[list(CSS4_COLORS)[param_idx+20]]
-        hist_params = parameters[param_idx][spectra[0]]
-        peakname = '_'.join(param.split('_')[:-1])
-        parametername = param.split("_")[-1]
-        label = peaknames[peakname][parametername]['name'].split(' ')[-1]
-        axs_twin.hist(hist_params[hist_params != mapp.missingvalue],
-                      label=label,
-                      bins=bins, histtype='step', color=color)
-        axs_twin.yaxis.tick_left()
-        axs_twin.tick_params(axis='y', labelsize=7)
-
-    axes.yaxis.set_major_locator(MaxNLocator(prune='both',
-                                             nbins=3))
-    axs_twin.yaxis.set_major_locator(MaxNLocator(prune='both',
-                                                 nbins=3,
-                                                 integer=True))
-    axs_twin.set_ylabel('Spectra')
-    axs_twin.yaxis.set_label_position('left')
-    axs_twin.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
-                  transform=axes.transAxes, fontsize=8,
-                  bbox=dict(color='white', alpha=0.75, pad=3))
-    __, y_max_val = axs_twin.get_ylim()
-    if y_max_val < 1:
-        axs_twin.yaxis.set_ticks([])
-        axs_twin.set_ylabel('')
-
-    return axs_twin, (clst[1], clst[0])
-
-
-def selectSpecType(mappng, plt_clust=False):
-    if plt_clust:
-        spectra, __ = data.GetFolderContent(mappng.fitdir, 'dat',
-                                            quiet=True)
-    else:
-        spectra, __ = data.GetFolderContent(mappng.folder, 'txt',
-                                            quiet=True)
-    return spectra
-
-
-def plotClusterOverview(mapping, ax_main, ax_arr, rank_clust, clust_lbl,
-                        plt_clust_fits=False):
-    spectra = selectSpecType(mapping, plt_clust_fits)
-    print('The clusters are')
-    minimum = min(len(ax_arr), len(rank_clust))
-    for i in range(0, minimum):
-        ax_twin, __ = plotCluster(ax_arr[i], clust_lbl, rank_clust[i], spectra)
-        if i == 1:
-            hnd, lbl = ax_twin.get_legend_handles_labels()
-            ax_main.legend(hnd, lbl, ncol=len(histogramm_parameters),
-                           bbox_to_anchor=(0, 1.01),  # legend on top pca plot
-                           loc='lower left', prop={'size': 6},
-                           borderaxespad=0.)
-
-
 if not os.path.exists(clustering):
     os.makedirs(clustering)
 
@@ -233,7 +103,7 @@ for key in mappings.keys():
     print(f'{folder} mappings are plotted now.')
     mapdims = mappings[key]['dims']
     step = mappings[key]['stepsize']
-    background = folder + os.sep + mappings[key]['background']
+    background = f'{folder}{os.sep}{mappings[key]["background"]}'
     msize = mappings[key]['markersize']
 
     mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
@@ -272,7 +142,8 @@ for key in mappings.keys():
     x = analyzed[:, component_x]
     y = analyzed[:, component_y]
     PC = np.vstack((x, y)).transpose()
-    cluster, sc = createCluster(clustering, mappings[key]['n_clusters'])
+    cluster, sc, PC = createCluster(clustering, PC,
+                                    mappings[key]['n_clusters'])
 
     # plot clustered data
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
@@ -288,6 +159,8 @@ for key in mappings.keys():
     # get four biggest clusters and plot the sum spectrum
     rankedcluster = sorted(zip(clustersizes, clustertypes), reverse=True)
     plotClusterOverview(mapp, ax, ax_sum, rankedcluster, cluster.labels_,
+                        colors, histogramm_parameters, parameterList,
+                        parameters, bins, mapp.missingvalue,
                         plt_clust_fits=plot_clustered_fitlines)
 
     # create labels and delete empty plots
@@ -356,12 +229,13 @@ for key in mappings.keys():
 
     # create annotation image
     label = mapp.listOfFiles[0].split(os.sep)[-1].split('.')[0]
-    image = get_image(mapp.pltdir, label)
+    image = get_image(mapp.pltdir, label, imagesize)
     imagebox = OffsetImage(image)
     ab = AnnotationBbox(imagebox, (0, 0), xybox=imageshift,
                         boxcoords="offset points")
     if show_both_images:
-        additional_image = get_image(additional_fitplot_folder, label)
+        additional_image = get_image(additional_fitplot_folder, label,
+                                     imagesize)
         additional_imagebox = OffsetImage(additional_image)
         ac = AnnotationBbox(additional_imagebox, (0, 0), xybox=imageshift,
                             boxcoords="offset points")
@@ -387,12 +261,13 @@ for key in mappings.keys():
 
         # update immage annotation
         label = mapp.listOfFiles[idx].split(os.sep)[-1].split('.')[0]
-        image = get_image(mapp.pltdir, label)
+        image = get_image(mapp.pltdir, label, imagesize)
         ab.xy = pos
         ab.offsetbox = OffsetImage(image)
         ax.add_artist(ab)
         if show_both_images:
-            additional_image = get_image(additional_fitplot_folder, label)
+            additional_image = get_image(additional_fitplot_folder, label,
+                                         imagesize)
             ac.xy = pos + shift_second_image
             ac.offsetbox = OffsetImage(additional_image)
             ax.add_artist(ac)
@@ -452,7 +327,10 @@ for key in mappings.keys():
         fig, ax = plt.subplots()
         spectra = selectSpecType(mapp, plot_clustered_fitlines)
         ax_twin, (clst, spec) = plotCluster(ax, cluster.labels_, clust,
-                                            spectra, prnt=False)
+                                            spectra, colors,
+                                            histogramm_parameters,
+                                            parameterList, parameters, bins,
+                                            mapp.missingvalue, prnt=False)
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position('right')
         ax.set_xlabel('Wavenumber (cm$^{-1}$)')
