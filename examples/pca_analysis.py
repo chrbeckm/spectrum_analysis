@@ -25,38 +25,27 @@ from spectrum_analysis import mapping as mp
 from spectrum_analysis import data
 from peaknames import peaknames
 
-mapFolderList = [
-    os.path.join('testdata', '1'),
-    os.path.join('testdata', '2'),
-    ]
-
-# number of clusters (needed for SpectralClustering)
-n_clusters = [
-    4,
-    3,
-    ]
-
-dims = [
-        (4, 4),
-        (8, 2)
-        ]
-
-stepsize = [
-            10,
-            10
-            ]
-
-# images need to be in folders specified in mapFolderList
-# best is to use png backgrounds, but jpgs work as well
-backgrounds = [
-               'bg_test.png',
-               'bg_test.jpg'
-              ]
-
-msizes = [
-          1.04,
-          1.04,
-]
+# define all data to plot mappings
+# 'mapfolder': The dir-path of the mapping to be plotted
+# 'dims': The dimensions of the mapping
+# 'stepsize': The space between two points of measurement in µm
+# 'background': Name of the background image (best png, jpg works as wel)
+#               images need to be in the defined 'mapfolder'
+# 'n_clusters': Number of clusters to be used in SpectralClustering PCA
+mappings = {
+    '001': {'mapfolder': os.path.join('testdata', '1'),
+            'dims': (4, 4),
+            'stepsize': 10,
+            'background': 'bg_test.png',
+            'markersize': 1.04,
+            'n_clusters': 4},
+    '002': {'mapfolder': os.path.join('testdata', '2'),
+            'dims': (8, 2),
+            'stepsize': 10,
+            'background': 'bg_test.jpg',
+            'markersize': 1.04,
+            'n_clusters': 3},
+    }
 
 components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
@@ -238,14 +227,14 @@ if plot_parameter_directions:
 
 print(linebreaker + '\n' + linebreaker)
 
-for folder in mapFolderList:
-    index = mapFolderList.index(folder)
-    print(f'Mapping {index + 1} of {len(mapFolderList)}\n')
+for key in mappings.keys():
+    folder = mappings[key]['mapfolder']
+    print(f'Mapping {key} of {len(mappings)}\n')
     print(f'{folder} mappings are plotted now.')
-    mapdims = dims[index]
-    step = stepsize[index]
-    background = folder + os.sep + backgrounds[index]
-    msize = msizes[index]
+    mapdims = mappings[key]['dims']
+    step = mappings[key]['stepsize']
+    background = folder + os.sep + mappings[key]['background']
+    msize = mappings[key]['markersize']
 
     mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
@@ -283,7 +272,7 @@ for folder in mapFolderList:
     x = analyzed[:, component_x]
     y = analyzed[:, component_y]
     PC = np.vstack((x, y)).transpose()
-    cluster, sc = createCluster(clustering, n_clusters[index])
+    cluster, sc = createCluster(clustering, mappings[key]['n_clusters'])
 
     # plot clustered data
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',

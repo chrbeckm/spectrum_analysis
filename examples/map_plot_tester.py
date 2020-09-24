@@ -21,32 +21,24 @@ debug = False
 if debug:
     tracemalloc.start()
 
-mapFolderList = [
-                 os.path.join('testdata', '1'),
-                 os.path.join('testdata', '2')
-                 ]
-
-dims = [
-        (4, 4),
-        (8, 2)
-        ]
-
-stepsize = [
-            10,
-            10
-            ]
-
-# images need to be in folders specified in mapFolderList
-# best is to use png backgrounds, but jpgs work as well
-backgrounds = [
-               'bg_test.png',
-               'bg_test.jpg'
-              ]
-
-msizes = [
-          1.04,
-          1.04,
-]
+# define all data to plot mappings
+# 'mapfolder': The dir-path of the mapping to be plotted
+# 'dims': The dimensions of the mapping
+# 'stepsize': The space between two points of measurement in µm
+# 'background': Name of the background image (best png, jpg works as wel)
+#               images need to be in the defined 'mapfolder'
+mappings = {
+    '001': {'mapfolder': os.path.join('testdata', '1'),
+            'dims': (4, 4),
+            'stepsize': 10,
+            'background': 'bg_test.png',
+            'markersize': 1.04},
+    '002': {'mapfolder': os.path.join('testdata', '2'),
+            'dims': (8, 2),
+            'stepsize': 10,
+            'background': 'bg_test.jpg',
+            'markersize': 1.04},
+    }
 
 # number of bins
 bins = 20
@@ -242,18 +234,20 @@ def PrintMinMax(dicti, list):
                     + ' ({})'.format(dicti[param][3])
                     + '\tSpectra: ' + str(dicti[param][5]))
 
+dims =[]
+for d in mappings.values():
+    dims.append(d['dims'])
 print('There are ' + str(CalculateSpectraNumber(dims)) + ' spectra at all.')
 print(linebreaker + '\n' + linebreaker)
 
-for folder in mapFolderList:
-    index = mapFolderList.index(folder)
-    print('Mapping ' + str(index + 1) + ' of '
-        + str(len(mapFolderList)) + '\n')
+for key in mappings.keys():
+    folder = mappings[key]['mapfolder']
+    print(f'Mapping {key} of {len(mappings)}\n')
     print(folder + ' mappings are plotted now.')
-    mapdims = dims[index]
-    step = stepsize[index]
-    background = folder + os.sep + backgrounds[index]
-    msize = msizes[index]
+    mapdims = mappings[key]['dims']
+    step = mappings[key]['stepsize']
+    background = folder + os.sep + mappings[key]['background']
+    msize = mappings[key]['markersize']
 
     mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
@@ -362,15 +356,14 @@ if scaled:
     PrintMinMax(dict_minmax_global, dict_minmax_global.keys())
     print(linebreaker + '\n' + linebreaker)
 
-    for folder in mapFolderList:
-        index = mapFolderList.index(folder)
-        print('Scaled mapping ' + str(index + 1) + ' of '
-            + str(len(mapFolderList)) + '\n')
-        print(folder + ' mappings with same scale are plotted now.')
-        mapdims = dims[index]
-        step = stepsize[index]
-        background = folder + os.sep + backgrounds[index]
-        msize = msizes[index]
+    for key in mappings.keys():
+        folder = mappings[key]['mapfolder']
+        print(f'Mapping {key} of {len(mappings)}\n')
+        print(folder + ' mappings are plotted now.')
+        mapdims = mappings[key]['dims']
+        step = mappings[key]['stepsize']
+        background = folder + os.sep + mappings[key]['background']
+        msize = mappings[key]['markersize']
 
         mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
