@@ -22,7 +22,7 @@ from spectrum_analysis import data
 from peaknames import peaknames
 from pca_methods import addPoint, scaleParameters, createCluster, get_image, \
                         printPCAresults, plotCluster, selectSpecType, \
-                        plotClusterOverview
+                        plotClusterOverview, plotHistInCluster
 
 # define all data to plot mappings
 # 'mapfolder': The dir-path of the mapping to be plotted
@@ -322,11 +322,11 @@ for key in mappings.keys():
 
     for i, clust in enumerate(rankedcluster):
         fig, ax = plt.subplots()
-        ax_twin, (clst, spec) = plotCluster(ax, cluster.labels_, clust,
-                                            spectraList, colors,
-                                            histogramm_parameters,
-                                            parameterList, parameters, bins,
-                                            mapp.missingvalue, prnt=False)
+        spec_mask = plotCluster(ax, cluster.labels_, clust, spectraList,
+                                colors, prnt=False)
+        ax_twin = plotHistInCluster(ax, clust, spec_mask,
+                                     histogramm_parameters, parameterList,
+                                     parameters, bins, mapp.missingvalue)
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position('right')
         ax.set_xlabel('Wavenumber (cm$^{-1}$)')
@@ -340,7 +340,7 @@ for key in mappings.keys():
         plt.savefig(
             (f'{clustering}{os.sep}allclusters{os.sep}'
              f'{mapp.folder.replace(os.sep, "_")}'
-             f'_pc{component_x}_pc{component_y}_S{spec:03}_C{clst}.png'),
+             f'_pc{component_x}_pc{component_y}_S{clust[1]:03}_C{clust[0]}.png'),
             dpi=300)
         # plt.show()
         plt.close()
