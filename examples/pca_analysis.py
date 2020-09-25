@@ -101,10 +101,6 @@ for key in mappings.keys():
     folder = mappings[key]['mapfolder']
     print(f'Mapping {key} of {len(mappings)}\n')
     print(f'{folder} mappings are plotted now.')
-    mapdims = mappings[key]['dims']
-    step = mappings[key]['stepsize']
-    background = f'{folder}{os.sep}{mappings[key]["background"]}'
-    msize = mappings[key]['markersize']
 
     mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
 
@@ -115,7 +111,7 @@ for key in mappings.keys():
         objects='peakparameter')
     parameters, errors = data.GetAllData(peakFileList)
     parameterList = mapp.CreatePeakList(peakFileList)
-
+    spectraList = selectSpecType(mapp, plot_clustered_fitlines)
     # preprocessing data
     # https://scikit-learn.org/stable/modules/preprocessing.html#preprocessing
     # scale all data to [0,1]
@@ -158,10 +154,11 @@ for key in mappings.keys():
 
     # get four biggest clusters and plot the sum spectrum
     rankedcluster = sorted(zip(clustersizes, clustertypes), reverse=True)
-    plotClusterOverview(mapp, ax, ax_sum, rankedcluster, cluster.labels_,
-                        colors, histogramm_parameters, parameterList,
-                        parameters, bins, mapp.missingvalue,
-                        plt_clust_fits=plot_clustered_fitlines)
+    plotClusterOverview(spectraList,
+                        ax, ax_sum,
+                        rankedcluster, cluster.labels_, colors,
+                        histogramm_parameters,
+                        parameterList, parameters, bins, mapp.missingvalue)
 
     # create labels and delete empty plots
     ax_copy = ax_sum.copy()
@@ -325,9 +322,8 @@ for key in mappings.keys():
 
     for i, clust in enumerate(rankedcluster):
         fig, ax = plt.subplots()
-        spectra = selectSpecType(mapp, plot_clustered_fitlines)
         ax_twin, (clst, spec) = plotCluster(ax, cluster.labels_, clust,
-                                            spectra, colors,
+                                            spectraList, colors,
                                             histogramm_parameters,
                                             parameterList, parameters, bins,
                                             mapp.missingvalue, prnt=False)
@@ -346,15 +342,18 @@ for key in mappings.keys():
              f'{mapp.folder.replace(os.sep, "_")}'
              f'_pc{component_x}_pc{component_y}_S{spec:03}_C{clst}.png'),
             dpi=300)
-        #plt.show()
+        # plt.show()
         plt.close()
 
     cmap = ListedColormap(colors[0:max(cluster.labels_)+1])
-    mapp.PlotMapping('params', cluster.labels_+2, mapdims, step, name='pca',
+    mapp.PlotMapping('params', cluster.labels_+2, mappings[key]['dims'],
+                     mappings[key]['stepsize'], name='pca',
                      colormap=cmap)
-    mapp.PlotMapping('params', cluster.labels_+2, mapdims, step,
+    mapp.PlotMapping('params', cluster.labels_+2, mappings[key]['dims'],
+                     mappings[key]['stepsize'],
                      name='grid_pca', alpha=0.75, grid=True,
-                     background=background, msize=msize,
+                     background=f'{folder}{os.sep}{mappings[key]["background"]}',
+                     msize=mappings[key]['markersize'],
                      plot_missing=False, area=None, colormap=cmap)
     # set rcParams to default, as PlotMapping modifies it
     rcdefaults()

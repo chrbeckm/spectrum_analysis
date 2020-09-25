@@ -34,8 +34,7 @@ def scaleParameters(params):
     scaled_params = np.zeros_like(params)
     for idx, param in enumerate(params):
         min_max_scaler = preprocessing.MinMaxScaler()
-        scaled_param = min_max_scaler.fit_transform(
-            param.reshape(-1, 1))
+        scaled_param = min_max_scaler.fit_transform(param.reshape(-1, 1))
         scaled_params[idx] = scaled_param.reshape(1, -1)
     return scaled_params
 
@@ -79,13 +78,11 @@ def printPCAresults(pc_ana, param_list, print_components=False):
 def plotCluster(axes, clst_lbl, clst, rawspec, colors, hist_params, param_list,
                 params, nbins, missing, prnt=True):
     spectra = [clst_lbl == clst[1]]
-    clusterspectra = [name for j, name in enumerate(rawspec)
-                      if spectra[0][j]]
+    clusterspectra = [name for j, name in enumerate(rawspec) if spectra[0][j]]
     clust_x, clust_y = data.GetAllData(clusterspectra)
     if prnt:
         print(f'Cluster {clst[1]}, containing {clst[0]} spectra.')
-    axes.plot(clust_x[0], sum(clust_y)/len(clust_y),
-              color=colors[clst[1]])
+    axes.plot(clust_x[0], sum(clust_y)/len(clust_y), color=colors[clst[1]])
     # plot histogrammed fwhm and position of each cluster into plot
     axs_twin = axes.twinx()
     for param in hist_params:
@@ -95,16 +92,13 @@ def plotCluster(axes, clst_lbl, clst, rawspec, colors, hist_params, param_list,
         peakname = '_'.join(param.split('_')[:-1])
         parametername = param.split("_")[-1]
         label = peaknames[peakname][parametername]['name'].split(' ')[-1]
-        axs_twin.hist(hist_params[hist_params != missing],
-                      label=label,
+        axs_twin.hist(hist_params[hist_params != missing], label=label,
                       bins=nbins, histtype='step', color=color)
         axs_twin.yaxis.tick_left()
         axs_twin.tick_params(axis='y', labelsize=7)
 
-    axes.yaxis.set_major_locator(MaxNLocator(prune='both',
-                                             nbins=3))
-    axs_twin.yaxis.set_major_locator(MaxNLocator(prune='both',
-                                                 nbins=3,
+    axes.yaxis.set_major_locator(MaxNLocator(prune='both', nbins=3))
+    axs_twin.yaxis.set_major_locator(MaxNLocator(prune='both', nbins=3,
                                                  integer=True))
     axs_twin.set_ylabel('Spectra')
     axs_twin.yaxis.set_label_position('left')
@@ -120,19 +114,18 @@ def plotCluster(axes, clst_lbl, clst, rawspec, colors, hist_params, param_list,
 
 
 def selectSpecType(mappng, plt_clust=False):
+    """Select .dat-type or .txt-type spectra."""
     if plt_clust:
-        spectra, __ = data.GetFolderContent(mappng.fitdir, 'dat',
-                                            quiet=True)
+        spectra, __ = data.GetFolderContent(mappng.fitdir, 'dat', quiet=True)
     else:
-        spectra, __ = data.GetFolderContent(mappng.folder, 'txt',
-                                            quiet=True)
+        spectra, __ = data.GetFolderContent(mappng.folder, 'txt', quiet=True)
     return spectra
 
 
-def plotClusterOverview(mapping, ax_main, ax_arr, rank_clust, clust_lbl,
+def plotClusterOverview(spectra, ax_main, ax_arr, rank_clust, clust_lbl,
                         colors, hist_params, param_list, params, nbins,
-                        missing, plt_clust_fits=False):
-    spectra = selectSpecType(mapping, plt_clust_fits)
+                        missing):
+    """Plot overview of current cluster analysis."""
     print('The clusters are')
     minimum = min(len(ax_arr), len(rank_clust))
     for i in range(0, minimum):
