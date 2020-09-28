@@ -54,6 +54,8 @@ components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
 component_y = 1   # component to plot on x axis
 
+pointsize = None  # size of scatter plot points, default: None
+
 show_hover_plot = True  # set True if interactive plot should be displayed
 display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
@@ -187,7 +189,8 @@ ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=4)
 x = analyzed[:, component_x]
 y = analyzed[:, component_y]
 PC = np.vstack((x, y)).transpose()
-cluster, sc, PC = createCluster(clustering, PC, n_clusters)
+cluster, sc, PC = createCluster(clustering, PC, n_clusters,
+                                pointsize=pointsize)
 
 # plot clustered data
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',

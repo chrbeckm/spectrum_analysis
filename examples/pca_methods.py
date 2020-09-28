@@ -39,12 +39,13 @@ def scaleParameters(params):
     return scaled_params
 
 
-def createCluster(method, principal_components, n_clust=3, min_samples=5):
+def createCluster(method, principal_components, n_clust=3, min_samples=5,
+                  pointsize=None):
     """Create cluster and plot the corresponding scatter plot."""
     if method == 'SpectralClustering':
         clust = SpectralClustering(n_clusters=n_clust)
         clust.fit(principal_components)
-        scat = plt.scatter(-100, -100, zorder=2)
+        scat = plt.scatter(-100, -100, zorder=2, s=pointsize)
     elif method == 'OPTICS':
         clust = OPTICS(min_samples=min_samples)
         clust.fit(principal_components)
