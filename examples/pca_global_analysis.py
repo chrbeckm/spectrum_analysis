@@ -131,16 +131,13 @@ for key in mappings.keys():
     scaled_parameters = scaleParameters(parameters)
     if len(scaled_parameters) < max_fitting_parameters:
         while max_fitting_parameters > len(scaled_parameters):
+            size = scaled_parameters.shape
             scaled_parameters = np.append(scaled_parameters,
-                                          np.zeros((1,
-                                                    max_fitting_parameters-1)),
-                                          axis=0)
+                                          np.zeros((1, size[1])), axis=0)
             parameters = np.append(parameters,
-                                   np.zeros((1, max_fitting_parameters-1)),
-                                   axis=0)
+                                   np.zeros((1, size[1])), axis=0)
             errors = np.append(errors,
-                               np.zeros((1, max_fitting_parameters-1)),
-                               axis=0)
+                               np.zeros((1, size[1])), axis=0)
             parameterList.append('empty_p0_empty')
 
     # transpose data, so all parameters of one spectrum are in one array
