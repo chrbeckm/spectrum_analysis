@@ -325,8 +325,8 @@ for key in mappings.keys():
         spec_mask = plotCluster(ax, cluster.labels_, clust, spectraList,
                                 colors, prnt=False)
         ax_twin = plotHistInCluster(ax, clust, spec_mask,
-                                     histogramm_parameters, parameterList,
-                                     parameters, bins, mapp.missingvalue)
+                                    histogramm_parameters, parameterList,
+                                    parameters, bins, mapp.missingvalue)
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position('right')
         ax.set_xlabel('Wavenumber (cm$^{-1}$)')
