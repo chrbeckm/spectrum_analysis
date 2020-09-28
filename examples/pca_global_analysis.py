@@ -47,6 +47,8 @@ mappings = {
             'n_clusters': 3},
     }
 
+prefix = 'global'
+
 n_clusters = 6
 components = 3    # number of PCA components
 component_x = 0   # component to plot on x axis
@@ -348,24 +350,24 @@ fig.subplots_adjust(hspace=0.001)
 if plot_parameter_directions:
     plt.savefig(
         (f'{clustering}{os.sep}directions{os.sep}'
-         f'global_pc{component_x}_pc{component_y}_dirs.png'),
+         f'{prefix}_pc{component_x}_pc{component_y}_dirs.png'),
         dpi=300)
     plt.savefig(f'{global_spectraList[0].split(os.sep)[0]}{os.sep}'
-                f'global_pca_analysis'
+                f'{prefix}_pca_analysis'
                 f'_pc{component_x}_pc{component_y}_dirs.png', dpi=300)
     plt.savefig(f'{global_spectraList[0].split(os.sep)[0]}{os.sep}'
-                f'global_pca_analysis'
+                f'{prefix}_pca_analysis'
                 f'_pc{component_x}_pc{component_y}_dirs.pdf')
 else:
     plt.savefig(
         (f'{clustering}{os.sep}'
-         f'global_pc{component_x}_pc{component_y}_dirs.png'),
+         f'{prefix}_pc{component_x}_pc{component_y}_dirs.png'),
         dpi=300)
     plt.savefig(f'{global_spectraList[0].split(os.sep)[0]}{os.sep}'
-                f'global_pca_analysis'
+                f'{prefix}_pca_analysis'
                 f'_pc{component_x}_pc{component_y}.png', dpi=300)
     plt.savefig(f'{global_spectraList[0].split(os.sep)[0]}{os.sep}'
-                f'global_pca_analysis'
+                f'{prefix}_pca_analysis'
                 f'_pc{component_x}_pc{component_y}.pdf')
 ax.set_title(f'PCA Analysis of {folder}')
 
@@ -393,13 +395,13 @@ for i, clust in enumerate(rankedcluster):
     fig.tight_layout()
     plt.savefig(
         (f'{clustering}{os.sep}allclusters{os.sep}'
-         f'global'
+         f'{prefix}'
          f'_pc{component_x}_pc{component_y}_'
          f'S{clust[1]:03}_C{clust[0]}.png'),
         dpi=300)
     plt.savefig(
         (f'{global_spectraList[0].split(os.sep)[0]}{os.sep}clusters{os.sep}'
-         f'global'
+         f'{prefix}'
          f'_pc{component_x}_pc{component_y}_'
          f'S{clust[1]:03}_C{clust[0]}.png'),
         dpi=300)
