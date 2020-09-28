@@ -13,3 +13,6 @@ log.txt
 .mypy_cache/*
 setup.cfg
 SpectralClustering/
+clusters/
+global_*
+speed*

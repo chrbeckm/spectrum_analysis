@@ -65,8 +65,7 @@ plot_only_dirs = {'fwhm': {'linestyle': '-',
 clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 
 additional_fitplot_folder = 'testdata/2/results/plot'  # additional fit data
-show_both_images = False                               # True to display both
-                                                       # fits in hovering plot
+show_both_images = False   # True to display both fits in hovering plot
 shift_second_image = [0.8, 0]
 
 numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
@@ -76,6 +75,7 @@ imagesize = (150, 150)   # size of hovering image
 imageshift = (100, -50)  # shift of hovering image
 
 plot_clustered_fitlines = False  # plot summed raw data if False
+plot_histogramm_parameters = True  # plot histogramm_parameters in cluster plot
 histogramm_parameters = ['breit_wigner_p1_fwhm', 'breit_wigner_p1_center',
                          'lorentzian_p1_fwhm', 'lorentzian_p1_center']
 bins = 10  # number of bins for histogrammed parameters
@@ -103,6 +103,11 @@ for key in mappings.keys():
     print(f'{folder} mappings are plotted now.')
 
     mapp = mp.mapping(foldername=folder, plot=True, peaknames=peaknames)
+    if not os.path.exists(f'{mapp.pltdir}{os.sep}clusters'):
+        os.makedirs(f'{mapp.pltdir}{os.sep}clusters')
+    else:
+        shutil.rmtree(f'{mapp.pltdir}{os.sep}clusters')
+        os.makedirs(f'{mapp.pltdir}{os.sep}clusters')
 
     # get fit data
     peakFileList, numberOfPeakFiles = data.GetFolderContent(
@@ -340,7 +345,14 @@ for key in mappings.keys():
         plt.savefig(
             (f'{clustering}{os.sep}allclusters{os.sep}'
              f'{mapp.folder.replace(os.sep, "_")}'
-             f'_pc{component_x}_pc{component_y}_S{clust[1]:03}_C{clust[0]}.png'),
+             f'_pc{component_x}_pc{component_y}_'
+             f'S{clust[1]:03}_C{clust[0]}.png'),
+            dpi=300)
+        plt.savefig(
+            (f'{mapp.pltdir}{os.sep}clusters{os.sep}'
+             f'{mapp.folder.replace(os.sep, "_")}'
+             f'_pc{component_x}_pc{component_y}_'
+             f'S{clust[1]:03}_C{clust[0]}.png'),
             dpi=300)
         # plt.show()
         plt.close()
@@ -352,7 +364,8 @@ for key in mappings.keys():
     mapp.PlotMapping('params', cluster.labels_+2, mappings[key]['dims'],
                      mappings[key]['stepsize'],
                      name='grid_pca', alpha=0.75, grid=True,
-                     background=f'{folder}{os.sep}{mappings[key]["background"]}',
+                     background=(f'{folder}{os.sep}'
+                                 f'{mappings[key]["background"]}'),
                      msize=mappings[key]['markersize'],
                      plot_missing=False, area=None, colormap=cmap)
     # set rcParams to default, as PlotMapping modifies it
