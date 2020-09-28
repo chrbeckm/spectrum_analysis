@@ -88,14 +88,16 @@ max_fitting_parameters = 17
 
 linebreaker = '============================================================'
 
+all_clustername = f'allclusters_{prefix}'
+
 if not os.path.exists(clustering):
     os.makedirs(clustering)
 
-if not os.path.exists(f'{clustering}{os.sep}allclusters'):
-    os.makedirs(f'{clustering}{os.sep}allclusters')
+if not os.path.exists(f'{clustering}{os.sep}{all_clustername}'):
+    os.makedirs(f'{clustering}{os.sep}{all_clustername}')
 else:
-    shutil.rmtree(f'{clustering}{os.sep}allclusters')
-    os.makedirs(f'{clustering}{os.sep}allclusters')
+    shutil.rmtree(f'{clustering}{os.sep}{all_clustername}')
+    os.makedirs(f'{clustering}{os.sep}{all_clustername}')
 
 if plot_parameter_directions:
     if not os.path.exists(os.path.join(clustering, 'directions')):
@@ -394,7 +396,7 @@ for i, clust in enumerate(rankedcluster):
                    borderaxespad=0., prop={'size': 7})
     fig.tight_layout()
     plt.savefig(
-        (f'{clustering}{os.sep}allclusters{os.sep}'
+        (f'{clustering}{os.sep}{all_clustername}{os.sep}'
          f'{prefix}'
          f'_pc{component_x}_pc{component_y}_'
          f'S{clust[1]:03}_C{clust[0]}.png'),
