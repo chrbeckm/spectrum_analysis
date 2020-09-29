@@ -12,7 +12,8 @@ from spectrum_analysis import spectrum as sp
 import numpy as np
 
 folders = [os.path.join('testdata', '1'),
-           os.path.join('testdata', '2')]
+           os.path.join('testdata', '2'),
+           os.path.join('testdata', '3')]
 
 dirpath = os.path.join('results', 'fitparameter', 'peakwise')
 

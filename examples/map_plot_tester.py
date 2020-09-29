@@ -38,6 +38,11 @@ mappings = {
             'stepsize': 10,
             'background': 'bg_test.jpg',
             'markersize': 1.04},
+    '003': {'mapfolder': os.path.join('testdata', '3'),
+            'dims': (4, 4),
+            'stepsize': 10,
+            'background': '',
+            'markersize': 1.04},
     }
 
 # number of bins

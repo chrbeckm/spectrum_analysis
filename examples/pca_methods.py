@@ -76,6 +76,20 @@ def printPCAresults(pc_ana, param_list, print_components=False):
             print()
 
 
+def fixRanges(cl_x, cl_y):
+    """Fix x ranges of the clusters."""
+    x_fix = np.zeros_like(cl_x)
+    y_fix = np.zeros_like(cl_y)
+    for i, spectrum in enumerate(cl_x):
+        if np.ptp(cl_x[0]) != np.ptp(cl_x[i]):
+            x_fix[i] = cl_x[0]
+            y_fix[i] = np.interp(cl_x[0], cl_x[i], cl_y[i])
+        else:
+            x_fix[i] = cl_x[i]
+            y_fix[i] = cl_y[i]
+    return x_fix, y_fix
+
+
 def plotCluster(axes, cl_labels, cl_tupel, specList, colors, prnt=True):
     """Plot a mean spectrum of a complete cluster from a PCA analysis."""
     spec_mask = [cl_labels == cl_tupel[1]]
@@ -83,7 +97,8 @@ def plotCluster(axes, cl_labels, cl_tupel, specList, colors, prnt=True):
     cl_x, cl_y = data.GetAllData(cl_spectra)
     if prnt:
         print(f'Cluster {cl_tupel[1]}, containing {cl_tupel[0]} spectra.')
-    axes.plot(cl_x[0], sum(cl_y)/len(cl_y), color=colors[cl_tupel[1]])
+    x_fixed, y_fixed = fixRanges(cl_x, cl_y)
+    axes.plot(x_fixed[0], sum(y_fixed)/len(y_fixed), color=colors[cl_tupel[1]])
 
     return spec_mask[0]
 

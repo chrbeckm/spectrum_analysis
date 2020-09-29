@@ -131,8 +131,16 @@ def GetFolderContent(folder, filetype,
 def VStack(i, x, xtemp):
     """Stacks arrays."""
     if i != 0:
-        if len(xtemp) < x.shape[1]:
-            xtemp = np.append(xtemp, np.zeros(x.shape[1]-len(xtemp)) + np.nan)
+        try:
+            if len(xtemp) < x.shape[1]:
+                xtemp = np.append(xtemp,
+                                  np.zeros(x.shape[1]-len(xtemp)) + np.nan)
+            elif len(xtemp) > x.shape[1]:
+                x = np.append(x, np.zeros((x.shape[0],
+                                           len(xtemp) - x.shape[1])) + np.nan,
+                              axis=1)
+        except TypeError:
+            pass
         x = np.vstack((x, xtemp))
     else:
         x = np.array(xtemp)

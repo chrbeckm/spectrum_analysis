@@ -45,6 +45,12 @@ mappings = {
             'background': 'bg_test.jpg',
             'markersize': 1.04,
             'n_clusters': 3},
+    '003': {'mapfolder': os.path.join('testdata', '3'),
+            'dims': (4, 4),
+            'stepsize': 10,
+            'background': '',
+            'markersize': 1.04,
+            'n_clusters': 4},
     }
 
 prefix = 'global'
