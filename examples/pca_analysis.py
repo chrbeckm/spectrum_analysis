@@ -22,7 +22,7 @@ from spectrum_analysis import data
 from peaknames import peaknames
 from pca_methods import addPoint, scaleParameters, createCluster, get_image, \
                         printPCAresults, plotCluster, selectSpecType, \
-                        plotClusterOverview, plotHistInCluster
+                        plotClusterOverview, plotHistInCluster, createRankedClusters
 
 # define all data to plot mappings
 # 'mapfolder': The dir-path of the mapping to be plotted
@@ -30,7 +30,7 @@ from pca_methods import addPoint, scaleParameters, createCluster, get_image, \
 # 'stepsize': The space between two points of measurement in µm
 # 'background': Name of the background image (best png, jpg works as wel)
 #               images need to be in the defined 'mapfolder'
-# 'n_clusters': Number of clusters to be used in SpectralClustering PCA
+# 'n_clusters': Number of clusters to be used in SpectralClustering PCA (max 14)
 mappings = {
     '001': {'mapfolder': os.path.join('testdata', '1'),
             'dims': (4, 4),
@@ -85,6 +85,10 @@ plot_histogramm_parameters = True  # plot histogramm_parameters in cluster plot
 histogramm_parameters = ['breit_wigner_p1_fwhm', 'breit_wigner_p1_center',
                          'lorentzian_p1_fwhm', 'lorentzian_p1_center']
 bins = 10  # number of bins for histogrammed parameters
+
+colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
+          'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan',
+          'b', 'g', 'r', 'k']
 
 linebreaker = '============================================================'
 
@@ -152,22 +156,18 @@ for key in mappings.keys():
     cluster, sc, PC = createCluster(clustering, PC,
                                     mappings[key]['n_clusters'])
 
-    # plot clustered data
-    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
-              'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
-    clustertypes = set(cluster.labels_)
-    clustersizes = []
-    for klass, color in zip(range(0, len(clustertypes)), colors):
-        PC_k = PC[cluster.labels_ == klass]
-        clustersizes.append(len(PC_k))
-        for point in PC_k:
-            addPoint(sc, point, color)
+    # create ranked PC clusters
+    PC_ranked, newlabels = createRankedClusters(PC, cluster.labels_)
+
+    # plot clusters
+    for i, clust in enumerate(PC_ranked):
+        for point in clust:
+            addPoint(sc, point, colors[i])
 
     # get four biggest clusters and plot the sum spectrum
-    rankedcluster = sorted(zip(clustersizes, clustertypes), reverse=True)
     plotClusterOverview(spectraList,
                         ax, ax_sum,
-                        rankedcluster, cluster.labels_, colors,
+                        PC_ranked, newlabels, colors,
                         histogramm_parameters,
                         parameterList, parameters, bins, mapp.missingvalue)
 
@@ -331,11 +331,11 @@ for key in mappings.keys():
 
     plt.close()
 
-    for i, clust in enumerate(rankedcluster):
+    for i, clust in enumerate(PC_ranked):
         fig, ax = plt.subplots()
-        spec_mask = plotCluster(ax, cluster.labels_, clust, spectraList,
+        spec_mask = plotCluster(ax, newlabels, i, spectraList,
                                 colors, prnt=False)
-        ax_twin = plotHistInCluster(ax, clust, spec_mask,
+        ax_twin = plotHistInCluster(ax, clust, spec_mask, i,
                                     histogramm_parameters, parameterList,
                                     parameters, bins, mapp.missingvalue)
         ax.yaxis.tick_right()
@@ -352,22 +352,22 @@ for key in mappings.keys():
             (f'{clustering}{os.sep}allclusters{os.sep}'
              f'{mapp.folder.replace(os.sep, "_")}'
              f'_pc{component_x}_pc{component_y}_'
-             f'S{clust[1]:03}_C{clust[0]}.png'),
+             f'S{len(clust):03}_C{i:02}.png'),
             dpi=300)
         plt.savefig(
             (f'{mapp.pltdir}{os.sep}clusters{os.sep}'
              f'{mapp.folder.replace(os.sep, "_")}'
              f'_pc{component_x}_pc{component_y}_'
-             f'S{clust[1]:03}_C{clust[0]}.png'),
+             f'S{len(clust):03}_C{i:02}.png'),
             dpi=300)
         # plt.show()
         plt.close()
 
-    cmap = ListedColormap(colors[0:max(cluster.labels_)+1])
-    mapp.PlotMapping('params', cluster.labels_+2, mappings[key]['dims'],
+    cmap = ListedColormap(colors[0:max(newlabels)+1])
+    mapp.PlotMapping('params', newlabels+2, mappings[key]['dims'],
                      mappings[key]['stepsize'], name='pca',
                      colormap=cmap)
-    mapp.PlotMapping('params', cluster.labels_+2, mappings[key]['dims'],
+    mapp.PlotMapping('params', newlabels+2, mappings[key]['dims'],
                      mappings[key]['stepsize'],
                      name='grid_pca', alpha=0.75, grid=True,
                      background=(f'{folder}{os.sep}'

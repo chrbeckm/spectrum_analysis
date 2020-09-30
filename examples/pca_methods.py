@@ -54,6 +54,28 @@ def createCluster(method, principal_components, n_clust=3, min_samples=5,
     return clust, scat, principal_components
 
 
+def createRankedClusters(PC, clusterlabels):
+    """Create cluster colors from labels."""
+    clustertypes = set(clusterlabels)
+    PC_ranked = []
+    c_and_s = []
+    for klass in range(0, len(clustertypes)):
+        PC_k = PC[clusterlabels == klass]
+        PC_ranked.append(PC_k)
+        c_and_s.append((klass, len(PC_k)))
+
+    PC_ranked = sorted(PC_ranked, key=len, reverse=True)
+    c_and_s = sorted(c_and_s, reverse=True,
+                                key=lambda c_and_s: c_and_s[1])
+
+    shift = 10000
+    newlabels = clusterlabels + shift
+    for item in c_and_s:
+        newlabels[clusterlabels == item[0]] = c_and_s.index(item)
+
+    return PC_ranked, newlabels
+
+
 def get_image(pltdir, label, img_size):
     """Get image."""
     img_name = f'{pltdir}{os.sep}fitplot_{label}.png'
@@ -90,20 +112,21 @@ def fixRanges(cl_x, cl_y):
     return x_fix, y_fix
 
 
-def plotCluster(axes, cl_labels, cl_tupel, specList, colors, prnt=True):
+def plotCluster(axes, cl_labels, number, specList, colors, prnt=True):
     """Plot a mean spectrum of a complete cluster from a PCA analysis."""
-    spec_mask = [cl_labels == cl_tupel[1]]
+    spec_mask = [cl_labels == number]
+    elements, counts = np.unique(spec_mask, return_counts=True)
     cl_spectra = [name for j, name in enumerate(specList) if spec_mask[0][j]]
     cl_x, cl_y = data.GetAllData(cl_spectra)
-    if prnt:
-        print(f'Cluster {cl_tupel[1]}, containing {cl_tupel[0]} spectra.')
     x_fixed, y_fixed = fixRanges(cl_x, cl_y)
-    axes.plot(x_fixed[0], sum(y_fixed)/len(y_fixed), color=colors[cl_tupel[1]])
+    if prnt:
+        print(f'Cluster {number}, containing {counts[1]} spectra.')
+    axes.plot(x_fixed[0], sum(y_fixed)/len(y_fixed), color=colors[number])
 
     return spec_mask[0]
 
 
-def plotHistInCluster(axes, clst, spectra_mask, hist_params, param_list,
+def plotHistInCluster(axes, clst, spectra_mask, number, hist_params, param_list,
                       params, nbins, missing):
     """Plot histogrammed fwhm and position of each cluster into plot."""
     axs_twin = axes.twinx()
@@ -124,7 +147,7 @@ def plotHistInCluster(axes, clst, spectra_mask, hist_params, param_list,
                                                  integer=True))
     axs_twin.set_ylabel('Spectra')
     axs_twin.yaxis.set_label_position('left')
-    axs_twin.text(0.05, 0.85, f'C{clst[1]}, {clst[0]} S',
+    axs_twin.text(0.05, 0.85, f'C {number}, {len(clst)} S',
                   transform=axes.transAxes, fontsize=8,
                   bbox=dict(color='white', alpha=0.75, pad=3))
     __, y_max_val = axs_twin.get_ylim()
@@ -151,11 +174,12 @@ def plotClusterOverview(spectra, ax_main, ax_arr, rank_clust, clust_lbl,
     print('The clusters are')
     minimum = min(len(ax_arr), len(rank_clust))
     for i in range(0, minimum):
-        spec_mask = plotCluster(ax_arr[i], clust_lbl, rank_clust[i],
+        spec_mask = plotCluster(ax_arr[i], clust_lbl, i,
                                 spectra, colors)
-        ax_twin = plotHistInCluster(ax_arr[i], rank_clust[i], spec_mask,
+        ax_twin = plotHistInCluster(ax_arr[i], rank_clust[i], spec_mask, i,
                                     hist_params, param_list, params, nbins,
                                     missing)
+        
         if i == 1:
             hnd, lbl = ax_twin.get_legend_handles_labels()
             ax_main.legend(hnd, lbl, ncol=len(hist_params),
