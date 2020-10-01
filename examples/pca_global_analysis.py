@@ -232,7 +232,7 @@ for i, clust in enumerate(PC_ranked):
     for point in clust:
         if use_parameterOfInterest_white:
             # get mapping folder of specific spectrum
-            idx = get_index(PC, point)
+            idx = np.where(PC == point)[0][0]
             specfile = global_spectraList[idx]
             specfolder = f'{os.sep}'.join(specfile.split(os.sep)[0:-1])
             # get correct mapping
