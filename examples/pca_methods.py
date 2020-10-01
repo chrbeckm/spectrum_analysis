@@ -15,12 +15,13 @@ from spectrum_analysis import data
 from peaknames import peaknames
 
 
-def addPoint(scat, new_point, c='k'):
+def addPoint(scat, new_point, c='k', white=0.0):
     """Add point to scatter plot."""
     old_off = scat.get_offsets()
     new_off = np.concatenate([old_off, np.array(new_point, ndmin=2)])
     old_c = scat.get_facecolors()
-    new_c = np.concatenate([old_c, np.array(to_rgba(c), ndmin=2)])
+    colormix = get_color(c, white)
+    new_c = np.concatenate([old_c, np.array(colormix, ndmin=2)])
 
     scat.set_offsets(new_off)
     scat.set_facecolors(new_c)
@@ -76,12 +77,30 @@ def createRankedClusters(PC, clusterlabels):
     return PC_ranked, newlabels
 
 
+def get_color(color, white):
+    """Get color from color and white content."""
+    ccolor = tuple((1-white) * x for x in to_rgba(color))
+    wcolor = tuple(white * x for x in to_rgba('w'))
+    colormix = tuple(np.sum([cc, wc]) for cc, wc in zip(ccolor, wcolor))
+    
+    return colormix
+
+
 def get_image(pltdir, label, img_size):
     """Get image."""
     img_name = f'{pltdir}{os.sep}fitplot_{label}.png'
     img = Image.open(img_name)
     img.thumbnail(img_size, Image.ANTIALIAS)  # resize the image
     return img
+
+
+def get_index(PC, point):
+    """Get index in principal component analysis of a specific point."""
+    idxlist = []
+    for element in PC:
+        idxlist.append(np.allclose(element, point))
+    idx = idxlist.index(True)
+    return idx
 
 
 def printPCAresults(pc_ana, param_list, print_components=False):
@@ -179,7 +198,7 @@ def plotClusterOverview(spectra, ax_main, ax_arr, rank_clust, clust_lbl,
         ax_twin = plotHistInCluster(ax_arr[i], rank_clust[i], spec_mask, i,
                                     hist_params, param_list, params, nbins,
                                     missing)
-        
+
         if i == 1:
             hnd, lbl = ax_twin.get_legend_handles_labels()
             ax_main.legend(hnd, lbl, ncol=len(hist_params),

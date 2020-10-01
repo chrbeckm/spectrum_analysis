@@ -22,7 +22,8 @@ from spectrum_analysis import data
 from peaknames import peaknames
 from pca_methods import addPoint, scaleParameters, createCluster, get_image, \
                         printPCAresults, plotCluster, selectSpecType, \
-                        plotClusterOverview, plotHistInCluster, createRankedClusters
+                        plotClusterOverview, plotHistInCluster, \
+                        createRankedClusters, get_index, get_color
 
 # define all data to plot mappings
 # 'mapfolder': The dir-path of the mapping to be plotted
@@ -31,6 +32,8 @@ from pca_methods import addPoint, scaleParameters, createCluster, get_image, \
 # 'background': Name of the background image (best png, jpg works as wel)
 #               images need to be in the defined 'mapfolder'
 # 'n_clusters': Number of clusters to be used in SpectralClustering PCA (max 14)
+# 'temperature': temperature of the measurement
+# 'friction': coefficient of friction of the measurement
 # CAUTION: At the moment the mapping with the most parameters needs to be last!
 mappings = {
     '001': {'mapfolder': os.path.join('testdata', '1'),
@@ -38,19 +41,25 @@ mappings = {
             'stepsize': 10,
             'background': 'bg_test.png',
             'markersize': 1.04,
-            'n_clusters': 4},
+            'n_clusters': 4,
+            'temperature': 100,
+            'friction': 1},
     '002': {'mapfolder': os.path.join('testdata', '2'),
             'dims': (8, 2),
             'stepsize': 10,
             'background': 'bg_test.jpg',
             'markersize': 1.04,
-            'n_clusters': 3},
+            'n_clusters': 3,
+            'temperature': 200,
+            'friction': 0.5},
     '003': {'mapfolder': os.path.join('testdata', '3'),
             'dims': (4, 4),
             'stepsize': 10,
             'background': '',
             'markersize': 1.04,
-            'n_clusters': 4},
+            'n_clusters': 4,
+            'temperature': 300,
+            'friction': 0.7},
     }
 
 prefix = 'global'
@@ -97,6 +106,19 @@ max_fitting_parameters = 17
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
           'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan',
           'b', 'g', 'r', 'k']
+
+# plot points with parameter dependent white content
+use_parameterOfInterest_white = True
+color_legend = False
+parameterOfInterest = 'temperature'  # temperature or friction
+temperatures = {100: 0.0,
+                200: 0.4,
+                300: 0.7}
+frictions = {1.0: 0.0,
+             0.7: 0.4,
+             0.5: 0.7}
+
+parameterValues = temperatures
 
 linebreaker = '============================================================'
 
@@ -208,7 +230,21 @@ PC_ranked, newlabels = createRankedClusters(PC, cluster.labels_)
 # plot clusters
 for i, clust in enumerate(PC_ranked):
     for point in clust:
-        addPoint(sc, point, colors[i])
+        if use_parameterOfInterest_white:
+            # get mapping folder of specific spectrum
+            idx = get_index(PC, point)
+            specfile = global_spectraList[idx]
+            specfolder = f'{os.sep}'.join(specfile.split(os.sep)[0:-1])
+            # get correct mapping
+            for item in mappings.items():
+                for key in item[1].keys():
+                    # get temperature and white
+                    if key == 'mapfolder' and item[1][key] == specfolder:
+                        parametervalue = item[1][parameterOfInterest]
+                        white = parameterValues[parametervalue]
+            addPoint(sc, point, colors[i], white=white)
+        else:
+            addPoint(sc, point, colors[i])
 
 # get four biggest clusters and plot the sum spectrum
 plotClusterOverview(global_spectraList,
@@ -245,6 +281,20 @@ ax.axhline(0, linestyle='-', color=CSS4_COLORS['lightgrey'],
            zorder=1)
 ax.axvline(0, linestyle='-', color=CSS4_COLORS['lightgrey'],
            zorder=1)
+
+# add color legend to plot
+if use_parameterOfInterest_white and color_legend:
+    xshift = +0.1
+    yshift = -0.1
+    ax.text(xmin + xshift, ymax + yshift, parameterOfInterest)
+    for i, color in enumerate(colors[0:len(PC_ranked)]):
+        for j, key in enumerate(parameterValues.keys()):
+            if i == 0:
+                ax.text(xmin + j*0.1 + xshift, ymax - 0.04 + yshift, str(key))
+            cmix = get_color(color, parameterValues[key])
+            ax.text(xmin + j*0.1 + xshift + 0.02,
+                    ymax - (i+2)*0.04 + yshift, ' ',
+                    bbox=dict(color=cmix, mutation_aspect=0.01))
 
 # add composing directions
 if plot_parameter_directions:
@@ -303,10 +353,7 @@ def update_annot(ind):
     # update text annotation
     pos = sc.get_offsets()[ind["ind"][0]]
     annot.xy = pos
-    idxlist = []
-    for element in PC:
-        idxlist.append(np.allclose(element, pos))
-    idx = idxlist.index(True)
+    idx = get_index(PC, pos)
     annotation_string = f'{idx + 1}\n'
     if display_parameter_values:
         for i, label in enumerate(parameterList):  # global_
