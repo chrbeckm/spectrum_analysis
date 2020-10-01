@@ -82,7 +82,7 @@ def get_color(color, white):
     ccolor = tuple((1-white) * x for x in to_rgba(color))
     wcolor = tuple(white * x for x in to_rgba('w'))
     colormix = tuple(np.sum([cc, wc]) for cc, wc in zip(ccolor, wcolor))
-    
+
     return colormix
 
 
@@ -190,7 +190,7 @@ def plotClusterOverview(spectra, ax_main, ax_arr, rank_clust, clust_lbl,
                         colors, hist_params, param_list, params, nbins,
                         missing):
     """Plot overview of current cluster analysis."""
-    print('The clusters are')
+    print('The biggest clusters are')
     minimum = min(len(ax_arr), len(rank_clust))
     for i in range(0, minimum):
         spec_mask = plotCluster(ax_arr[i], clust_lbl, i,
