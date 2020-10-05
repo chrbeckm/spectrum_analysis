@@ -74,7 +74,7 @@ pointsize = None  # size of scatter plot points, default: None
 show_hover_plot = True  # set True if interactive plot should be displayed
 display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
-print_PC_components = False        # print the principal components
+print_PC_components = True        # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
 plot_only_dirs = {'fwhm': {'linestyle': '-',
                            'plot_label': True},
@@ -82,6 +82,10 @@ plot_only_dirs = {'fwhm': {'linestyle': '-',
                              'plot_label': True},
                   'height': {'linestyle': '-.',
                              'plot_label': True},
+                  'friction': {'linestyle': '-.',
+                               'plot_label': True},
+                  'temperature': {'linestyle': '-.',
+                                  'plot_label': True},
                   }
 clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
 
@@ -139,9 +143,19 @@ if plot_parameter_directions:
 
 print(linebreaker + '\n' + linebreaker)
 
-global_transposed = np.zeros((1, max_fitting_parameters))
-global_parameters = np.zeros((max_fitting_parameters, 1))
-global_errors = np.zeros((max_fitting_parameters, 1))
+# scale additional parameters and add to mappings dictionary
+additional_parameters = ['temperature', 'friction']
+for param in additional_parameters:
+    values = [float(mappings[x][param]) for x in mappings.keys()]    
+    scaled_temp = scaleParameters(np.array([values]))
+    keylist = list(mappings.keys())
+    for key in keylist:
+        idx = keylist.index(key)
+        mappings[key][f'scaled_p1_{param}'] = scaled_temp[0][idx]
+
+global_transposed = np.zeros((1, max_fitting_parameters + len(additional_parameters)))
+global_parameters = np.zeros((max_fitting_parameters + len(additional_parameters), 1))
+global_errors = np.zeros((max_fitting_parameters + len(additional_parameters), 1))
 global_parameterList = []
 global_spectraList = []
 for key in mappings.keys():
@@ -167,16 +181,27 @@ for key in mappings.keys():
     # https://scikit-learn.org/stable/modules/preprocessing.html#preprocessing
     # scale all data to [0,1] and make arrays of the same size
     scaled_parameters = scaleParameters(parameters)
+    numberOfSpectra = scaled_parameters.shape[1]
     if len(scaled_parameters) < max_fitting_parameters:
         while max_fitting_parameters > len(scaled_parameters):
-            size = scaled_parameters.shape
             scaled_parameters = np.append(scaled_parameters,
-                                          np.zeros((1, size[1])), axis=0)
+                                          np.zeros((1, numberOfSpectra)), axis=0)
             parameters = np.append(parameters,
-                                   np.zeros((1, size[1])), axis=0)
+                                   np.zeros((1, numberOfSpectra)), axis=0)
             errors = np.append(errors,
-                               np.zeros((1, size[1])), axis=0)
+                               np.zeros((1, numberOfSpectra)), axis=0)
             parameterList.append('empty_p0_empty')
+
+    # append temperature and friction
+    for param in additional_parameters:
+        parametername = f'scaled_p1_{param}'
+        scaled_parameters = np.append(scaled_parameters,
+                                      np.ones((1, numberOfSpectra)) * mappings[key][parametername], axis=0)
+        parameters = np.append(parameters,
+                               np.ones((1, numberOfSpectra)) * mappings[key][parametername], axis=0)
+        errors = np.append(errors,
+                               np.zeros((1, numberOfSpectra)), axis=0)
+        parameterList.append(parametername)
 
     # transpose data, so all parameters of one spectrum are in one array
     transposed = np.transpose(scaled_parameters)
@@ -207,7 +232,7 @@ else:
 pca = PCA(n_components=components)
 analyzed = pca.fit(global_transposed).transform(global_transposed)
 if print_PCA_results:
-    printPCAresults(pca, global_parameterList,
+    printPCAresults(pca, parameterList,
                     print_components=print_PC_components)
 
 # plot everything and annotate each datapoint
@@ -314,6 +339,8 @@ if plot_parameter_directions:
                 color = 'g'
             elif peaktype == 'v':
                 color = 'c'
+            else:
+                color = 'tab:orange'
             color = (np.array(to_rgba(color))
                      - np.array((0, 0, 0, 0.3 * (peaknumber-1))))
             line = ax.plot((0, pcx[i]), (0, pcy[i]), color=color, zorder=3,
