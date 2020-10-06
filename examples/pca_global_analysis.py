@@ -315,7 +315,6 @@ for i, clust in enumerate(PC_ranked):
             else:
                 addPoint(sc, point, colors[i])
     print(f'Cluster {i} plotted.')
-    print(f'Cluster {i} plotted.')
 
 print('All clusters plotted.')
 
