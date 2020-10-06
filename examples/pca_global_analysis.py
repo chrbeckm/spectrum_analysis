@@ -97,13 +97,13 @@ plot_only_dirs = {'fwhm': {'linestyle': '-',
                   'atmosphere': {'linestyle': '-.',
                                  'plot_label': True},
                   }
-clustering = 'SpectralClustering'  # SpectralClustering (or OPTICS)
+clustering = 'OPTICS'  # SpectralClustering (or OPTICS)
 
 additional_fitplot_folder = 'testdata/2/results/plot'  # additional fit data
 show_both_images = False   # True to display both fits in hovering plot
 shift_second_image = [0.8, 0]
 
-numberOfSamples = 2   # minimal number of samples (needed for OPTICS)
+numberOfSamples = 6   # minimal number of samples (needed for OPTICS)
 brim = 0.25           # minimal brim around plotted data
 
 imagesize = (150, 150)   # size of hovering image
@@ -280,7 +280,8 @@ ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=4)
 x = analyzed[:, component_x]
 y = analyzed[:, component_y]
 PC = np.vstack((x, y)).transpose()
-cluster, sc, PC = createCluster(clustering, PC, n_clusters,
+cluster, sc, PC = createCluster(clustering, PC, n_clust=n_clusters,
+                                min_samples=numberOfSamples,
                                 pointsize=pointsize)
 
 print('Clusters created.')

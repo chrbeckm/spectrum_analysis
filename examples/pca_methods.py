@@ -74,6 +74,10 @@ def createRankedClusters(PC, clusterlabels):
     for item in c_and_s:
         newlabels[clusterlabels == item[0]] = c_and_s.index(item)
 
+    # check for empty arrays at the end
+    if PC_ranked[-1].size == 0:
+        PC_ranked = PC_ranked[0:-1]
+
     return PC_ranked, newlabels
 
 
@@ -195,6 +199,7 @@ def plotClusterOverview(spectra, ax_main, ax_arr, rank_clust, clust_lbl,
     for i in range(0, minimum):
         spec_mask = plotCluster(ax_arr[i], clust_lbl, i,
                                 spectra, colors)
+
         ax_twin = plotHistInCluster(ax_arr[i], rank_clust[i], spec_mask, i,
                                     hist_params, param_list, params, nbins,
                                     missing)
