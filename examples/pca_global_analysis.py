@@ -104,6 +104,8 @@ show_both_images = False   # True to display both fits in hovering plot
 shift_second_image = [0.8, 0]
 
 numberOfSamples = 6   # minimal number of samples (needed for OPTICS)
+xi = 0.10             # the minimum steepness on the reachability plot that constitutes a cluster boundary
+
 brim = 0.25           # minimal brim around plotted data
 
 imagesize = (150, 150)   # size of hovering image
@@ -281,7 +283,7 @@ x = analyzed[:, component_x]
 y = analyzed[:, component_y]
 PC = np.vstack((x, y)).transpose()
 cluster, sc, PC = createCluster(clustering, PC, n_clust=n_clusters,
-                                min_samples=numberOfSamples,
+                                min_samples=numberOfSamples, xi=xi,
                                 pointsize=pointsize)
 
 print('Clusters created.')
@@ -303,9 +305,16 @@ for i, clust in enumerate(PC_ranked):
                     if key == 'mapfolder' and item[1][key] == specfolder:
                         parametervalue = item[1][parameterOfInterest]
                         white = parameterValues[parametervalue]
-            addPoint(sc, point, colors[i], white=white)
+            if i == (len(PC_ranked) - 1) and clustering == 'OPTICS':
+                addPoint(sc, point, 'grey', white=white)
+            else:
+                addPoint(sc, point, colors[i], white=white)
         else:
-            addPoint(sc, point, colors[i])
+            if i == (len(PC_ranked) - 1) and clustering == 'OPTICS':
+                addPoint(sc, point, 'grey')
+            else:
+                addPoint(sc, point, colors[i])
+    print(f'Cluster {i} plotted.')
     print(f'Cluster {i} plotted.')
 
 print('All clusters plotted.')

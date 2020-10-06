@@ -41,14 +41,14 @@ def scaleParameters(params):
 
 
 def createCluster(method, principal_components, n_clust=3, min_samples=5,
-                  pointsize=None):
+                  pointsize=None, xi=0.05):
     """Create cluster and plot the corresponding scatter plot."""
     if method == 'SpectralClustering':
         clust = SpectralClustering(n_clusters=n_clust)
         clust.fit(principal_components)
         scat = plt.scatter(-100, -100, zorder=2, s=pointsize)
     elif method == 'OPTICS':
-        clust = OPTICS(min_samples=min_samples)
+        clust = OPTICS(min_samples=min_samples, xi=xi)
         clust.fit(principal_components)
         scat = plt.scatter(-100, -100, zorder=2, s=pointsize)
     return clust, scat, principal_components
@@ -139,7 +139,10 @@ def plotCluster(axes, cl_labels, number, specList, colors, prnt=True):
     x_fixed, y_fixed = fixRanges(cl_x, cl_y)
     if prnt:
         print(f'Cluster {number}, containing {counts[1]} spectra.')
-    axes.plot(x_fixed[0], sum(y_fixed)/len(y_fixed), color=colors[number])
+    if number == list(set(cl_labels))[-1]:
+        axes.plot(x_fixed[0], sum(y_fixed)/len(y_fixed), color='grey')
+    else:
+        axes.plot(x_fixed[0], sum(y_fixed)/len(y_fixed), color=colors[number])
 
     return spec_mask[0]
 
