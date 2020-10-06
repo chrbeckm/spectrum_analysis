@@ -50,8 +50,7 @@ def createCluster(method, principal_components, n_clust=3, min_samples=5,
     elif method == 'OPTICS':
         clust = OPTICS(min_samples=min_samples)
         clust.fit(principal_components)
-        scat = plt.scatter(principal_components[clust.labels_ == -1, 0],
-                           principal_components[clust.labels_ == -1, 1], c='k')
+        scat = plt.scatter(-100, -100, zorder=2, s=pointsize)
     return clust, scat, principal_components
 
 
