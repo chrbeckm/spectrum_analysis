@@ -59,7 +59,7 @@ def createRankedClusters(PC, clusterlabels):
     clustertypes = set(clusterlabels)
     PC_ranked = []
     c_and_s = []
-    for klass in range(0, len(clustertypes)):
+    for klass in clustertypes:
         PC_k = PC[clusterlabels == klass]
         PC_ranked.append(PC_k)
         c_and_s.append((klass, len(PC_k)))
@@ -72,10 +72,6 @@ def createRankedClusters(PC, clusterlabels):
     newlabels = clusterlabels + shift
     for item in c_and_s:
         newlabels[clusterlabels == item[0]] = c_and_s.index(item)
-
-    # check for empty arrays at the end
-    if PC_ranked[-1].size == 0:
-        PC_ranked = PC_ranked[0:-1]
 
     return PC_ranked, newlabels
 
