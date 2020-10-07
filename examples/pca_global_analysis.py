@@ -23,7 +23,8 @@ from peaknames import peaknames
 from pca_methods import addPoint, scaleParameters, createCluster, get_image, \
                         printPCAresults, plotCluster, selectSpecType, \
                         plotClusterOverview, plotHistInCluster, \
-                        createRankedClusters, get_index, get_color
+                        createRankedClusters, get_index, get_color, \
+                        plotReachability
 
 # define all data to plot mappings
 # 'mapfolder': The dir-path of the mapping to be plotted
@@ -277,11 +278,12 @@ if print_PCA_results:
 print('PCA generated.')
 # plot everything and annotate each datapoint
 fig = plt.figure()
+ax_reach = plt.subplot2grid((4, 3), (3, 0), colspan=2)
 ax_sum = [plt.subplot2grid((4, 3), (0, 2)),
           plt.subplot2grid((4, 3), (1, 2)),
           plt.subplot2grid((4, 3), (2, 2)),
           plt.subplot2grid((4, 3), (3, 2))]
-ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=4)
+ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=3)
 
 x = analyzed[:, component_x]
 y = analyzed[:, component_y]
@@ -294,6 +296,9 @@ cluster, sc, PC = createCluster(clustering, PC, n_clust=n_clusters,
 print('Clusters created.')
 # create ranked PC clusters
 PC_ranked, newlabels = createRankedClusters(PC, cluster.labels_)
+
+# plot reachability
+plotReachability(ax_reach, cluster, newlabels, colors, pointsize=pointsize)
 
 # plot clusters
 for i, clust in enumerate(PC_ranked):
@@ -506,7 +511,7 @@ else:
     plt.savefig(f'{global_spectraList[0].split(os.sep)[0]}{os.sep}'
                 f'{prefix}_pca_analysis'
                 f'_pc{component_x}_pc{component_y}.pdf')
-ax.set_title(f'Global PCA Analysis')
+ax.set_title('Global PCA Analysis')
 
 if show_hover_plot:
     plt.show()

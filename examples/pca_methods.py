@@ -157,8 +157,8 @@ def plotCluster(axes, cl_labels, number, specList, colors, prnt=True):
     return spec_mask[0]
 
 
-def plotHistInCluster(axes, clst, spectra_mask, number, hist_params, param_list,
-                      params, nbins, missing):
+def plotHistInCluster(axes, clst, spectra_mask, number, hist_params,
+                      param_list, params, nbins, missing):
     """Plot histogrammed fwhm and position of each cluster into plot."""
     axs_twin = axes.twinx()
     for param in hist_params:
@@ -218,3 +218,23 @@ def plotClusterOverview(spectra, ax_main, ax_arr, rank_clust, clust_lbl,
                            bbox_to_anchor=(0, 1.01),  # legend on top pca plot
                            loc='lower left', prop={'size': 6},
                            borderaxespad=0.)
+
+
+def plotReachability(ax, cluster, labels, colors, pointsize=None):
+    """Plot the reachabilit of an OPTICS clustering."""
+    # plot reachability
+    space = np.arange(len(cluster.reachability_))
+    reachability = cluster.reachability_[cluster.ordering_]
+    labels = labels[cluster.ordering_]
+    label_set = list(set(labels))
+
+    # Reachability plot
+    for klass, color in zip(label_set[:-1], colors):
+        Xk = space[labels == klass]
+        Rk = reachability[labels == klass]
+        ax.scatter(Xk, Rk, c=color, s=pointsize)
+    ax.scatter(space[labels == label_set[-1]],
+               reachability[labels == label_set[-1]],
+               c='grey', s=pointsize)
+    ax.set_ylabel('Reachability (epsilon distance)')
+    ax.set_xlabel('Data points')
