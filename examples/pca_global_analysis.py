@@ -103,8 +103,9 @@ additional_fitplot_folder = 'testdata/2/results/plot'  # additional fit data
 show_both_images = False   # True to display both fits in hovering plot
 shift_second_image = [0.8, 0]
 
-numberOfSamples = 6   # minimal number of samples (needed for OPTICS)
-xi = 0.10             # the minimum steepness on the reachability plot that constitutes a cluster boundary
+numberOfSamples = 4     # minimal number of samples (needed for OPTICS)
+xi = 0.05               # minimum steepness on the reachability plot that
+                        # constitutes a cluster boundary
 
 brim = 0.25           # minimal brim around plotted data
 

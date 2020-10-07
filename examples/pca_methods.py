@@ -66,7 +66,16 @@ def createRankedClusters(PC, clusterlabels):
 
     PC_ranked = sorted(PC_ranked, key=len, reverse=True)
     c_and_s = sorted(c_and_s, reverse=True,
-                                key=lambda c_and_s: c_and_s[1])
+                     key=lambda c_and_s: c_and_s[1])
+
+    # find unclustered data points and move them to the end of the lists
+    try:
+        sorted_cluster = [item[0] for item in c_and_s]
+        idx = sorted_cluster.index(-1)
+        c_and_s.append(c_and_s.pop(idx))
+        PC_ranked.append(PC_ranked.pop(idx))
+    except ValueError:
+        pass
 
     shift = 10000
     newlabels = clusterlabels + shift
