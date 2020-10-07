@@ -82,30 +82,33 @@ display_parameter_values = True    # show fitting values at hovering
 print_PCA_results = True           # print PCA results to command line
 print_PC_components = True        # print the principal components
 plot_parameter_directions = True   # plot direction of parameters in PC space
-plot_only_dirs = {'fwhm': {'linestyle': '-',
+plot_only_dirs = {
+    'fwhm': {'linestyle': '-',
                            'plot_label': True},
-                  'center': {'linestyle': '--',
+    'center': {'linestyle': '--',
                              'plot_label': True},
-                  'height': {'linestyle': '-.',
+    'height': {'linestyle': '-.',
                              'plot_label': True},
-                  'friction': {'linestyle': '-.',
+    'friction': {'linestyle': '-.',
                                'plot_label': True},
-                  'temperature': {'linestyle': '-.',
+    'temperature': {'linestyle': '-.',
                                   'plot_label': True},
-                  'lubricant': {'linestyle': '-.',
+    'lubricant': {'linestyle': '-.',
                                 'plot_label': True},
-                  'atmosphere': {'linestyle': '-.',
+    'atmosphere': {'linestyle': '-.',
                                  'plot_label': True},
-                  }
+    }
 clustering = 'OPTICS'  # SpectralClustering (or OPTICS)
 
 additional_fitplot_folder = 'testdata/2/results/plot'  # additional fit data
 show_both_images = False   # True to display both fits in hovering plot
 shift_second_image = [0.8, 0]
 
-numberOfSamples = 4     # minimal number of samples (needed for OPTICS)
+min_samples = 4         # minimal number of samples in a neighborhood for a
+                        # point to be considered as a core point
 xi = 0.05               # minimum steepness on the reachability plot that
                         # constitutes a cluster boundary
+min_cluster_size = 0.05 # Minimum number of samples in an OPTICS cluster
 
 brim = 0.25           # minimal brim around plotted data
 
@@ -284,7 +287,8 @@ x = analyzed[:, component_x]
 y = analyzed[:, component_y]
 PC = np.vstack((x, y)).transpose()
 cluster, sc, PC = createCluster(clustering, PC, n_clust=n_clusters,
-                                min_samples=numberOfSamples, xi=xi,
+                                min_samples=min_samples, xi=xi,
+                                min_cluster_size=min_cluster_size,
                                 pointsize=pointsize)
 
 print('Clusters created.')
