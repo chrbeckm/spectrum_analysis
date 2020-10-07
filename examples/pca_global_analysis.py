@@ -278,12 +278,15 @@ if print_PCA_results:
 print('PCA generated.')
 # plot everything and annotate each datapoint
 fig = plt.figure()
-ax_reach = plt.subplot2grid((4, 3), (3, 0), colspan=2)
 ax_sum = [plt.subplot2grid((4, 3), (0, 2)),
           plt.subplot2grid((4, 3), (1, 2)),
           plt.subplot2grid((4, 3), (2, 2)),
           plt.subplot2grid((4, 3), (3, 2))]
-ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=3)
+if clustering == 'OPTICS':
+    ax_reach = plt.subplot2grid((4, 3), (3, 0), colspan=2)
+    ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=3)
+else:
+    ax = plt.subplot2grid((4, 3), (0, 0), colspan=2, rowspan=4)
 
 x = analyzed[:, component_x]
 y = analyzed[:, component_y]
@@ -298,7 +301,9 @@ print('Clusters created.')
 PC_ranked, newlabels = createRankedClusters(PC, cluster.labels_)
 
 # plot reachability
-plotReachability(ax_reach, cluster, newlabels, colors, pointsize=pointsize)
+if clustering == 'OPTICS':
+    plotReachability(ax_reach, cluster, newlabels, colors,
+                     pointsize=pointsize)
 
 # plot clusters
 for i, clust in enumerate(PC_ranked):
